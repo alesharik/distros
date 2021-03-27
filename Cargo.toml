@@ -17,6 +17,8 @@ raw-cpuid = "9.0.0"
 bitflags = "1.2.1"
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 fixedbitset = { version = "0.4.0", default-features = false }
+rand = { version = "0.8.3", default-features = false, features = ["alloc"] }
+rand_pcg = "0.3.0"
 
 [dependencies.lazy_static]
 version = "1.4.0"

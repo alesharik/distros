@@ -27,6 +27,7 @@ mod cpuid;
 mod pic;
 mod cmos;
 mod timer;
+mod random;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -64,9 +65,7 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     println!("TIMEOUT");
     println!("TIME {}", cmos::read_time());
 
-    // loop {
-    //     timer::sleep(Duration::from_secs(2));
-    //     println!("TIME {}", timer::now());
-    // }
-    loop {}
+    loop {
+        x86_64::instructions::hlt();
+    }
 }
