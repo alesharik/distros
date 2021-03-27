@@ -5,7 +5,7 @@ use crate::gdt;
 use crate::kblog;
 use spin::mutex::Mutex;
 use crate::timer::ktimer_handler;
-use spin::MutexGuard;
+use crate::pic::nmi_status;
 
 pub const INT_LAPIC_TIMER: usize = 33;
 pub const INT_LAPIC_ERROR: usize = 34;
@@ -17,6 +17,7 @@ lazy_static! {
         let mut idt = InterruptDescriptorTable::new();
         idt.breakpoint.set_handler_fn(breakpoint_handler);
         idt.page_fault.set_handler_fn(page_fault_handler);
+        idt.non_maskable_interrupt.set_handler_fn(nmi_handler);
         unsafe {
             idt.double_fault.set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
@@ -45,6 +46,11 @@ pub fn init_ktimer(int: usize) {
 
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame)  {
     println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn nmi_handler(stack_frame: &mut InterruptStackFrame)  {
+    let status = nmi_status();
+    panic!("NMI: A = {:?}, B = {:?}\n{:#?}", status.0, status.1, stack_frame);
 }
 
 extern "x86-interrupt" fn lapic_error(stack_frame: &mut InterruptStackFrame)  {

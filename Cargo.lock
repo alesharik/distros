@@ -73,6 +73,7 @@ name = "distros"
 version = "0.1.0"
 dependencies = [
  "acpi",
+ "bitflags",
  "bootloader",
  "lazy_static",
  "linked_list_allocator",

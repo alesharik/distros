@@ -1,4 +1,4 @@
-use x2apic::lapic::{LocalApicBuilder, TimerMode, TimerDivide, LocalApic};
+use x2apic::lapic::{LocalApicBuilder, TimerDivide, LocalApic};
 use crate::interrupts::{INT_LAPIC_TIMER, INT_LAPIC_ERROR, INT_LAPIC_SUPROUS};
 use x86_64::VirtAddr;
 use spin::Mutex;
@@ -27,6 +27,6 @@ pub fn init_lapic(address: VirtAddr) {
 
 pub fn eoi() {
     let mut guard = LAPIC.lock();
-    let mut lapic = guard.as_mut().expect("Local APIC is not initialized");
+    let lapic = guard.as_mut().expect("Local APIC is not initialized");
     unsafe { lapic.end_of_interrupt(); }
 }

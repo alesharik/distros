@@ -3,6 +3,7 @@
 #![no_std]
 #![no_main]
 #![feature(alloc_error_handler)]
+#![allow(dead_code)]
 
 extern crate alloc;
 #[macro_use]

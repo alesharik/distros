@@ -1,13 +1,13 @@
 use x86_64::structures::idt::InterruptStackFrame;
 use core::sync::atomic::{AtomicU64, Ordering};
 use core::time::Duration;
-use crate::acpi::AcpiInfo;
 
 mod pit;
+mod rtc;
 
 static mut TIME: AtomicU64 = AtomicU64::new(0);
 
-pub extern "x86-interrupt" fn ktimer_handler(stack_frame: &mut InterruptStackFrame) {
+pub extern "x86-interrupt" fn ktimer_handler(_stack_frame: &mut InterruptStackFrame) {
     unsafe { TIME.fetch_add(1, Ordering::AcqRel); }
     crate::pic::eoi();
 }

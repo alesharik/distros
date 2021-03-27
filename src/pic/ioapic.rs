@@ -85,6 +85,6 @@ pub fn init_ioapic(apic: &Apic) {
 
 pub fn map_irc_irq(isr: u8, dest: u32) -> usize {
     let mut guard = IOAPIC_MANAGER.lock();
-    let mut manager = guard.as_mut().expect("IOAPIC manager is not initialized");
+    let manager = guard.as_mut().expect("IOAPIC manager is not initialized");
     manager.map_isr_irq(isr, dest)
 }

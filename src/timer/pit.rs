@@ -1,5 +1,3 @@
-#[allow(unused)]
-
 use spin::Mutex;
 use x86_64::instructions::port::PortWriteOnly;
 
