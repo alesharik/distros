@@ -5,6 +5,7 @@ use crate::gdt;
 use crate::kblog;
 use spin::mutex::Mutex;
 use crate::pic::nmi_status;
+use fixedbitset::FixedBitSet;
 
 pub const INT_LAPIC_TIMER: usize = 33;
 pub const INT_LAPIC_ERROR: usize = 34;
@@ -26,6 +27,7 @@ lazy_static! {
         idt[INT_LAPIC_TIMER].set_handler_fn(lapic_timer);
         idt
     });
+    static ref SET_INTS: Mutex<FixedBitSet> = Mutex::new(FixedBitSet::with_capacity(256));
 }
 
 pub fn init_idt() {
@@ -36,6 +38,11 @@ pub fn init_idt() {
 
 pub fn set_handler(int: usize, func: HandlerFunc) {
     let mut idt = IDT.lock();
+    let mut set_ints = SET_INTS.lock();
+    if set_ints.contains(int) {
+        panic!("Interrupt {} already registered", int);
+    }
+    set_ints.insert(int);
     unsafe {
         idt[int].set_handler_fn(func);
         idt.load_unsafe();
