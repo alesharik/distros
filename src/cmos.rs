@@ -20,7 +20,7 @@ fn bcd_to_binary(value: u8) -> u8 {
     ((value & 0xF0) >> 1 ) + ((value & 0xF0) >> 3) + (value & 0xF)
 }
 
-pub fn read_time() -> NaiveDateTime {
+fn read_time_unsafe() -> NaiveDateTime {
     let mut address = ADDRESS.lock();
     let mut data = DATA.lock();
     let mut get_register = |reg: u8| {
@@ -80,4 +80,10 @@ pub fn read_time() -> NaiveDateTime {
         NaiveDate::from_ymd((SENTURY + year as u16) as i32, month as u32, day as u32),
         NaiveTime::from_hms(hour as u32, minute as u32, second as u32)
     )
+}
+
+pub fn read_time() -> NaiveDateTime {
+    crate::pic::no_int(|| {
+        read_time_unsafe()
+    })
 }
