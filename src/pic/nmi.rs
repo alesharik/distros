@@ -1,7 +1,6 @@
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortReadOnly};
 use core::ops::Not;
-use bitflags::bitflags;
 
 bitflags! {
     pub struct StatusA: u8 {

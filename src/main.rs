@@ -8,6 +8,8 @@
 extern crate alloc;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate bitflags;
 
 use core::panic::PanicInfo;
 use bootloader::{BootInfo, entry_point};
@@ -23,6 +25,7 @@ mod kheap;
 mod acpi;
 mod cpuid;
 mod pic;
+mod cmos;
 mod timer;
 
 /// This function is called on panic.
@@ -57,6 +60,7 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     println!("TIMEOUT");
     timer::sleep(Duration::from_secs(2));
     println!("TIMEOUT");
+    println!("TIME {}", cmos::read_time());
 
     loop {}
 }

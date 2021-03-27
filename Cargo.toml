@@ -15,6 +15,7 @@ acpi = "2.2.0"
 x2apic = { git = "https://github.com/alesharik/x2apic-rs.git", branch = "xapic"}
 raw-cpuid = "9.0.0"
 bitflags = "1.2.1"
+chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
 [dependencies.lazy_static]
 version = "1.4.0"
