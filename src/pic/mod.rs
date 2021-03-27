@@ -24,13 +24,18 @@ pub fn enable_interrupts() {
     nmi::nmi_enable();
 }
 
+pub fn disable_interrupts() {
+    x86_64::instructions::interrupts::disable();
+    nmi::nmi_disable();
+}
+
 pub fn no_int<F, R>(f: F) -> R
     where
         F: FnOnce() -> R {
-    nmi::nmi_disable();
     x86_64::instructions::interrupts::disable();
+    nmi::nmi_disable();
     let v = f();
-    x86_64::instructions::interrupts::enable();
     nmi::nmi_enable();
+    x86_64::instructions::interrupts::enable();
     v
 }

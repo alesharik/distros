@@ -52,6 +52,9 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     kheap::init_kheap().unwrap();
     let acpi = acpi::init_acpi();
     println!("ISR {:?}", acpi.apic.interrupt_source_overrides);
+
+    pic::disable_interrupts();
+
     pic::init_pic(&acpi.apic);
     timer::init_timer();
 
@@ -62,5 +65,9 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     println!("TIMEOUT");
     println!("TIME {}", cmos::read_time());
 
+    loop {
+        timer::sleep(Duration::from_secs(2));
+        println!("TIME {}", timer::now());
+    }
     loop {}
 }

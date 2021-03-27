@@ -5,6 +5,8 @@ use core::time::Duration;
 mod pit;
 mod rtc;
 
+pub use rtc::now;
+
 static mut TIME: AtomicU64 = AtomicU64::new(0);
 
 pub extern "x86-interrupt" fn ktimer_handler(_stack_frame: &mut InterruptStackFrame) {
@@ -26,4 +28,8 @@ pub fn init_timer() {
     let pit_irq = pit::init_pit();
     let pit_mapped_irq = crate::pic::map_irc_irq(pit_irq, 0);
     crate::interrupts::init_ktimer(pit_mapped_irq);
+
+    let rtc_mapped_irq = crate::pic::map_irc_irq(rtc::IRQ, 0);
+    crate::interrupts::set_handler(rtc_mapped_irq, rtc::rtc_handler);
+    rtc::start_rtc();
 }

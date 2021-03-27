@@ -20,7 +20,7 @@ fn bcd_to_binary(value: u8) -> u8 {
     ((value & 0xF0) >> 1 ) + ((value & 0xF0) >> 3) + (value & 0xF)
 }
 
-fn read_time_unsafe() -> NaiveDateTime {
+pub fn read_time_unsafe() -> NaiveDateTime {
     let mut address = ADDRESS.lock();
     let mut data = DATA.lock();
     let mut get_register = |reg: u8| {
@@ -63,6 +63,10 @@ fn read_time_unsafe() -> NaiveDateTime {
         }
     }
 
+    if (status_b & StatusB::HOUR_24).is_empty() { // convert hour from 12-hour format
+        hour = ((hour & 0x7F) + 12) & 24
+    }
+
     if (status_b & StatusB::BINARY).is_empty() { // convert from BCD format
         second = bcd_to_binary(second);
         minute = bcd_to_binary(minute);
@@ -70,10 +74,6 @@ fn read_time_unsafe() -> NaiveDateTime {
         day = bcd_to_binary(day);
         month = bcd_to_binary(month);
         year = bcd_to_binary(year);
-    }
-
-    if (status_b & StatusB::HOUR_24).is_empty() { // convert hour from 12-hour format
-        hour = ((hour & 0x7F) + 12) & 24
     }
 
     NaiveDateTime::new(

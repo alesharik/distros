@@ -1,4 +1,4 @@
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode, HandlerFunc};
 use lazy_static::lazy_static;
 use crate::{println, eprintln};
 use crate::gdt;
@@ -42,6 +42,14 @@ pub fn init_ktimer(int: usize) {
         idt.load_unsafe();
     }
     kblog!("IDT", "KTimer set up")
+}
+
+pub fn set_handler(int: usize, func: HandlerFunc) {
+    let mut idt = IDT.lock();
+    unsafe {
+        idt[int].set_handler_fn(func);
+        idt.load_unsafe();
+    }
 }
 
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame)  {
