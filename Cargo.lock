@@ -2,9 +2,9 @@
 # It is not intended for manual editing.
 [[package]]
 name = "acpi"
-version = "2.2.0"
+version = "2.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "588edec856d4efbd20b3a04279e3ceada79d652c7b459fa094881dd946998790"
+checksum = "13cc8b2a874c1af0b8cece57f9c5f3034d84de325c487b58aa9112ab1a21c09f"
 dependencies = [
  "bit_field 0.10.1",
  "log",
@@ -285,7 +285,7 @@ checksum = "e4c2dbd44eb8b53973357e6e207e370f0c1059990df850aca1eca8947cf464f0"
 [[package]]
 name = "x2apic"
 version = "0.1.0"
-source = "git+https://github.com/alesharik/x2apic-rs.git?branch=xapic#bea66fd25f3b76fe2d27787517657cb95607eaaf"
+source = "git+https://github.com/alesharik/x2apic-rs.git?branch=xapic#bf7fedcc0d3a2e89e99a19bfb6fe0c211a6fc9b2"
 dependencies = [
  "bit",
  "bitflags",

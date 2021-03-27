@@ -66,8 +66,8 @@ extern "x86-interrupt" fn lapic_suprous(stack_frame: &mut InterruptStackFrame)  
     eprintln!("EXCEPTION: LAPIC SUPROUS\n{:#?}", stack_frame);
 }
 
-extern "x86-interrupt" fn lapic_timer(stack_frame: &mut InterruptStackFrame)  {
-    eprintln!("EXCEPTION: LAPIC TIMER\n{:#?}", stack_frame);
+extern "x86-interrupt" fn lapic_timer(_stack_frame: &mut InterruptStackFrame)  {
+    crate::pic::eoi();
 }
 
 extern "x86-interrupt" fn double_fault_handler(stack_frame: &mut InterruptStackFrame, _error_code: u64) -> ! {
