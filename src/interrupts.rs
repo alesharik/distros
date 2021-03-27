@@ -4,7 +4,6 @@ use crate::{println, eprintln};
 use crate::gdt;
 use crate::kblog;
 use spin::mutex::Mutex;
-use crate::timer::ktimer_handler;
 use crate::pic::nmi_status;
 
 pub const INT_LAPIC_TIMER: usize = 33;
@@ -33,15 +32,6 @@ pub fn init_idt() {
     let guard = IDT.lock();
     unsafe { guard.load_unsafe(); }
     kblog!("IDT", "IDT table loaded");
-}
-
-pub fn init_ktimer(int: usize) {
-    let mut idt = IDT.lock();
-    unsafe {
-        idt[int].set_handler_fn(ktimer_handler).set_stack_index(gdt::KTIMER_IST_INDEX);
-        idt.load_unsafe();
-    }
-    kblog!("IDT", "KTimer set up")
 }
 
 pub fn set_handler(int: usize, func: HandlerFunc) {
