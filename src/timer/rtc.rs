@@ -48,6 +48,7 @@ pub extern "x86-interrupt" fn rtc_handler(_stack_frame: &mut InterruptStackFrame
     })
 }
 
+#[inline]
 pub fn now() -> u64 {
     TIME.load(Ordering::Acquire)
 }

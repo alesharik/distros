@@ -30,6 +30,7 @@ impl AcpiHandler for AcpiMemHandler {
     }
 }
 
+#[derive(Debug)]
 pub struct AcpiInfo {
     pub apic: Apic
 }
