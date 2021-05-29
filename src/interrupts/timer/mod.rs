@@ -6,6 +6,7 @@ mod hpet;
 
 pub use rtc::now;
 use crate::acpi::AcpiInfo;
+use crate::interrupts::RTC_IRQ;
 
 pub fn sleep(duration: Duration) {
     let delta = duration.as_millis();
@@ -18,15 +19,14 @@ pub fn sleep(duration: Duration) {
 pub fn init_timer(acpi: &AcpiInfo) {
     if let Some(hpet) = acpi.hpet.as_ref() {
         let irq = hpet::init_hpet_rtc(hpet);
-        let irc = crate::pic::map_irc_irq(irq as u8, 0);
-        crate::interrupts::set_handler(irc, rtc::rtc_handler);
-        kblog!("[RTC]", "Handler mapped to irq {} via HPET", irc);
+        crate::interrupts::set_handler(irq.map_to_int(0), rtc::rtc_handler);
+        kblog!("[RTC]", "Handler mapped to irq {} via HPET", irq.0);
         hpet::start_hpet(hpet);
     } else {
         // let pit_irq = pit::init_pit();
         // crate::pic::map_irc_irq(pit_irq, 0);
 
-        let rtc_mapped_irq = crate::pic::map_irc_irq(rtc::IRQ, 0);
+        let rtc_mapped_irq = RTC_IRQ.map_to_int(0);
         crate::interrupts::set_handler(rtc_mapped_irq, rtc::rtc_handler);
         rtc::start_rtc();
     }

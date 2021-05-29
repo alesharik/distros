@@ -83,7 +83,7 @@ pub fn read_time_unsafe() -> NaiveDateTime {
 }
 
 pub fn read_time() -> NaiveDateTime {
-    crate::pic::no_int(|| {
+    crate::interrupts::no_int(|| {
         read_time_unsafe()
     })
 }

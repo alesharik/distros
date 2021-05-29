@@ -4,13 +4,9 @@ use crate::{println, eprintln};
 use crate::gdt;
 use crate::kblog;
 use spin::mutex::Mutex;
-use crate::pic::nmi_status;
+use crate::interrupts::pic::nmi_status;
 use fixedbitset::FixedBitSet;
-
-pub const INT_LAPIC_TIMER: usize = 33;
-pub const INT_LAPIC_ERROR: usize = 34;
-pub const INT_LAPIC_SUPROUS: usize = 35;
-pub const INT_IOAPIC_OFFSET: usize = 45;
+use crate::interrupts::InterruptId;
 
 lazy_static! {
     static ref IDT: Mutex<InterruptDescriptorTable> = Mutex::new({
@@ -22,9 +18,9 @@ lazy_static! {
             idt.double_fault.set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
-        idt[INT_LAPIC_ERROR].set_handler_fn(lapic_error);
-        idt[INT_LAPIC_SUPROUS].set_handler_fn(lapic_suprous);
-        idt[INT_LAPIC_TIMER].set_handler_fn(lapic_timer);
+        idt[super::INT_LAPIC_ERROR.0].set_handler_fn(lapic_error);
+        idt[super::INT_LAPIC_SUPROUS.0].set_handler_fn(lapic_suprous);
+        idt[super::INT_LAPIC_TIMER.0].set_handler_fn(lapic_timer);
         idt
     });
     static ref SET_INTS: Mutex<FixedBitSet> = Mutex::new(FixedBitSet::with_capacity(256));
@@ -36,22 +32,22 @@ pub fn init_idt() {
     kblog!("IDT", "IDT table loaded");
 }
 
-pub fn set_handler(int: usize, func: HandlerFunc) {
+pub fn set_handler(int: InterruptId, func: HandlerFunc) {
     let mut idt = IDT.lock();
     let mut set_ints = SET_INTS.lock();
-    if set_ints.contains(int) {
-        panic!("Interrupt {} already registered", int);
+    if set_ints.contains(int.0) {
+        panic!("Interrupt {} already registered", int.0);
     }
-    set_ints.insert(int);
+    set_ints.insert(int.0);
     unsafe {
-        idt[int].set_handler_fn(func);
+        idt[int.0].set_handler_fn(func);
         idt.load_unsafe();
     }
 }
 
-pub fn has_int_handler(int: usize) -> bool {
+pub fn has_int_handler(int: InterruptId) -> bool {
     let set_ints = SET_INTS.lock();
-    set_ints.contains(int)
+    set_ints.contains(int.0)
 }
 
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame)  {
@@ -72,7 +68,7 @@ extern "x86-interrupt" fn lapic_suprous(stack_frame: &mut InterruptStackFrame)  
 }
 
 extern "x86-interrupt" fn lapic_timer(_stack_frame: &mut InterruptStackFrame)  {
-    crate::pic::eoi();
+    super::eoi();
 }
 
 extern "x86-interrupt" fn double_fault_handler(stack_frame: &mut InterruptStackFrame, _error_code: u64) -> ! {

@@ -1,5 +1,6 @@
 use spin::Mutex;
 use x86_64::instructions::port::PortWriteOnly;
+use crate::interrupts::Irq;
 
 const PIT_FREQ: u32 = 1193182;
 const COUNTER0_FREQ: u32 = 1000;
@@ -31,7 +32,7 @@ lazy_static!(
     static ref COUNTER_CTRL: Mutex<PortWriteOnly<u8>> = Mutex::new(PortWriteOnly::<u8>::new(0x43));
 );
 
-pub fn init_pit() -> u8 {
+pub fn init_pit() -> Irq {
     let mut counter0 = COUNTER0.lock();
     let mut counter_ctrl = COUNTER_CTRL.lock();
     let divisor = PIT_FREQ / COUNTER0_FREQ;
@@ -41,5 +42,5 @@ pub fn init_pit() -> u8 {
         counter0.write((divisor >> 8) as u8)
     }
     kblog!("PIT", "PIT started");
-    return PIT_IRQ;
+    return Irq(PIT_IRQ);
 }

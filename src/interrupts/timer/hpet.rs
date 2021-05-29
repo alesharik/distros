@@ -1,17 +1,17 @@
 use acpi::HpetInfo;
 use crate::memory;
-use crate::pic;
 use x86_64::{PhysAddr, VirtAddr};
 use bit_field::BitField;
 use core::ops::Not;
+use crate::interrupts::Irq;
 
 const RTC_COMP: u8 = 0;
 
 struct TimerConfiguration(u64);
 
 impl TimerConfiguration {
-    fn supports_apic_line(&self, line: usize) -> bool {
-        self.0.get_bit(32 + line)
+    fn supports_apic_line(&self, line: Irq) -> bool {
+        self.0.get_bit((32 + line.0) as usize)
     }
 
     fn supports_fsb(&self) -> bool {
@@ -72,7 +72,7 @@ fn find_hpet_periodic_timer(info: &HpetInfo, addr: &VirtAddr, off: u8) -> u8 {
     panic!("HPET does not have comparator for RTC")
 }
 
-pub fn init_hpet_rtc(info: &HpetInfo) -> usize {
+pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
     let addr: VirtAddr = memory::map_physical_address(PhysAddr::new(info.base_address as u64));
     let comparator = find_hpet_periodic_timer(info, &addr, RTC_COMP);
     let period = unsafe { *(addr.as_ptr::<u32>()) };
@@ -90,8 +90,9 @@ pub fn init_hpet_rtc(info: &HpetInfo) -> usize {
     let cmp_val: VirtAddr = addr + 0x100 as usize + (0x20 * comparator) as usize;
 
     for irq in 0..24 {
-        if cfg.supports_apic_line(irq) && !pic::has_irq_handler(irq) {
-            cfg.set_apic_line(irq as u8);
+        let irq = Irq::from_raw(irq);
+        if cfg.supports_apic_line(irq) && !irq.has_handler() {
+            cfg.set_apic_line(irq.0 as u8);
             unsafe { *cmp_cap.as_mut_ptr() = cfg.0 }
             unsafe {
                 *cmp_val.as_mut_ptr::<u64>() = target;

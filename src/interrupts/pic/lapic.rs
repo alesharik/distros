@@ -10,9 +10,9 @@ lazy_static!(
 pub fn init_lapic(address: VirtAddr) {
     unsafe {
         let mut apic = LocalApicBuilder::new()
-            .timer_vector(INT_LAPIC_TIMER)
-            .error_vector(INT_LAPIC_ERROR)
-            .spurious_vector(INT_LAPIC_SUPROUS)
+            .timer_vector(INT_LAPIC_TIMER.0)
+            .error_vector(INT_LAPIC_ERROR.0)
+            .spurious_vector(INT_LAPIC_SUPROUS.0)
             .set_xapic_base(address.as_u64())
             .timer_divide(TimerDivide::Div2)
             .timer_initial(100000)

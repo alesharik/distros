@@ -12,9 +12,10 @@ extern crate lazy_static;
 extern crate bitflags;
 
 use core::panic::PanicInfo;
+use core::time::Duration;
+
 use bootloader::{BootInfo, entry_point};
 use x86_64::VirtAddr;
-use core::time::Duration;
 
 #[macro_use]
 mod vga;
@@ -24,9 +25,7 @@ mod memory;
 mod kheap;
 mod acpi;
 mod cpuid;
-mod pic;
 mod cmos;
-mod timer;
 mod random;
 
 /// This function is called on panic.
@@ -52,16 +51,10 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     memory::print_table();
     kheap::init_kheap().unwrap();
     let acpi = acpi::init_acpi();
-
-    pic::disable_interrupts();
-
-    pic::init_pic(&acpi.apic);
-    timer::init_timer(&acpi);
-
-    pic::enable_interrupts();
+    interrupts::init_pic(&acpi);
 
     println!("TIMEOUT");
-    timer::sleep(Duration::from_secs(2));
+    interrupts::sleep(Duration::from_secs(2));
     println!("TIMEOUT");
     println!("TIME {}", cmos::read_time());
 

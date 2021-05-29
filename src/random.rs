@@ -2,7 +2,7 @@ use x86_64::instructions::random::RdRand;
 use rand_pcg::Pcg64Mcg;
 use rand::{RngCore, Error};
 use alloc::boxed::Box;
-use crate::timer;
+use crate::interrupts;
 
 struct HwRng {
     rdrand: RdRand,
@@ -13,7 +13,7 @@ impl HwRng {
     fn new(rdrand: RdRand) -> Self {
         HwRng {
             rdrand,
-            fallback: Pcg64Mcg::new((timer::now() as u128) * 2000 / 3 * 13)
+            fallback: Pcg64Mcg::new((interrupts::now() as u128) * 2000 / 3 * 13)
         }
     }
 
@@ -57,5 +57,5 @@ impl RngCore for HwRng {
 pub fn rng() -> Box<dyn RngCore> {
     RdRand::new()
         .map(|rdrand| Box::new(HwRng::new(rdrand)) as Box<dyn RngCore>)
-        .unwrap_or_else(|| Box::new(Pcg64Mcg::new((timer::now() as u128) * 2000 / 3 * 13)))
+        .unwrap_or_else(|| Box::new(Pcg64Mcg::new((interrupts::now() as u128) * 2000 / 3 * 13)))
 }

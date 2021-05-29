@@ -1,6 +1,5 @@
 use acpi::platform::Apic;
 use x86_64::PhysAddr;
-use crate::interrupts;
 
 mod pic8259;
 mod lapic;
@@ -39,8 +38,4 @@ pub fn no_int<F, R>(f: F) -> R
     nmi::nmi_enable();
     x86_64::instructions::interrupts::enable();
     v
-}
-
-pub fn has_irq_handler(irq: usize) -> bool {
-    interrupts::has_int_handler(interrupts::INT_IOAPIC_OFFSET + irq)
 }
