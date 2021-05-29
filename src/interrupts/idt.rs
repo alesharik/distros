@@ -14,6 +14,7 @@ lazy_static! {
         idt.breakpoint.set_handler_fn(breakpoint_handler);
         idt.page_fault.set_handler_fn(page_fault_handler);
         idt.non_maskable_interrupt.set_handler_fn(nmi_handler);
+        idt.simd_floating_point.set_handler_fn(fpa_handler);
         unsafe {
             idt.double_fault.set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
@@ -50,32 +51,34 @@ pub fn has_int_handler(int: InterruptId) -> bool {
     set_ints.contains(int.0)
 }
 
-extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame)  {
-    println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
-}
+int_handler!(fpa_handler |stack_frame: InterruptStackFrame| {
+    println!("EXCEPTION: SIMD FPA\n{:#?}", stack_frame);
+});
 
-extern "x86-interrupt" fn nmi_handler(stack_frame: &mut InterruptStackFrame)  {
+int_handler!(breakpoint_handler |stack_frame: InterruptStackFrame| {
+    println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
+});
+
+int_handler!(nmi_handler |stack_frame: InterruptStackFrame| {
     let status = nmi_status();
     panic!("NMI: A = {:?}, B = {:?}\n{:#?}", status.0, status.1, stack_frame);
-}
+});
 
-extern "x86-interrupt" fn lapic_error(stack_frame: &mut InterruptStackFrame)  {
+int_handler!(lapic_error |stack_frame: InterruptStackFrame| {
     eprintln!("EXCEPTION: LAPIC ERROR\n{:#?}", stack_frame);
-}
+});
 
-extern "x86-interrupt" fn lapic_suprous(stack_frame: &mut InterruptStackFrame)  {
+int_handler!(lapic_suprous |stack_frame: InterruptStackFrame| {
     eprintln!("EXCEPTION: LAPIC SUPROUS\n{:#?}", stack_frame);
-}
+});
 
-extern "x86-interrupt" fn lapic_timer(_stack_frame: &mut InterruptStackFrame)  {
-    super::eoi();
-}
+int_handler!(noint lapic_timer |_stack_frame: InterruptStackFrame| {});
 
-extern "x86-interrupt" fn double_fault_handler(stack_frame: &mut InterruptStackFrame, _error_code: u64) -> ! {
+extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame, _error_code: u64) -> ! {
     panic!("EXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
 }
 
-extern "x86-interrupt" fn page_fault_handler(stack_frame: &mut InterruptStackFrame, error_code: PageFaultErrorCode) {
+extern "x86-interrupt" fn page_fault_handler(stack_frame: InterruptStackFrame, error_code: PageFaultErrorCode) {
     use x86_64::registers::control::Cr2;
     use x86_64::instructions::hlt;
 

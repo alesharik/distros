@@ -28,6 +28,7 @@ mod acpi;
 mod cpuid;
 mod cmos;
 mod random;
+mod fpu;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -44,7 +45,6 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 entry_point!(main);
 
 pub fn main(boot_info: &'static BootInfo) -> ! {
-    println!("Hello World{}", "!");
     cpuid::init_cpuid();
     gdt::init_gdt();
     interrupts::init_idt();
@@ -53,6 +53,7 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     kheap::init_kheap().unwrap();
     let acpi = acpi::init_acpi();
     interrupts::init_pic(&acpi);
+    fpu::init_fpu();
 
     println!("TIMEOUT");
     interrupts::sleep(Duration::from_secs(2));

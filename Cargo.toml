@@ -5,13 +5,13 @@ authors = ["Aleksei Arsenev <alesharikReserv@yandex.ru>"]
 edition = "2018"
 
 [dependencies]
-bootloader = { version = "0.9.16", features = ["map_physical_memory"] }
+bootloader = { version = "0.9.18", features = ["map_physical_memory"] }
 spin = "0.9.0"
-vga = "0.2.6"
+vga = { git = "https://github.com/rust-osdev/vga.git" }
 volatile = "0.4.4"
-x86_64 = "0.13.3"
-linked_list_allocator = "0.8.11"
-acpi = "2.2.0"
+x86_64 = "0.14.3"
+linked_list_allocator = "0.9.0"
+acpi = "2.3.1"
 x2apic = { git = "https://github.com/alesharik/x2apic-rs.git", branch = "xapic"}
 raw-cpuid = "9.0.0"
 bitflags = "1.2.1"
@@ -23,7 +23,6 @@ rand_pcg = "0.3.0"
 [dependencies.lazy_static]
 version = "1.4.0"
 features = ["spin_no_std"]
-
 
 [target.'cfg(target_os = "none")']
 runner = "bootimage runner"
