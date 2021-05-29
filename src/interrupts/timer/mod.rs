@@ -30,5 +30,4 @@ pub fn init_timer(acpi: &AcpiInfo) {
         crate::interrupts::set_handler(rtc_mapped_irq, rtc::rtc_handler);
         rtc::start_rtc();
     }
-
 }

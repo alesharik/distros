@@ -28,24 +28,39 @@ pub fn start_rtc() {
     kblog!("RTC", "RTC started");
 }
 
-pub extern "x86-interrupt" fn rtc_handler(_stack_frame: &mut InterruptStackFrame)  {
-    crate::interrupts::no_int(|| {
-        let ms = TIME.fetch_add(1, Ordering::AcqRel);
-        if ms % 500 == 0 { // Every 500 ms
-            let ms_part = ms % 1000;
-            let time = crate::cmos::read_time_unsafe();
-            TIME.store((time.timestamp_millis() as u64 + ms_part) as u64, Ordering::Relaxed)
-        };
-
-        unsafe {
-            let mut data = DATA.lock();
-            let mut address = ADDRESS.lock();
-            address.write(0x0C);
-            data.read(); // Ignore. Resets IRQ
-            crate::interrupts::eoi();
-        }
-    })
-}
+int_handler!(pub noint rtc_handler {
+    let ms = TIME.fetch_add(1, Ordering::AcqRel);
+    if ms % 500 == 0 { // Every 500 ms
+        let ms_part = ms % 1000;
+        let time = crate::cmos::read_time_unsafe();
+        TIME.store((time.timestamp_millis() as u64 + ms_part) as u64, Ordering::Relaxed)
+    };
+    unsafe {
+        let mut data = DATA.lock();
+        let mut address = ADDRESS.lock();
+        address.write(0x0C);
+        data.read(); // Ignore. Resets IRQ
+    }
+});
+//
+// pub extern "x86-interrupt" fn rtc_handler(_stack_frame: &mut InterruptStackFrame)  {
+//     crate::interrupts::no_int(|| {
+//         let ms = TIME.fetch_add(1, Ordering::AcqRel);
+//         if ms % 500 == 0 { // Every 500 ms
+//             let ms_part = ms % 1000;
+//             let time = crate::cmos::read_time_unsafe();
+//             TIME.store((time.timestamp_millis() as u64 + ms_part) as u64, Ordering::Relaxed)
+//         };
+//
+//         unsafe {
+//             let mut data = DATA.lock();
+//             let mut address = ADDRESS.lock();
+//             address.write(0x0C);
+//             data.read(); // Ignore. Resets IRQ
+//             crate::interrupts::eoi();
+//         }
+//     })
+// }
 
 #[inline]
 pub fn now() -> u64 {

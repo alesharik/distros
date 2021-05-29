@@ -20,6 +20,7 @@ use x86_64::VirtAddr;
 #[macro_use]
 mod vga;
 mod gdt;
+#[macro_use]
 mod interrupts;
 mod memory;
 mod kheap;

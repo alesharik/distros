@@ -1,3 +1,14 @@
+macro_rules! int_handler {
+    (pub noint $name:ident $body:expr) => {
+        pub extern "x86-interrupt" fn $name(_stack_frame: &mut InterruptStackFrame)  {
+            crate::interrupts::no_int(|| {
+                $body
+                crate::interrupts::eoi();
+            })
+        }
+    };
+}
+
 mod idt;
 mod pic;
 mod timer;
@@ -13,7 +24,6 @@ pub const INT_LAPIC_ERROR: InterruptId = InterruptId::from_raw(34);
 pub const INT_LAPIC_SUPROUS: InterruptId = InterruptId::from_raw(35);
 pub const INT_IOAPIC_OFFSET: usize = 45;
 pub const RTC_IRQ: Irq = Irq::from_raw(8);
-
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
