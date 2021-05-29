@@ -1,9 +1,10 @@
-use acpi::{AcpiTables, AcpiHandler, PhysicalMapping};
+use acpi::{AcpiTables, AcpiHandler, PhysicalMapping, HpetInfo};
 use x86_64::PhysAddr;
 use crate::kblog;
 use core::ptr::NonNull;
 use acpi::InterruptModel;
 use acpi::platform::Apic;
+use acpi::AcpiError;
 
 #[derive(Clone)]
 struct AcpiMemHandler {}
@@ -32,7 +33,8 @@ impl AcpiHandler for AcpiMemHandler {
 
 #[derive(Debug)]
 pub struct AcpiInfo {
-    pub apic: Apic
+    pub apic: Apic,
+    pub hpet: Option<HpetInfo>,
 }
 
 pub fn init_acpi() -> AcpiInfo {
@@ -40,10 +42,18 @@ pub fn init_acpi() -> AcpiInfo {
         let tables = AcpiTables::search_for_rsdp_bios(AcpiMemHandler::new()).expect("Failed to get ACPI tables");
         kblog!("ACPI", "Got ACPi tables");
         let platform_info = tables.platform_info().expect("Failed to get platform info");
+        let hpet = match HpetInfo::new(&tables) {
+            Ok(r) => Some(r),
+            Err(e) => match e {
+                AcpiError::TableMissing(_) => None,
+                _ => panic!("{:?}", e)
+            }
+        };
         match platform_info.interrupt_model {
             InterruptModel::Unknown => panic!("This kernel requires APIC to run"),
             InterruptModel::Apic(apic) => return AcpiInfo {
-                apic
+                apic,
+                hpet
             },
             _ => panic!("ACPI does not have interrupt model info")
         }

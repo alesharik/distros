@@ -56,7 +56,7 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     pic::disable_interrupts();
 
     pic::init_pic(&acpi.apic);
-    timer::init_timer();
+    timer::init_timer(&acpi);
 
     pic::enable_interrupts();
 

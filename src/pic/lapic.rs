@@ -19,6 +19,7 @@ pub fn init_lapic(address: VirtAddr) {
             .build()
             .expect("Failed to get Local APIC");
         apic.enable();
+        apic.disable_timer(); // FIXME
         let mut lapic_ref = LAPIC.lock();
         *lapic_ref = Some(apic);
         kblog!("LAPIC", "LAPIC enabled");

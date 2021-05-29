@@ -49,6 +49,11 @@ pub fn set_handler(int: usize, func: HandlerFunc) {
     }
 }
 
+pub fn has_int_handler(int: usize) -> bool {
+    let set_ints = SET_INTS.lock();
+    set_ints.contains(int)
+}
+
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: &mut InterruptStackFrame)  {
     println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
