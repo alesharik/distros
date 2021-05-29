@@ -14,5 +14,5 @@
 - [ ] User memory allocation
 - [ ] ELF file reader
 - [ ] Execute ELF file in userspace
-- [ ] Syscalls
+- [ ] Syscalls (map memory pointers as kernel-access memory)
 - [ ] Processes/Threads
