@@ -1,28 +1,35 @@
+use spin::{Mutex, Lazy};
 use x86_64::{
-    structures::paging::{PageTable, Page},
-    VirtAddr,
-    PhysAddr
+    PhysAddr,
+    structures::paging::{Page, PageTable},
+    VirtAddr
 };
-use crate::kblog;
-use x86_64::structures::paging::{OffsetPageTable, FrameAllocator, Size4KiB, PhysFrame, Mapper, Size2MiB};
-use x86_64::structures::paging::mapper::MapToError;
+use x86_64::structures::paging::{FrameAllocator, Mapper, OffsetPageTable, PhysFrame, Size2MiB, Size4KiB};
+use x86_64::structures::paging::mapper::{MapToError, TranslateError, UnmapError};
+use x86_64::structures::paging::page::NotGiantPageSize;
 use bootloader::bootinfo::{MemoryMap, MemoryRegionType, MemoryRegion};
 use core::iter::{Map, FlatMap, Filter, StepBy};
 use core::slice::Iter;
 use core::ops::Range;
-use x86_64::structures::paging::page::NotGiantPageSize;
-use spin::Mutex;
 
-pub struct MemoryManager {
-}
+use crate::kblog;
 
-struct FrameAlloc<'a> {
+mod page;
+mod kheap;
+mod liballoc;
+mod process;
+
+pub use kheap::init_kheap;
+use crate::memory::page::FrameAlloc;
+
+
+struct KFrameAlloc<'a> {
     iterator: Map<FlatMap<Map<Filter<Iter<'a, MemoryRegion>, fn(&&MemoryRegion) -> bool>, fn(&MemoryRegion) -> Range<u64>>, StepBy<Range<u64>>, fn(Range<u64>) -> StepBy<Range<u64>>>, fn(u64) -> PhysFrame<Size4KiB>>,
     hugepage_iterator: Map<FlatMap<Map<Filter<Iter<'a, MemoryRegion>, fn(&&MemoryRegion) -> bool>, fn(&MemoryRegion) -> Range<u64>>, StepBy<Range<u64>>, fn(Range<u64>) -> StepBy<Range<u64>>>, fn(u64) -> PhysFrame<Size2MiB>>
 }
 
-impl<'a> FrameAlloc<'a> {
-    fn new(memory_map: &'static MemoryMap) -> FrameAlloc<'a> {
+impl<'a> KFrameAlloc<'a> {
+    fn new(memory_map: &'static MemoryMap) -> KFrameAlloc<'a> {
         let iter: Iter<'a, MemoryRegion> = memory_map.iter();
         let flt: fn(&&MemoryRegion) -> bool = |r| r.region_type == MemoryRegionType::Usable;
         let map1: fn(&MemoryRegion) -> Range<u64> = |r: &MemoryRegion| r.range.start_addr()..r.range.end_addr();
@@ -41,23 +48,61 @@ impl<'a> FrameAlloc<'a> {
             .map(map1)
             .flat_map(flatmap_huge)
             .map(map2_huge);
-        FrameAlloc {
+        KFrameAlloc {
             iterator: regions,
             hugepage_iterator: regions_huge
         }
     }
 }
 
-unsafe impl FrameAllocator<Size4KiB> for FrameAlloc<'_> {
+unsafe impl FrameAllocator<Size4KiB> for KFrameAlloc<'_> {
     fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
         self.iterator.next()
     }
 }
 
-unsafe impl FrameAllocator<Size2MiB> for FrameAlloc<'_> {
+unsafe impl FrameAllocator<Size2MiB> for KFrameAlloc<'_> {
     fn allocate_frame(&mut self) -> Option<PhysFrame<Size2MiB>> {
         self.hugepage_iterator.next()
     }
+}
+
+#[derive(Debug)]
+pub enum DeallocatingError {
+    TranslateError(TranslateError),
+    UnmapError(UnmapError),
+}
+
+pub struct MemoryManager {
+}
+
+impl MemoryManager {
+    // fn allocate_frames(start: Page<Size4KiB>, frames: u32) -> Result<(), MapToError<Size4KiB>> {
+    //     use x86_64::structures::paging::PageTableFlags as Flags;
+    //     unsafe {
+    //         let mut guard = FRAME_ALLOCATOR.lock();
+    //         let frame_allocator = guard.as_mut().expect("Frame allocator is not setup!");
+    //         let frame: PhysFrame<Size4KiB> = frame_allocator.allocate(frames)
+    //             .ok_or(MapToError::FrameAllocationFailed)?;
+    //         let flags = Flags::PRESENT | Flags::WRITABLE;
+    //         let mut table = PAGE_TABLE.lock();
+    //         table.as_mut().expect("Page table is not setup!").map_to(start, frame, flags, frame_allocator)?.flush()
+    //     }
+    //     Ok(())
+    // }
+
+    // fn deallocate_frames(start: Page<Size4KiB>) -> Result<(), DeallocatingError> {
+    //     unsafe {
+    //         let mut table = PAGE_TABLE.lock();
+    //         let mut t = table.as_mut().expect("Page table is not setup!");
+    //         let phys = t.translate_page(start).map_err(|e| DeallocatingError::TranslateError(e))?;
+    //         t.unmap(start).map_err(|e| DeallocatingError::UnmapError(e))?;
+    //         let mut guard = FRAME_ALLOCATOR.lock();
+    //         let frame_allocator = guard.as_mut().expect("Frame allocator is not setup!");
+    //         frame_allocator.deallocate(phys);
+    //     }
+    //     Ok(())
+    // }
 }
 
 pub trait AllocatePage<T: NotGiantPageSize = Size4KiB> {
@@ -66,7 +111,7 @@ pub trait AllocatePage<T: NotGiantPageSize = Size4KiB> {
 
 lazy_static!(
     static ref PAGE_TABLE: Mutex<Option<OffsetPageTable<'static>>> = Mutex::new(Option::None);
-    static ref FRAME_ALLOCATOR: Mutex<Option<FrameAlloc<'static>>> = Mutex::new(Option::None);
+    static ref FRAME_ALLOCATOR: Mutex<Option<KFrameAlloc<'static>>> = Mutex::new(Option::None);
     static ref PHYS_OFFSET: Mutex<Option<VirtAddr>> = Mutex::new(Option::None);
 );
 
@@ -87,7 +132,7 @@ pub fn init_memory(phys_offset: VirtAddr, memory_map: &'static MemoryMap) {
         let mut page_table = PAGE_TABLE.lock();
         *page_table = Option::Some(OffsetPageTable::new(active_level_4_table(phys_offset), phys_offset));
         let mut frame_allocator = FRAME_ALLOCATOR.lock();
-        *frame_allocator = Option::Some(FrameAlloc::new(memory_map));
+        *frame_allocator = Option::Some(KFrameAlloc::new(memory_map));
         let mut phys_off = PHYS_OFFSET.lock();
         *phys_off = Some(phys_offset.clone());
     }

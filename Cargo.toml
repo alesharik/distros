@@ -24,5 +24,8 @@ rand_pcg = "0.3.0"
 version = "1.4.0"
 features = ["spin_no_std"]
 
+[build-dependencies]
+cc = "1.0.68"
+
 [target.'cfg(target_os = "none")']
 runner = "bootimage runner"

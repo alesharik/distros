@@ -23,7 +23,6 @@ mod gdt;
 #[macro_use]
 mod interrupts;
 mod memory;
-mod kheap;
 mod acpi;
 mod cpuid;
 mod cmos;
@@ -50,7 +49,7 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     interrupts::init_idt();
     memory::init_memory(VirtAddr::new(boot_info.physical_memory_offset), &boot_info.memory_map);
     memory::print_table();
-    kheap::init_kheap().unwrap();
+    memory::init_kheap().unwrap();
     let acpi = acpi::init_acpi();
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
