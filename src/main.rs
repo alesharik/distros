@@ -12,10 +12,10 @@ extern crate lazy_static;
 extern crate bitflags;
 
 use core::panic::PanicInfo;
-use core::time::Duration;
 
 use bootloader::{BootInfo, entry_point};
 use x86_64::VirtAddr;
+use chrono::Duration;
 
 #[macro_use]
 mod vga;

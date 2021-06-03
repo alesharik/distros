@@ -40,7 +40,7 @@ impl FlowManager {
     pub fn subscribe<T: 'static + Message>(path: &str, consumer: Box<dyn Consumer<T>>) -> Result<Box<dyn Subscription>, FlowManagerError> {
         let mut inner = INNER.lock();
         match inner.as_mut().expect("FlowManager not initialized").endpoints.get(path) {
-            Some(mut inner) => {
+            Some(inner) => {
                 match inner.write().downcast_mut::<Endpoint<T>>() {
                     Some(endpoint) => Ok(endpoint.provider.write().add_consumer(consumer)),
                     None => Err(FlowManagerError::WrongMessageType)
@@ -57,7 +57,7 @@ impl FlowManager {
                 match inner.write().downcast_mut::<Endpoint<T>>() {
                     Some(endpoint) => match &mut endpoint.sender {
                         Some(sender) => {
-                            sender.write().send(message);
+                            sender.write().send(message).await;
                             Ok(())
                         },
                         None => Err(FlowManagerError::SendNotSupported)

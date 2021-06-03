@@ -5,20 +5,20 @@ use core::pin::Pin;
 use alloc::sync::Arc;
 use alloc::task::Wake;
 use alloc::collections::VecDeque;
-use alloc::rc::Rc;
-use core::task::Context;
+use core::task::{Context, Waker, Poll};
 use spin::RwLock;
-use futures::SinkExt;
-use core::borrow::{BorrowMut, Borrow};
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::{AtomicBool, Ordering, AtomicU64};
 use crossbeam_queue::SegQueue;
-use futures::task::{Spawn, SpawnError};
-use futures::future::FutureObj;
 use core::option::Option::Some;
 use core::ops::{Deref, DerefMut};
+use crate::interrupts;
+use chrono::Duration;
+use hashbrown::HashMap;
 
 static WAKE_CALLED: AtomicBool = AtomicBool::new(false);
 static mut EXECUTOR: Option<ExecutorInner> = None;
+
+type TimerId = u64;
 
 struct SendWrapper<T> {
     data: *mut T,
@@ -82,9 +82,40 @@ impl Wake for TaskWaker {
     }
 }
 
+pub struct TimeoutWakeHandle {
+    timer: TimerId
+}
+
+impl TimeoutWakeHandle {
+    fn set_waker(&self, waker: &Waker) {
+        unsafe {
+            EXECUTOR.as_ref().unwrap()
+                .timers
+                .write()
+                .get_mut(&self.timer)
+                .unwrap()
+                .1
+                .replace(waker.clone());
+        }
+    }
+}
+
+impl Drop for TimeoutWakeHandle {
+    fn drop(&mut self) {
+        unsafe {
+            EXECUTOR.as_ref().unwrap()
+                .timers
+                .write()
+                .remove(&self.timer);
+        }
+    }
+}
+
 struct ExecutorInner {
     queue: RwLock<VecDeque<Task>>,
     add_queue: SegQueue<Task>,
+    timers: RwLock<HashMap<TimerId, (u64, Option<Waker>)>>,
+    last_timer_id: AtomicU64
 }
 
 pub fn init() {
@@ -92,8 +123,31 @@ pub fn init() {
         EXECUTOR = Some(ExecutorInner {
             queue: RwLock::new(VecDeque::new()),
             add_queue: SegQueue::new(),
+            timers: RwLock::new(HashMap::new()),
+            last_timer_id: AtomicU64::new(0)
         })
     }
+}
+
+pub fn tick_1ms() {
+    let inner = unsafe {
+        if let Some(exec) = EXECUTOR.as_ref() {
+            exec
+        } else {
+            return;
+        }
+    };
+    inner.timers.write().retain(|_, arc| {
+        let (time, waker) = arc.deref();
+        if interrupts::now() < *time {
+            true
+        } else {
+            if let Some(waker) = waker {
+                waker.wake_by_ref();
+            }
+            false
+        }
+    });
 }
 
 pub fn run() -> ! {
@@ -109,7 +163,7 @@ pub fn run() -> ! {
             task
         };
         if let Some(mut task) = task {
-            let mut task_waker = unsafe {
+            let task_waker = unsafe {
                 Arc::new(TaskWaker {
                     task: SendWrapper::new(RefCell::new(None)),
                 })
@@ -135,6 +189,14 @@ pub fn run() -> ! {
     }
 }
 
+fn wake_at_time(time: u64) -> TimeoutWakeHandle {
+    unsafe {
+        let id = EXECUTOR.as_ref().unwrap().last_timer_id.fetch_add(1, Ordering::SeqCst);
+        EXECUTOR.as_ref().unwrap().timers.write().insert(id, (time, None));
+        TimeoutWakeHandle  { timer: id }
+    }
+}
+
 pub fn spawn<F>(future: F)
     where
         F: Future<Output = ()> + Sync + Send + 'static,
@@ -144,4 +206,28 @@ pub fn spawn<F>(future: F)
             future: Box::pin(future)
         });
     }
+}
+
+struct SleepFuture {
+    time: u64,
+    timeout_wake_handle: TimeoutWakeHandle,
+}
+
+impl Future for SleepFuture {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if interrupts::now() >= self.time {
+            Poll::Ready(())
+        } else{
+            self.timeout_wake_handle.set_waker(cx.waker());
+            Poll::Pending
+        }
+    }
+}
+
+pub fn sleep(timeout: Duration) -> impl Future<Output = ()> {
+    let time = interrupts::now() + timeout.num_milliseconds() as u64;
+    let handle = wake_at_time(time);
+    SleepFuture { time, timeout_wake_handle: handle }
 }
