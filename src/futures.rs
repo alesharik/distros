@@ -199,12 +199,16 @@ fn wake_at_time(time: u64) -> TimeoutWakeHandle {
 
 pub fn spawn<F>(future: F)
     where
-        F: Future<Output = ()> + Sync + Send + 'static,
+        F: Future<Output = ()> + 'static,
 {
     unsafe {
-        EXECUTOR.as_ref().expect("Executor not started").add_queue.push(Task {
-            future: Box::pin(future)
-        });
+        if let Some(executor) = EXECUTOR.as_ref() {
+            executor.add_queue.push(Task {
+                future: Box::pin(future)
+            });
+        } else {
+            // kblog!("Futures", "Spawn invoked before executor started") FIXME can deadlock
+        }
     }
 }
 

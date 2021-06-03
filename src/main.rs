@@ -16,6 +16,7 @@ use core::panic::PanicInfo;
 use bootloader::{BootInfo, entry_point};
 use x86_64::VirtAddr;
 use chrono::Duration;
+use crate::flow::FlowManager;
 
 #[macro_use]
 mod vga;
@@ -55,12 +56,8 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     let acpi = acpi::init_acpi();
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
-
-    // println!("TIMEOUT");
-    // interrupts::sleep(Duration::from_secs(2));
-    // println!("TIMEOUT");
-    // println!("TIME {}", cmos::read_time());
-
     futures::init();
+    FlowManager::init();
+
     futures::run();
 }

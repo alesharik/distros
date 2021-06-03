@@ -6,8 +6,9 @@ mod producer;
 mod manager;
 
 pub use producer::Producer;
+pub use manager::{FlowManager, FlowManagerError};
 
-pub trait Message: Send + Debug {}
+pub trait Message: Send + Sync + Debug {}
 
 #[async_trait]
 pub trait Consumer<T: Message>: Sync + Send {
@@ -16,7 +17,7 @@ pub trait Consumer<T: Message>: Sync + Send {
     async fn close(&self, sub: &Box<dyn Subscription>);
 }
 
-pub trait Subscription {
+pub trait Subscription: Send + Sync {
     fn get_id(&self) -> u64;
 
     fn cancel(self);

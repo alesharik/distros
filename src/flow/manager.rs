@@ -6,11 +6,22 @@ use alloc::string::String;
 use core::any::Any;
 use spin::{Mutex, RwLock};
 use alloc::borrow::ToOwned;
+use core::fmt::{Debug, Formatter};
 
 pub enum FlowManagerError {
     ProviderNotFound,
     WrongMessageType,
     SendNotSupported
+}
+
+impl Debug for FlowManagerError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        match self {
+            FlowManagerError::WrongMessageType => writeln!(f, "Wrong message type"),
+            FlowManagerError::ProviderNotFound => writeln!(f, "Provider not found"),
+            FlowManagerError::SendNotSupported => writeln!(f, "Send not supported"),
+        }
+    }
 }
 
 struct Endpoint<T: Message> {
