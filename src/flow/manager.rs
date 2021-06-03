@@ -4,9 +4,8 @@ use alloc::sync::Arc;
 use rpds::HashTrieMapSync;
 use alloc::string::String;
 use core::any::Any;
-use spin::Mutex;
+use spin::{Mutex, RwLock};
 use alloc::borrow::ToOwned;
-use core::cell::RefCell;
 
 pub enum FlowManagerError {
     ProviderNotFound,
@@ -15,12 +14,12 @@ pub enum FlowManagerError {
 }
 
 struct Endpoint<T: Message> {
-    provider: Arc<RefCell<dyn Provider<T> + Send>>,
-    sender: Option<Arc<RefCell<dyn Sender<T> + Send>>>
+    provider: Arc<RwLock<dyn Provider<T> + Send>>,
+    sender: Option<Arc<RwLock<dyn Sender<T> + Send>>>
 }
 
 struct FlowManagerInner {
-    endpoints: HashTrieMapSync<String, RefCell<Box<dyn Any + Send>>>
+    endpoints: HashTrieMapSync<String, RwLock<Box<dyn Any + Send>>>
 }
 
 lazy_static!(
@@ -38,12 +37,12 @@ impl FlowManager {
         kblog!("FlowManager", "FlowManager started");
     }
 
-    pub fn subscribe<T: Message>(path: &str, consumer: Box<dyn Consumer<T>>) -> Result<Box<dyn Subscription>, FlowManagerError> {
+    pub fn subscribe<T: 'static + Message>(path: &str, consumer: Box<dyn Consumer<T>>) -> Result<Box<dyn Subscription>, FlowManagerError> {
         let mut inner = INNER.lock();
         match inner.as_mut().expect("FlowManager not initialized").endpoints.get(path) {
             Some(mut inner) => {
-                match inner.borrow_mut().downcast_mut::<Endpoint<T>>() {
-                    Some(mut endpoint) => Ok(endpoint.provider.add_consumer(consumer)),
+                match inner.write().downcast_mut::<Endpoint<T>>() {
+                    Some(endpoint) => Ok(endpoint.provider.write().add_consumer(consumer)),
                     None => Err(FlowManagerError::WrongMessageType)
                 }
             },
@@ -55,10 +54,10 @@ impl FlowManager {
         let mut inner = INNER.lock();
         match inner.as_mut().expect("FlowManager not initialized").endpoints.get(path) {
             Some(inner) => {
-                match inner.borrow_mut().downcast_mut::<Endpoint<T>>() {
-                    Some(mut endpoint) => match &mut endpoint.sender {
+                match inner.write().downcast_mut::<Endpoint<T>>() {
+                    Some(endpoint) => match &mut endpoint.sender {
                         Some(sender) => {
-                            sender.borrow_mut().send(message);
+                            sender.write().send(message);
                             Ok(())
                         },
                         None => Err(FlowManagerError::SendNotSupported)
@@ -70,9 +69,9 @@ impl FlowManager {
         }
     }
 
-    pub fn register_endpoint<T: Message>(path: &str, provider: Arc<RefCell<dyn Provider<T> + Send>>, sender: Option<Arc<RefCell<dyn Sender<T> + Send>>>) {
+    pub fn register_endpoint<T: 'static + Message>(path: &str, provider: Arc<RwLock<dyn Provider<T> + Send>>, sender: Option<Arc<RwLock<dyn Sender<T> + Send>>>) {
         let mut inner = INNER.lock();
-        inner.expect("FlowManager not initialized").endpoints.insert_mut(path.to_owned(), RefCell::new(Box::new(Endpoint {
+        inner.as_mut().expect("FlowManager not initialized").endpoints.insert_mut(path.to_owned(), RwLock::new(Box::new(Endpoint {
             sender,
             provider
         })))

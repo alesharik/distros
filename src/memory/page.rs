@@ -10,7 +10,7 @@ use alloc::rc::Rc;
 const FRAME_LENGTH: u32 = 4096;
 
 #[derive(Clone)]
-#[repr(packed)]
+#[repr(C)]
 struct Frame {
     start_frame: PhysFrame<Size4KiB>,
     /// size in page length

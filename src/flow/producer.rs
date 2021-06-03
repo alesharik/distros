@@ -56,7 +56,7 @@ impl<T: Message> Producer<T> {
     }
 }
 
-impl<T: Message> Provider<T> for Producer<T> {
+impl<T: 'static + Message> Provider<T> for Producer<T> {
     fn add_consumer(&mut self, consumer: Box<dyn Consumer<T>>) -> Box<dyn Subscription> {
         let id = self.id_counter;
         self.id_counter += 1;
@@ -73,7 +73,8 @@ impl<T: Message> Provider<T> for Producer<T> {
 impl<T: Message> Sender<T> for Producer<T> {
     async fn send(&mut self, message: T) {
         for consumer in self.consumers.read().iter() {
-            consumer.consumer.consume(&message);
+            let x = consumer.consumer.consume(&message);
+            x.await;
         }
     }
 }

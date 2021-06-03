@@ -29,6 +29,7 @@ mod cmos;
 mod random;
 mod fpu;
 mod flow;
+mod futures;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -55,12 +56,11 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
 
-    println!("TIMEOUT");
-    interrupts::sleep(Duration::from_secs(2));
-    println!("TIMEOUT");
-    println!("TIME {}", cmos::read_time());
+    // println!("TIMEOUT");
+    // interrupts::sleep(Duration::from_secs(2));
+    // println!("TIMEOUT");
+    // println!("TIME {}", cmos::read_time());
 
-    loop {
-        x86_64::instructions::hlt();
-    }
+    futures::init();
+    futures::run();
 }

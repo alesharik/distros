@@ -5,6 +5,8 @@
 - Current time from RTC+CMOS
 - RNG generator support
 - kernel memory allocator
+- basic future runtime
+- data flow manager
 
 ## TODO
 - [ ] Serial Log

@@ -10,7 +10,7 @@ pub use producer::Producer;
 pub trait Message: Send + Debug {}
 
 #[async_trait]
-pub trait Consumer<T: Message> {
+pub trait Consumer<T: Message>: Sync + Send {
     async fn consume(&self, message: &T);
 
     async fn close(&self, sub: &Box<dyn Subscription>);
@@ -22,11 +22,11 @@ pub trait Subscription {
     fn cancel(self);
 }
 
-pub trait Provider<T: Message> {
+pub trait Provider<T: Message>: Send + Sync {
     fn add_consumer(&mut self, consumer: Box<dyn Consumer<T>>) -> Box<dyn Subscription>;
 }
 
 #[async_trait]
-pub trait Sender<T: Message> {
+pub trait Sender<T: Message>: Send + Sync {
     async fn send(&mut self, message: T);
 }
