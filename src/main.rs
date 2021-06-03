@@ -28,6 +28,7 @@ mod cpuid;
 mod cmos;
 mod random;
 mod fpu;
+mod flow;
 
 /// This function is called on panic.
 #[panic_handler]
