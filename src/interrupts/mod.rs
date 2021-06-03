@@ -54,7 +54,7 @@ impl InterruptId {
 pub struct Irq(u8);
 
 impl Irq {
-    const fn from_raw(irq: u8) -> Self {
+    pub const fn from_raw(irq: u8) -> Self {
         Irq(irq)
     }
 
@@ -62,12 +62,12 @@ impl Irq {
     ///
     /// # Arguments
     /// * `dest` - Destination CPU
-    fn map_to_int(&self, dest: u32) -> InterruptId {
+    pub fn map_to_int(&self, dest: u32) -> InterruptId {
         InterruptId::from_raw(pic::map_irc_irq(self.0, dest))
     }
 
     /// Is this IRQ already bound to handler?
-    fn has_handler(&self) -> bool {
+    pub fn has_handler(&self) -> bool {
         idt::has_int_handler(InterruptId::from_raw(INT_IOAPIC_OFFSET + self.0 as usize))
     }
 }
