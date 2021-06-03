@@ -1,4 +1,4 @@
-use spin::{Mutex, Lazy};
+use spin::Mutex;
 use x86_64::{
     PhysAddr,
     structures::paging::{Page, PageTable},
@@ -20,7 +20,6 @@ mod liballoc;
 mod process;
 
 pub use kheap::init_kheap;
-use crate::memory::page::FrameAlloc;
 
 
 struct KFrameAlloc<'a> {

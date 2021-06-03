@@ -1,12 +1,7 @@
 /// Liballoc interface
-#![allow(non_camel_case_types)]
-
 use core::ffi::c_void;
-use crate::memory::MemoryManager;
-use x86_64::structures::paging::Page;
-use x86_64::VirtAddr;
-use alloc::boxed::Box;
 
+//noinspection RsStructNaming
 #[repr(C)]
 struct liballoc_major_block {
     prev: *mut liballoc_major_block,
@@ -17,6 +12,7 @@ struct liballoc_major_block {
     first: *mut liballoc_minor_block,
 }
 
+//noinspection RsStructNaming
 #[repr(C)]
 struct liballoc_minor_block {
     prev: *mut liballoc_minor_block,
@@ -27,6 +23,7 @@ struct liballoc_minor_block {
     req_size: u64,
 }
 
+//noinspection RsStructNaming
 #[repr(C)]
 struct process_heap_inner {
     root: *mut liballoc_major_block,

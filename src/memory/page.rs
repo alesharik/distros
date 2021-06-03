@@ -3,12 +3,11 @@ use bootloader::bootinfo::{MemoryRegion, MemoryMap};
 use x86_64::structures::paging::{PhysFrame, Size4KiB, FrameAllocator, Size2MiB, FrameDeallocator};
 use core::ops::Not;
 use x86_64::PhysAddr;
-use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::cell::RefCell;
 use alloc::rc::Rc;
 
-const FRAME_LENGTH: u64 = 4096;
+const FRAME_LENGTH: u32 = 4096;
 
 #[derive(Clone)]
 #[repr(packed)]
@@ -31,9 +30,9 @@ impl MemoryRegionContainer {
     }
 
     fn take(&mut self, frames: u64) -> Option<PhysFrame<Size4KiB>> {
-        if self.end - self.pointer >= FRAME_LENGTH * frames {
+        if self.end - self.pointer >= FRAME_LENGTH as u64 * frames {
             let frame = PhysFrame::from_start_address(PhysAddr::new(self.pointer)).unwrap();
-            self.pointer += FRAME_LENGTH * frames;
+            self.pointer += FRAME_LENGTH as u64 * frames;
             Some(frame)
         } else {
             None
