@@ -18,3 +18,13 @@
 - [ ] ELF file reader
 - [ ] Execute ELF file in userspace
 - [ ] Syscalls (map memory pointers as kernel-access memory)
+
+## External TODO
+- [ ] Make `ps2` crate async
+- [ ] Add scroll wheel support to `ps2` crate
+
+## Global flow system
+- `/dev` - dev flow system
+- `/dev/ps2` - PS/2 devices
+- `/dev/ps2/keyboard` - PS/2 keyboard
+- `/dev/ps2/mouse` - PS/2 mouse

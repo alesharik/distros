@@ -15,7 +15,6 @@ use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
 use x86_64::VirtAddr;
-use chrono::Duration;
 use crate::flow::FlowManager;
 
 #[macro_use]
@@ -31,6 +30,7 @@ mod random;
 mod fpu;
 mod flow;
 mod futures;
+mod driver;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -58,6 +58,8 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     fpu::init_fpu();
     futures::init();
     FlowManager::init();
+
+    driver::init();
 
     futures::run();
 }
