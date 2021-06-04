@@ -39,7 +39,7 @@ pub fn init() {
     kblog!("Driver", "Device drivers started");
 
     let sub = FlowManager::subscribe("/dev/ps2/keyboard", Box::new(KeyboardTestConsumer {})).unwrap();
-    Box::into_raw(sub); // keep consumer after function end
+    Box::leak(sub); // keep consumer after function end
     let sub = FlowManager::subscribe("/dev/ps2/mouse", Box::new(KeyboardTestConsumer1 {})).unwrap();
-    Box::into_raw(sub); // keep consumer after function end
+    Box::leak(sub); // keep consumer after function end
 }

@@ -7,6 +7,7 @@
 - kernel memory allocator
 - basic future runtime
 - data flow manager
+- PS/2 device support
 
 ## TODO
 - [ ] Serial Log
