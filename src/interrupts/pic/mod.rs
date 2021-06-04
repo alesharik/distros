@@ -9,6 +9,9 @@ mod nmi;
 pub use ioapic::map_irc_irq;
 pub use lapic::eoi;
 pub use nmi::{nmi_status, StatusA, StatusB};
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static INT_ENABLED: AtomicBool = AtomicBool::new(false);
 
 pub fn init_pic(apic: &Apic) {
     pic8259::disable();
@@ -20,6 +23,7 @@ pub fn init_pic(apic: &Apic) {
 }
 
 pub fn enable_interrupts() {
+    INT_ENABLED.store(true, Ordering::SeqCst);
     x86_64::instructions::interrupts::enable();
     nmi::nmi_enable();
 }
@@ -27,14 +31,20 @@ pub fn enable_interrupts() {
 pub fn disable_interrupts() {
     x86_64::instructions::interrupts::disable();
     nmi::nmi_disable();
+    INT_ENABLED.store(false, Ordering::SeqCst);
 }
 
 pub fn no_int<F, R>(f: F) -> R
     where
         F: FnOnce() -> R {
+    if !INT_ENABLED.load(Ordering::SeqCst) {
+        return f()
+    }
+    INT_ENABLED.store(false, Ordering::SeqCst);
     x86_64::instructions::interrupts::disable();
     nmi::nmi_disable();
     let v = f();
+    INT_ENABLED.store(true, Ordering::SeqCst);
     nmi::nmi_enable();
     x86_64::instructions::interrupts::enable();
     v
