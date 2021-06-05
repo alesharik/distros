@@ -7,6 +7,7 @@ use crate::driver::mouse::MouseMessage;
 pub mod keyboard;
 pub mod mouse;
 mod device;
+mod pci;
 
 struct KeyboardTestConsumer {}
 struct KeyboardTestConsumer1 {}
@@ -42,4 +43,6 @@ pub fn init() {
     Box::leak(sub); // keep consumer after function end
     let sub = FlowManager::subscribe("/dev/ps2/mouse", Box::new(KeyboardTestConsumer1 {})).unwrap();
     Box::leak(sub); // keep consumer after function end
+
+    pci::print();
 }

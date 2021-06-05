@@ -38,14 +38,14 @@ pub fn init_idt() {
     unsafe { guard.load_unsafe(); }
     kblog!("IDT", "IDT table loaded");
     unsafe {
-        use x86_64::registers::control::{Cr4Flags, Cr4};
-        Cr4::update(|flags| {
-            flags.set(Cr4Flags::MACHINE_CHECK_EXCEPTION, true);
-            flags.set(Cr4Flags::USER_MODE_INSTRUCTION_PREVENTION, true);
-            flags.set(Cr4Flags::TIMESTAMP_DISABLE, true);
-            flags.set(Cr4Flags::SUPERVISOR_MODE_EXECUTION_PROTECTION, true);
-            flags.set(Cr4Flags::SUPERVISOR_MODE_ACCESS_PREVENTION, true);
-        })
+        // use x86_64::registers::control::{Cr4Flags, Cr4}; fixme enable, but it not works on my laptop
+        // Cr4::update(|flags| {
+        //     flags.set(Cr4Flags::MACHINE_CHECK_EXCEPTION, true);
+        //     flags.set(Cr4Flags::USER_MODE_INSTRUCTION_PREVENTION, true);
+        //     flags.set(Cr4Flags::TIMESTAMP_DISABLE, true);
+        //     flags.set(Cr4Flags::SUPERVISOR_MODE_EXECUTION_PROTECTION, true);
+        //     flags.set(Cr4Flags::SUPERVISOR_MODE_ACCESS_PREVENTION, true);
+        // })
     }
 }
 
@@ -110,8 +110,8 @@ int_handler!(lapic_suprous |stack_frame: InterruptStackFrame| {
 
 int_handler!(noint lapic_timer |_stack_frame: InterruptStackFrame| {});
 
-extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame, _error_code: u64) -> ! {
-    panic!("EXCEPTION: DOUBLE FAULT\n{:#?}", stack_frame);
+extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame, error_code: u64) -> ! {
+    panic!("EXCEPTION: DOUBLE FAULT[{}]\n{:#?} => ", error_code, stack_frame);
 }
 
 extern "x86-interrupt" fn machine_check_handler(stack_frame: InterruptStackFrame) -> ! {

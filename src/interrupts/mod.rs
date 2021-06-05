@@ -68,7 +68,11 @@ impl Irq {
 
     /// Is this IRQ already bound to handler?
     pub fn has_handler(&self) -> bool {
-        idt::has_int_handler(InterruptId::from_raw(INT_IOAPIC_OFFSET + self.0 as usize))
+        if let Some(int) = pic::convert_isr_irq(self.0) {
+            idt::has_int_handler(InterruptId::from_raw(int))
+        } else {
+            false
+        }
     }
 }
 

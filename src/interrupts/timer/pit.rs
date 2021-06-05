@@ -25,7 +25,7 @@ const PIT_CMD_COUNTER1: u8 = 0x40;
 const PIT_CMD_COUNTER2: u8 = 0x80;
 const PIT_CMD_READBACK: u8 = 0xc0;
 
-const PIT_IRQ: u8 = 0;
+pub const PIT_IRQ: Irq = Irq(0);
 
 lazy_static!(
     static ref COUNTER0: Mutex<PortWriteOnly<u8>> = Mutex::new(PortWriteOnly::<u8>::new(0x40));
@@ -42,5 +42,5 @@ pub fn init_pit() -> Irq {
         counter0.write((divisor >> 8) as u8)
     }
     kblog!("PIT", "PIT started");
-    return Irq(PIT_IRQ);
+    return PIT_IRQ;
 }

@@ -6,7 +6,7 @@ mod lapic;
 mod ioapic;
 mod nmi;
 
-pub use ioapic::map_irc_irq;
+pub use ioapic::{map_irc_irq, convert_isr_irq};
 pub use lapic::eoi;
 pub use nmi::{nmi_status, StatusA, StatusB};
 use core::sync::atomic::{AtomicBool, Ordering};

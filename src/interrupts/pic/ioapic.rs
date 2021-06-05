@@ -69,6 +69,19 @@ impl IoApicManager {
             panic!("Could not find IOAPIC for IRQ {}", global_irq)
         }
     }
+
+    fn convert_from_isr_to_irq(&self, isr: u8) -> Option<usize> {
+        let isr_u32 = isr as u32;
+        let global_irq = self.override_map.get(&isr).unwrap_or(&(isr_u32));
+        let apic = self.apics.iter()
+            .filter(|holder| holder.in_range(*global_irq))
+            .next();
+        if let Some(_) = apic {
+            Some(crate::interrupts::INT_IOAPIC_OFFSET + (*global_irq as usize))
+        } else {
+            None
+        }
+    }
 }
 
 lazy_static!(
@@ -87,4 +100,10 @@ pub fn map_irc_irq(isr: u8, dest: u32) -> usize {
     let mut guard = IOAPIC_MANAGER.lock();
     let manager = guard.as_mut().expect("IOAPIC manager is not initialized");
     manager.map_isr_irq(isr, dest)
+}
+
+pub fn convert_isr_irq(isr: u8) -> Option<usize> {
+    let mut guard = IOAPIC_MANAGER.lock();
+    let manager = guard.as_mut().expect("IOAPIC manager is not initialized");
+    manager.convert_from_isr_to_irq(isr)
 }

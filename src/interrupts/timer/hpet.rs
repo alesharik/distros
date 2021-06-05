@@ -78,8 +78,8 @@ pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
     let period = unsafe { *(addr.as_ptr::<u32>()) };
     let frequency = (10 as u64).pow(15) / period as u64;
     let target = frequency / 1000; // 1kHz divider
-    if target < info.clock_tick_unit as u64 {
-        panic!("RTC divider {} < min tick count {}", target, info.clock_tick_unit)
+    if frequency < 1000 {
+        panic!("HPET cannot keep 1kHz frequency (has {} Hz)", frequency)
     }
     let cmp_cap: VirtAddr = addr + 0x100 as usize + (0x20 * comparator) as usize;
     let mut cfg = TimerConfiguration(unsafe { *cmp_cap.as_ptr() });
