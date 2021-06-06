@@ -23,7 +23,7 @@ impl TimerConfiguration {
     }
 
     fn set_apic_line(&mut self, line: u8) {
-        self.0.set_bits(9..13, line as u64);
+        self.0.set_bits(9..14, line as u64);
     }
 
     fn set_32_mode(&mut self, val: bool) {

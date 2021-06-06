@@ -41,8 +41,8 @@ pub fn init() {
 
     let sub = FlowManager::subscribe("/dev/ps2/keyboard", Box::new(KeyboardTestConsumer {})).unwrap();
     Box::leak(sub); // keep consumer after function end
-    let sub = FlowManager::subscribe("/dev/ps2/mouse", Box::new(KeyboardTestConsumer1 {})).unwrap();
-    Box::leak(sub); // keep consumer after function end
+    // let sub = FlowManager::subscribe("/dev/ps2/mouse", Box::new(KeyboardTestConsumer1 {})).unwrap();
+    // Box::leak(sub); // keep consumer after function end
 
     pci::print();
 }

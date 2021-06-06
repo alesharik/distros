@@ -21,7 +21,7 @@ pub fn init_timer(acpi: &AcpiInfo) {
     if let Some(hpet) = acpi.hpet.as_ref() {
         let irq = hpet::init_hpet_rtc(hpet);
         crate::interrupts::set_handler(irq.map_to_int(0), rtc::rtc_handler);
-        kblog!("[RTC]", "Handler mapped to irq {} via HPET", irq.0);
+        kblog!("RTC", "Handler mapped to irq {} via HPET", irq.0);
         hpet::start_hpet(hpet);
 
         let pit_irq = pit::PIT_IRQ;

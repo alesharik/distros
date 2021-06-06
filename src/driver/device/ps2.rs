@@ -8,7 +8,7 @@ use alloc::sync::Arc;
 use pc_keyboard::{Keyboard, layouts, ScancodeSet2, HandleControl, DecodedKey, KeyCode, KeyState};
 use crate::{futures, interrupts};
 use crate::interrupts::Irq;
-use ps2::error::ControllerError;
+use ps2::error::{ControllerError, KeyboardError, MouseError};
 use core::sync::atomic::{AtomicBool, Ordering};
 use core::ops::Deref;
 use crate::driver::mouse::MouseMessage;
@@ -27,6 +27,31 @@ static KEYBOARD_PARSER: Lazy<Mutex<Keyboard<layouts::Us104Key, ScancodeSet2>>> =
 static CAPS_STATE: AtomicBool = AtomicBool::new(false);
 static NUM_STATE: AtomicBool = AtomicBool::new(false);
 static SCROLL_STATE: AtomicBool = AtomicBool::new(false);
+
+#[derive(Debug)]
+enum Ps2Error {
+    ControllerError(ControllerError),
+    KeyboardError(KeyboardError),
+    MouseError(MouseError)
+}
+
+impl From<ControllerError> for Ps2Error {
+    fn from(e: ControllerError) -> Self {
+        Ps2Error::ControllerError(e)
+    }
+}
+
+impl From<KeyboardError> for Ps2Error {
+    fn from(e: KeyboardError) -> Self {
+        Ps2Error::KeyboardError(e)
+    }
+}
+
+impl From<MouseError> for Ps2Error {
+    fn from(e: MouseError) -> Self {
+        Ps2Error::MouseError(e)
+    }
+}
 
 pub fn init() -> Result<(), ControllerError> {
     kblog!("PS/2", "Starting PS/2 devices");
@@ -77,7 +102,9 @@ pub fn init() -> Result<(), ControllerError> {
         controller.enable_keyboard()?;
         config.set(ControllerConfigFlags::DISABLE_KEYBOARD, false);
         config.set(ControllerConfigFlags::ENABLE_KEYBOARD_INTERRUPT, true);
-        controller.keyboard().reset_and_self_test().unwrap();
+        if let Err(e) = controller.keyboard().reset_and_self_test() {
+            kblog!("PS/2", "Failed to reset keyboard, IT MAY NOT WORK")
+        }
 
         let sender = KEYBOARD_SENDER.deref();
         FlowManager::register_endpoint("/dev/ps2/keyboard", sender.clone(), None);
@@ -89,15 +116,21 @@ pub fn init() -> Result<(), ControllerError> {
         controller.enable_mouse()?;
         config.set(ControllerConfigFlags::DISABLE_MOUSE, false);
         config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, true);
-        controller.mouse().reset_and_self_test().unwrap();
+        if let Err(e) = controller.mouse().reset_and_self_test() {
+            kblog!("PS/2", "Failed to reset mouse, IT MAY NOT WORK")
+        }
         // This will start streaming events from the mouse
-        controller.mouse().enable_data_reporting().unwrap();
-
-        let sender = MOUSE_SENDER.deref();
-        FlowManager::register_endpoint("/dev/ps2/mouse", sender.clone(), None);
-        let int = Irq::from_raw(12).map_to_int(0);
-        interrupts::set_handler(int, mouse_handler);
-        kblog!("PS/2", "PS/2 mouse started");
+        if let Err(e) = controller.mouse().enable_data_reporting() {
+            kblog!("PS/2", "Failed to enable mouse stream");
+            config.set(ControllerConfigFlags::DISABLE_MOUSE, true);
+            config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, false);
+        } else {
+            let sender = MOUSE_SENDER.deref();
+            FlowManager::register_endpoint("/dev/ps2/mouse", sender.clone(), None);
+            let int = Irq::from_raw(12).map_to_int(0);
+            interrupts::set_handler(int, mouse_handler);
+            kblog!("PS/2", "PS/2 mouse started");
+        }
     }
 
     // Write last configuration to enable devices and interrupts
