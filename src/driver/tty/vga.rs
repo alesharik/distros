@@ -69,7 +69,10 @@ static PALETTE: [(Color16, Rgb); 16] = [
 
 fn closest_color(color: Rgb) -> Color16 {
     PALETTE.iter().min_by_key(|(_, current)| {
-        color.r * current.r + color.g * current.g + color.b * current.b
+        let r_diff = color.r as i32 - current.r as i32;
+        let g_diff = color.g as i32 - current.g as i32;
+        let b_diff = color.b as i32 - current.b as i32;
+        r_diff * r_diff + g_diff * g_diff + b_diff * b_diff
     }).unwrap().0
 }
 
