@@ -35,6 +35,7 @@ mod fpu;
 mod flow;
 mod futures;
 mod driver;
+mod basic_term;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -64,6 +65,7 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     FlowManager::init();
 
     driver::init();
+    basic_term::init().unwrap();
 
     futures::run();
 }
