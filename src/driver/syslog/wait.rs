@@ -1,13 +1,13 @@
 //! Future that wakes on syslog messaeg
 
-use futures::Future;
-use core::task::{Context, Poll};
+use alloc::sync::{Arc, Weak};
 use core::pin::Pin;
-use spin::Lazy;
+use core::sync::atomic::{AtomicBool, Ordering};
+use core::task::{Context, Poll};
 use crossbeam_queue::SegQueue;
 use futures::task::Waker;
-use alloc::sync::{Weak, Arc};
-use core::sync::atomic::{AtomicBool, Ordering};
+use futures::Future;
+use spin::Lazy;
 
 struct SyslogWaitHandle {
     waker: Waker,
@@ -23,7 +23,11 @@ impl SyslogWaitHandle {
     }
 
     fn wake(&self) {
-        if self.was_waked.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+        if self
+            .was_waked
+            .compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst)
+            .is_ok()
+        {
             self.waker.wake_by_ref();
         }
     }

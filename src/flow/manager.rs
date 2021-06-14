@@ -1,17 +1,17 @@
-use alloc::boxed::Box;
-use crate::flow::{Provider, Sender, Message, Consumer, Subscription};
-use alloc::sync::Arc;
-use rpds::HashTrieMapSync;
-use alloc::string::String;
-use core::any::Any;
-use spin::{Mutex, Lazy};
+use crate::flow::{Consumer, Message, Provider, Sender, Subscription};
 use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::sync::Arc;
+use core::any::Any;
 use core::fmt::{Debug, Formatter};
+use rpds::HashTrieMapSync;
+use spin::{Lazy, Mutex};
 
 pub enum FlowManagerError {
     ProviderNotFound,
     WrongMessageType,
-    SendNotSupported
+    SendNotSupported,
 }
 
 impl Debug for FlowManagerError {
@@ -26,30 +26,33 @@ impl Debug for FlowManagerError {
 
 struct Endpoint<T: Message> {
     provider: Arc<Mutex<dyn Provider<T> + Send>>,
-    sender: Option<Arc<Mutex<dyn Sender<T> + Send>>>
+    sender: Option<Arc<Mutex<dyn Sender<T> + Send>>>,
 }
 
 struct FlowManagerInner {
-    endpoints: HashTrieMapSync<String, Box<dyn Any + Send>>
+    endpoints: HashTrieMapSync<String, Box<dyn Any + Send>>,
 }
 
-static INNER: Lazy<Mutex<FlowManagerInner>> = Lazy::new(|| Mutex::new(FlowManagerInner {
-    endpoints: HashTrieMapSync::new_sync()
-}));
+static INNER: Lazy<Mutex<FlowManagerInner>> = Lazy::new(|| {
+    Mutex::new(FlowManagerInner {
+        endpoints: HashTrieMapSync::new_sync(),
+    })
+});
 
 pub struct FlowManager {}
 
 impl FlowManager {
-    pub fn subscribe<T: 'static + Message>(path: &str, consumer: Box<dyn Consumer<T>>) -> Result<Box<dyn Subscription>, FlowManagerError> {
+    pub fn subscribe<T: 'static + Message>(
+        path: &str,
+        consumer: Box<dyn Consumer<T>>,
+    ) -> Result<Box<dyn Subscription>, FlowManagerError> {
         let inner = INNER.lock();
         match inner.endpoints.get(path) {
-            Some(inner) => {
-                match inner.downcast_ref::<Endpoint<T>>() {
-                    Some(endpoint) => Ok(endpoint.provider.lock().add_consumer(consumer)),
-                    None => Err(FlowManagerError::WrongMessageType)
-                }
+            Some(inner) => match inner.downcast_ref::<Endpoint<T>>() {
+                Some(endpoint) => Ok(endpoint.provider.lock().add_consumer(consumer)),
+                None => Err(FlowManagerError::WrongMessageType),
             },
-            None => Err(FlowManagerError::ProviderNotFound)
+            None => Err(FlowManagerError::ProviderNotFound),
         }
     }
 
@@ -63,30 +66,34 @@ impl FlowManager {
         }
     }
 
-    pub async fn send<T: 'static + Message>(path: &str, message: T) -> Result<(), FlowManagerError> {
+    pub async fn send<T: 'static + Message>(
+        path: &str,
+        message: T,
+    ) -> Result<(), FlowManagerError> {
         let inner = INNER.lock();
         match inner.endpoints.get(path) {
-            Some(inner) => {
-                match inner.downcast_ref::<Endpoint<T>>().as_ref() {
-                    Some(endpoint) => match &endpoint.sender {
-                        Some(sender) => {
-                            sender.lock().send(message).await;
-                            Ok(())
-                        },
-                        None => Err(FlowManagerError::SendNotSupported)
-                    },
-                    None => Err(FlowManagerError::WrongMessageType)
-                }
+            Some(inner) => match inner.downcast_ref::<Endpoint<T>>().as_ref() {
+                Some(endpoint) => match &endpoint.sender {
+                    Some(sender) => {
+                        sender.lock().send(message).await;
+                        Ok(())
+                    }
+                    None => Err(FlowManagerError::SendNotSupported),
+                },
+                None => Err(FlowManagerError::WrongMessageType),
             },
-            None => Err(FlowManagerError::ProviderNotFound)
+            None => Err(FlowManagerError::ProviderNotFound),
         }
     }
 
-    pub fn register_endpoint<T: 'static + Message>(path: &str, provider: Arc<Mutex<dyn Provider<T> + Send>>, sender: Option<Arc<Mutex<dyn Sender<T> + Send>>>) {
+    pub fn register_endpoint<T: 'static + Message>(
+        path: &str,
+        provider: Arc<Mutex<dyn Provider<T> + Send>>,
+        sender: Option<Arc<Mutex<dyn Sender<T> + Send>>>,
+    ) {
         let mut inner = INNER.lock();
-        inner.endpoints.insert_mut(path.to_owned(), Box::new(Endpoint {
-            sender,
-            provider
-        }))
+        inner
+            .endpoints
+            .insert_mut(path.to_owned(), Box::new(Endpoint { sender, provider }))
     }
 }

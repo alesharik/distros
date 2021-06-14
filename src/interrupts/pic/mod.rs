@@ -1,15 +1,15 @@
 use acpi::platform::Apic;
 use x86_64::PhysAddr;
 
-mod pic8259;
-mod lapic;
 mod ioapic;
+mod lapic;
 mod nmi;
+mod pic8259;
 
-pub use ioapic::{map_irc_irq, convert_isr_irq};
+use core::sync::atomic::{AtomicBool, Ordering};
+pub use ioapic::{convert_isr_irq, map_irc_irq};
 pub use lapic::eoi;
 pub use nmi::{nmi_status, StatusA, StatusB};
-use core::sync::atomic::{AtomicBool, Ordering};
 
 static INT_ENABLED: AtomicBool = AtomicBool::new(false);
 
@@ -18,7 +18,9 @@ pub fn init_pic(apic: &Apic) {
     if !crate::cpuid::has_apic() {
         panic!("Hardware does not have APIC")
     }
-    lapic::init_lapic(crate::memory::map_physical_address(PhysAddr::new(apic.local_apic_address)));
+    lapic::init_lapic(crate::memory::map_physical_address(PhysAddr::new(
+        apic.local_apic_address,
+    )));
     ioapic::init_ioapic(&apic);
 }
 
@@ -35,10 +37,11 @@ pub fn disable_interrupts() {
 }
 
 pub fn no_int<F, R>(f: F) -> R
-    where
-        F: FnOnce() -> R {
+where
+    F: FnOnce() -> R,
+{
     if !INT_ENABLED.load(Ordering::SeqCst) {
-        return f()
+        return f();
     }
     INT_ENABLED.store(false, Ordering::SeqCst);
     x86_64::instructions::interrupts::disable();

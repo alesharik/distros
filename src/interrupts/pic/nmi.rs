@@ -1,6 +1,6 @@
+use core::ops::Not;
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortReadOnly};
-use core::ops::Not;
 
 bitflags! {
     pub struct StatusA: u8 {
@@ -26,17 +26,17 @@ bitflags! {
     }
 }
 
-lazy_static!(
+lazy_static! {
     static ref CONTROL_PORT: Mutex<Port<u8>> = Mutex::new(Port::<u8>::new(0x70));
     static ref STATUS_A: Mutex<PortReadOnly<u8>> = Mutex::new(PortReadOnly::<u8>::new(0x92));
     static ref STATUS_B: Mutex<PortReadOnly<u8>> = Mutex::new(PortReadOnly::<u8>::new(0x61));
     static ref ENABLED: Mutex<bool> = Mutex::new(false);
-);
+}
 
 pub fn nmi_enable() {
     let mut enabled = ENABLED.lock();
     if enabled.clone() {
-        return
+        return;
     }
     let mut ctl = CONTROL_PORT.lock();
     unsafe {
@@ -49,7 +49,7 @@ pub fn nmi_enable() {
 pub fn nmi_disable() {
     let mut enabled = ENABLED.lock();
     if enabled.not() {
-        return
+        return;
     }
     let mut ctl = CONTROL_PORT.lock();
     unsafe {
@@ -71,7 +71,7 @@ pub fn nmi_status() -> (StatusA, StatusB) {
         let mut status_b = STATUS_B.lock();
         (
             StatusA::from_bits(status_a.read()).unwrap_or(StatusA::empty()),
-            StatusB::from_bits(status_b.read()).unwrap_or(StatusB::empty())
+            StatusB::from_bits(status_b.read()).unwrap_or(StatusB::empty()),
         )
     }
 }

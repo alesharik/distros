@@ -1,18 +1,21 @@
-use vte::ansi::{Handler, CursorShape, Mode, CursorStyle, Rgb, Attr, LineClearMode, StandardCharset, TabulationClearMode, CharsetIndex, ClearMode, Color, NamedColor};
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
+use crate::driver::tty::flow::{Stdin, StdinKeyboardConsumer, Stdout};
+use crate::flow::{FlowManager, FlowManagerError, Message};
 use alloc::borrow::ToOwned;
-use hashbrown::HashMap;
-use core::marker::PhantomData;
-use core::fmt::{Debug, Formatter};
-use crate::flow::{Message, FlowManager, FlowManagerError};
-use alloc::sync::Arc;
-use spin::{Lazy, Mutex};
-use crate::driver::tty::flow::{Stdout, StdinKeyboardConsumer, Stdin};
 use alloc::boxed::Box;
+use alloc::string::{String, ToString};
+use alloc::sync::Arc;
+use alloc::vec::Vec;
+use core::fmt::{Debug, Formatter};
+use core::marker::PhantomData;
+use hashbrown::HashMap;
+use spin::{Lazy, Mutex};
+use vte::ansi::{
+    Attr, CharsetIndex, ClearMode, Color, CursorShape, CursorStyle, Handler, LineClearMode, Mode,
+    NamedColor, Rgb, StandardCharset, TabulationClearMode,
+};
 
-mod vga;
 mod flow;
+mod vga;
 
 trait TtyScreen {
     fn set_title(&mut self, title: &str);
@@ -43,7 +46,7 @@ trait TtyWriter {
 struct DefaultHandler<S: TtyScreen, W: TtyWriter> {
     writer: S,
     titles: Vec<String>,
-    saved_position: Option<(usize, usize)> ,
+    saved_position: Option<(usize, usize)>,
     title: String,
     colors: HashMap<usize, Rgb>,
     writer_type: PhantomData<W>,
@@ -66,36 +69,132 @@ impl<S: TtyScreen, W: TtyWriter> DefaultHandler<S, W> {
             Color::Indexed(idx) => self.colors[&(idx as usize)],
             Color::Spec(rgb) => rgb,
             Color::Named(named) => match named {
-                NamedColor::White => Rgb { r: 255, g: 255, b: 255 },
+                NamedColor::White => Rgb {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                },
                 NamedColor::Black => Rgb { r: 0, g: 0, b: 0 },
                 NamedColor::Background => Rgb { r: 0, g: 0, b: 0 },
-                NamedColor::Foreground => Rgb { r: 255, g: 255, b: 255 },
+                NamedColor::Foreground => Rgb {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                },
                 NamedColor::Green => Rgb { r: 0, g: 255, b: 0 },
                 NamedColor::Blue => Rgb { r: 0, g: 0, b: 255 },
-                NamedColor::Yellow => Rgb { r: 255, g: 255, b: 0 },
+                NamedColor::Yellow => Rgb {
+                    r: 255,
+                    g: 255,
+                    b: 0,
+                },
                 NamedColor::Red => Rgb { r: 255, g: 0, b: 0 },
-                NamedColor::Magenta => Rgb { r: 255, g: 0, b: 255 },
-                NamedColor::Cyan => Rgb { r: 0, g: 255, b: 255 },
-                NamedColor::Cursor => Rgb { r: 255, g: 255, b: 255 },
-                NamedColor::BrightBlack => Rgb { r: 24, g: 23, b: 26 },
-                NamedColor::BrightBlue => Rgb { r: 0, g: 78, b: 255 },
-                NamedColor::BrightCyan => Rgb { r: 45, g: 253, b: 254 },
-                NamedColor::BrightForeground => Rgb { r: 253, g: 254, b: 255 },
-                NamedColor::BrightGreen => Rgb { r: 102, g: 255, b: 0},
-                NamedColor::BrightMagenta => Rgb { r: 255, g: 8, b: 232 },
-                NamedColor::BrightRed => Rgb { r: 170, g: 1, b: 20 },
-                NamedColor::BrightWhite => Rgb { r: 253, g: 254, b: 255 },
-                NamedColor::BrightYellow => Rgb { r: 255, g: 255, b: 237 },
-                NamedColor::DimBlack => Rgb { r: 105, g: 105, b: 105 } ,
-                NamedColor::DimBlue => Rgb { r: 0, g: 86, b: 161 },
-                NamedColor::DimCyan => Rgb { r: 51, g: 85, b: 102 },
-                NamedColor::DimForeground => Rgb { r: 150, g: 160, b: 170 },
-                NamedColor::DimGreen => Rgb { r: 68, g: 85, b: 68 },
-                NamedColor::DimMagenta => Rgb { r: 85, g: 68, b: 102 },
-                NamedColor::DimRed => Rgb { r: 85, g: 51, b: 68 },
-                NamedColor::DimWhite => Rgb { r: 150, g: 160, b: 170 },
-                NamedColor::DimYellow => Rgb { r: 85, g: 80, b: 69 }
-            }
+                NamedColor::Magenta => Rgb {
+                    r: 255,
+                    g: 0,
+                    b: 255,
+                },
+                NamedColor::Cyan => Rgb {
+                    r: 0,
+                    g: 255,
+                    b: 255,
+                },
+                NamedColor::Cursor => Rgb {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                },
+                NamedColor::BrightBlack => Rgb {
+                    r: 24,
+                    g: 23,
+                    b: 26,
+                },
+                NamedColor::BrightBlue => Rgb {
+                    r: 0,
+                    g: 78,
+                    b: 255,
+                },
+                NamedColor::BrightCyan => Rgb {
+                    r: 45,
+                    g: 253,
+                    b: 254,
+                },
+                NamedColor::BrightForeground => Rgb {
+                    r: 253,
+                    g: 254,
+                    b: 255,
+                },
+                NamedColor::BrightGreen => Rgb {
+                    r: 102,
+                    g: 255,
+                    b: 0,
+                },
+                NamedColor::BrightMagenta => Rgb {
+                    r: 255,
+                    g: 8,
+                    b: 232,
+                },
+                NamedColor::BrightRed => Rgb {
+                    r: 170,
+                    g: 1,
+                    b: 20,
+                },
+                NamedColor::BrightWhite => Rgb {
+                    r: 253,
+                    g: 254,
+                    b: 255,
+                },
+                NamedColor::BrightYellow => Rgb {
+                    r: 255,
+                    g: 255,
+                    b: 237,
+                },
+                NamedColor::DimBlack => Rgb {
+                    r: 105,
+                    g: 105,
+                    b: 105,
+                },
+                NamedColor::DimBlue => Rgb {
+                    r: 0,
+                    g: 86,
+                    b: 161,
+                },
+                NamedColor::DimCyan => Rgb {
+                    r: 51,
+                    g: 85,
+                    b: 102,
+                },
+                NamedColor::DimForeground => Rgb {
+                    r: 150,
+                    g: 160,
+                    b: 170,
+                },
+                NamedColor::DimGreen => Rgb {
+                    r: 68,
+                    g: 85,
+                    b: 68,
+                },
+                NamedColor::DimMagenta => Rgb {
+                    r: 85,
+                    g: 68,
+                    b: 102,
+                },
+                NamedColor::DimRed => Rgb {
+                    r: 85,
+                    g: 51,
+                    b: 68,
+                },
+                NamedColor::DimWhite => Rgb {
+                    r: 150,
+                    g: 160,
+                    b: 170,
+                },
+                NamedColor::DimYellow => Rgb {
+                    r: 85,
+                    g: 80,
+                    b: 69,
+                },
+            },
         }
     }
 }
@@ -245,13 +344,19 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
 
     #[inline]
     fn set_cursor_style(&mut self, style: Option<CursorStyle>) {
-        let style = style.unwrap_or(CursorStyle {blinking: true, shape: CursorShape::Block});
+        let style = style.unwrap_or(CursorStyle {
+            blinking: true,
+            shape: CursorShape::Block,
+        });
         self.writer.set_style(style);
     }
 
     #[inline]
     fn set_cursor_shape(&mut self, shape: CursorShape) {
-        self.writer.set_style(CursorStyle { blinking: true, shape })
+        self.writer.set_style(CursorStyle {
+            blinking: true,
+            shape,
+        })
     }
 
     #[inline]
@@ -261,7 +366,7 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
             if self.writer.get_row() > 0 {
                 self.writer.set_row(self.writer.get_row() - 1);
             } else {
-                return
+                return;
             }
         } else {
             self.writer.set_col(self.writer.get_col() - 1);
@@ -271,7 +376,9 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
 
     #[inline]
     fn delete_lines(&mut self, count: usize) {
-        for row in self.writer.get_row()..self.writer.get_height().min(self.writer.get_row() + count) {
+        for row in
+            self.writer.get_row()..self.writer.get_height().min(self.writer.get_row() + count)
+        {
             for col in 0..self.writer.get_width() {
                 self.writer.erase(row, col);
             }
@@ -280,7 +387,8 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
 
     #[inline]
     fn erase_chars(&mut self, count: usize) {
-        for col in self.writer.get_col()..self.writer.get_width().min(self.writer.get_col() + count) {
+        for col in self.writer.get_col()..self.writer.get_width().min(self.writer.get_col() + count)
+        {
             self.writer.erase(self.writer.get_row(), col);
         }
     }
@@ -293,11 +401,15 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
     #[inline]
     fn clear_line(&mut self, mode: LineClearMode) {
         match mode {
-            LineClearMode::Left => for col in 0..self.writer.get_col() {
-                self.writer.erase(self.writer.get_row(), col)
+            LineClearMode::Left => {
+                for col in 0..self.writer.get_col() {
+                    self.writer.erase(self.writer.get_row(), col)
+                }
             }
-            LineClearMode::Right => for col in (self.writer.get_col() + 1)..self.writer.get_width() {
-                self.writer.erase(self.writer.get_row(), col)
+            LineClearMode::Right => {
+                for col in (self.writer.get_col() + 1)..self.writer.get_width() {
+                    self.writer.erase(self.writer.get_row(), col)
+                }
             }
             LineClearMode::All => self.delete_lines(1),
         }
@@ -315,7 +427,7 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
                         self.writer.erase(row, col)
                     }
                 }
-            },
+            }
             ClearMode::Below => {
                 for row in self.writer.get_row()..self.writer.get_height() {
                     for col in 0..self.writer.get_width() {
@@ -372,10 +484,12 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
             Attr::Foreground(color) => self.writer.set_foreground(self.color_to_rgb(color)),
             Attr::Background(color) => self.writer.set_background(self.color_to_rgb(color)),
             Attr::Reset => {
-                self.writer.set_foreground(self.color_to_rgb(Color::Named(NamedColor::White)));
-                self.writer.set_background(self.color_to_rgb(Color::Named(NamedColor::Black)));
-            },
-            _ => debug!("Attr not supported {:?}", attr)
+                self.writer
+                    .set_foreground(self.color_to_rgb(Color::Named(NamedColor::White)));
+                self.writer
+                    .set_background(self.color_to_rgb(Color::Named(NamedColor::Black)));
+            }
+            _ => debug!("Attr not supported {:?}", attr),
         }
     }
 
@@ -394,12 +508,12 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
         match intermediate {
             None => {
                 writer.write_back("\x1b[?6c");
-            },
+            }
             Some('>') => {
                 let version = "1.0";
                 let text = format!("\x1b[>0;{};1c", version);
                 writer.write_back(&text);
-            },
+            }
             _ => debug!("Unsupported device attributes intermediate"),
         }
     }
@@ -407,16 +521,14 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
     #[inline]
     fn device_status(&mut self, writer: &mut W, arg: usize) {
         match arg {
-            5 => {
-                writer.write_back("\x1b[0n")
-            },
+            5 => writer.write_back("\x1b[0n"),
             6 => {
                 writer.write_back("\x1b[");
                 writer.write_back(&(self.writer.get_row() + 1).to_string());
                 writer.write_back(";");
                 writer.write_back(&(self.writer.get_col() + 1).to_string());
                 writer.write_back("R");
-            },
+            }
             _ => debug!("unknown device status query: {}", arg),
         };
     }
@@ -429,7 +541,11 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
     }
 
     fn text_area_size_chars(&mut self, writer: &mut W) {
-        let text = format!("\x1b[8;{};{}t", self.writer.get_height(), self.writer.get_width());
+        let text = format!(
+            "\x1b[8;{};{}t",
+            self.writer.get_height(),
+            self.writer.get_width()
+        );
         writer.write_back(&text);
     }
 
@@ -522,10 +638,20 @@ static VGA_STDIN: Lazy<Arc<Mutex<Stdin>>> = Lazy::new(|| Arc::new(Mutex::new(Std
 
 pub fn init() -> Result<(), FlowManagerError> {
     debug!("Setting up TTY devices");
-    let stdout = Stdout::new(DefaultHandler::new(vga::VgaTextScreen::new()), VGA_STDIN.clone());
-    let sub = FlowManager::subscribe("/dev/ps2/keyboard", Box::new(StdinKeyboardConsumer::new(VGA_STDIN.clone())))?;
+    let stdout = Stdout::new(
+        DefaultHandler::new(vga::VgaTextScreen::new()),
+        VGA_STDIN.clone(),
+    );
+    let sub = FlowManager::subscribe(
+        "/dev/ps2/keyboard",
+        Box::new(StdinKeyboardConsumer::new(VGA_STDIN.clone())),
+    )?;
     core::mem::forget(sub); // never unsubscribe from device
-    FlowManager::register_endpoint("/dev/tty/vga", VGA_STDIN.clone(), Some(Arc::new(Mutex::new(stdout))));
+    FlowManager::register_endpoint(
+        "/dev/tty/vga",
+        VGA_STDIN.clone(),
+        Some(Arc::new(Mutex::new(stdout))),
+    );
     debug!("VGA TTY device set up");
     Ok(())
 }

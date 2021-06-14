@@ -1,13 +1,13 @@
-use crate::flow::{Producer, Provider, Consumer, Subscription, Sender};
-use crate::driver::tty::{TtyMessage, TtyWriter};
-use alloc::boxed::Box;
-use alloc::borrow::ToOwned;
-use vte::ansi::{Handler, Processor};
-use alloc::sync::Arc;
-use spin::Mutex;
 use crate::driver::keyboard::KeyboardMessage;
-use pc_keyboard::{DecodedKey, KeyCode};
+use crate::driver::tty::{TtyMessage, TtyWriter};
+use crate::flow::{Consumer, Producer, Provider, Sender, Subscription};
+use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::sync::Arc;
 use async_trait::async_trait;
+use pc_keyboard::{DecodedKey, KeyCode};
+use spin::Mutex;
+use vte::ansi::{Handler, Processor};
 
 pub struct Stdin(Producer<TtyMessage>);
 
@@ -57,8 +57,10 @@ impl Consumer<KeyboardMessage> for StdinKeyboardConsumer {
                 KeyCode::ArrowLeft => self.stdin.lock().send("\x1B[1D").await,
                 KeyCode::ArrowRight => self.stdin.lock().send("\x1B[1C").await,
                 KeyCode::Backspace => self.stdin.lock().send("^A").await,
-                _ => {return;}
-            }
+                _ => {
+                    return;
+                }
+            },
         }
     }
 
@@ -86,7 +88,8 @@ impl<H: Handler<Stdin> + Send + Sync> Sender<TtyMessage> for Stdout<H> {
     async fn send(&mut self, message: TtyMessage) {
         let mut guard = self.stdin.lock();
         for c in message.0.chars() {
-            self.processor.advance(&mut self.handler, c as u8, &mut guard);
+            self.processor
+                .advance(&mut self.handler, c as u8, &mut guard);
         }
     }
 }

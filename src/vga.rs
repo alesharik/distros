@@ -1,18 +1,18 @@
-use vga::colors::{Color16, TextModeColor};
-use vga::writers::{ScreenCharacter, TextWriter, Text80x25};
-use spin::Mutex;
 use core::fmt::Write;
 use lazy_static::lazy_static;
+use spin::Mutex;
+use vga::colors::{Color16, TextModeColor};
+use vga::writers::{ScreenCharacter, Text80x25, TextWriter};
 
-lazy_static!(
+lazy_static! {
     static ref VGA: Mutex<Vga> = Mutex::new(Vga::new());
-);
+}
 
 struct Vga {
     text: Text80x25,
     col: usize,
     row: usize,
-    color: TextModeColor
+    color: TextModeColor,
 }
 
 const WIDTH: usize = 80;
@@ -27,7 +27,7 @@ impl Vga {
             text,
             row: 0,
             col: 0,
-            color: TextModeColor::new(DEFAULT_COLOR, Color16::Black)
+            color: TextModeColor::new(DEFAULT_COLOR, Color16::Black),
         }
     }
 
@@ -36,12 +36,16 @@ impl Vga {
             b'\n' => {
                 self.new_line();
                 self.text.set_cursor_position(self.row, self.col);
-            },
+            }
             byte => {
                 if self.row >= WIDTH {
                     self.new_line()
                 }
-                self.text.write_character(self.row, self.col, ScreenCharacter::new(byte, self.color));
+                self.text.write_character(
+                    self.row,
+                    self.col,
+                    ScreenCharacter::new(byte, self.color),
+                );
                 self.text.set_cursor_position(self.row, self.col);
                 self.row += 1;
             }
@@ -53,11 +57,13 @@ impl Vga {
         if self.col >= HEIGHT - 1 {
             for h in 1..HEIGHT {
                 for w in 0..WIDTH {
-                    self.text.write_character(w, h - 1, self.text.read_character(w, h))
+                    self.text
+                        .write_character(w, h - 1, self.text.read_character(w, h))
                 }
             }
             for w in 0..WIDTH {
-                self.text.write_character(w, HEIGHT - 1, ScreenCharacter::new(b' ', self.color))
+                self.text
+                    .write_character(w, HEIGHT - 1, ScreenCharacter::new(b' ', self.color))
             }
         } else {
             self.col += 1;
@@ -85,7 +91,6 @@ impl Write for Vga {
         Ok(())
     }
 }
-
 
 #[macro_export]
 macro_rules! print {

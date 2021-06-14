@@ -1,12 +1,12 @@
 use alloc::boxed::Box;
-use core::fmt::Debug;
 use async_trait::async_trait;
+use core::fmt::Debug;
 
-mod producer;
 mod manager;
+mod producer;
 
-pub use producer::Producer;
 pub use manager::{FlowManager, FlowManagerError};
+pub use producer::Producer;
 
 pub trait Message: Send + Sync + Debug {}
 

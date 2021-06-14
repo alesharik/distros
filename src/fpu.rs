@@ -1,13 +1,13 @@
 use crate::cpuid;
 use crate::cpuid::FpuInfo;
-use x86_64::registers::control::{Cr0, Cr4, Cr0Flags, Cr4Flags};
+use x86_64::registers::control::{Cr0, Cr0Flags, Cr4, Cr4Flags};
 use x86_64::registers::xcontrol::{XCr0, XCr0Flags};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 enum SaveState {
     NONE,
     FXSAVE,
-    XSAVE
+    XSAVE,
 }
 
 static mut SAVE_STATE: SaveState = SaveState::NONE;
@@ -15,11 +15,11 @@ static mut SAVE_STATE: SaveState = SaveState::NONE;
 fn init_sse(info: &FpuInfo) -> bool {
     if !info.sse {
         kblog!("SSE", "CPU does not have SSE support");
-        return false
+        return false;
     }
     if !info.fxsave_fxstor {
         kblog!("SSE", "CPU does not have fxsave/fxstor support");
-        return false
+        return false;
     }
     unsafe {
         Cr0::update(|flags| flags.set(Cr0Flags::EMULATE_COPROCESSOR, false));
@@ -55,7 +55,7 @@ fn init_avx(info: &FpuInfo) -> bool {
 fn check_fpu(info: &FpuInfo) -> bool {
     if !info.fpu {
         kblog!("FPU", "CPU does not have FPU");
-        return false
+        return false;
     }
     unsafe {
         Cr0::update(|flags| flags.set(Cr0Flags::TASK_SWITCHED, false));
@@ -72,7 +72,7 @@ fn check_fpu(info: &FpuInfo) -> bool {
         } else {
             kblog!("FPU", "FPU failed to set status");
             false
-        }
+        };
     }
 }
 
@@ -86,23 +86,19 @@ pub fn init_fpu() {
         } else {
             SaveState::FXSAVE
         };
-        unsafe {
-            SAVE_STATE = state
-        }
+        unsafe { SAVE_STATE = state }
     }
 }
 
 #[repr(C, align(64))]
 #[derive(Clone)]
 pub struct FpuState {
-    data: [u8; 2584]
+    data: [u8; 2584],
 }
 
 impl FpuState {
     fn new() -> Self {
-        FpuState {
-            data: [0u8; 2584]
-        }
+        FpuState { data: [0u8; 2584] }
     }
     pub unsafe fn save(&mut self) {
         match SAVE_STATE {

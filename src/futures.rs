@@ -1,19 +1,19 @@
+use crate::interrupts;
 use alloc::boxed::Box;
-use core::future::Future;
-use core::cell::RefCell;
-use core::pin::Pin;
+use alloc::collections::VecDeque;
 use alloc::sync::Arc;
 use alloc::task::Wake;
-use alloc::collections::VecDeque;
-use core::task::{Context, Waker, Poll};
-use spin::RwLock;
-use core::sync::atomic::{AtomicBool, Ordering, AtomicU64};
-use crossbeam_queue::SegQueue;
-use core::option::Option::Some;
-use core::ops::{Deref, DerefMut};
-use crate::interrupts;
 use chrono::Duration;
+use core::cell::RefCell;
+use core::future::Future;
+use core::ops::{Deref, DerefMut};
+use core::option::Option::Some;
+use core::pin::Pin;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use core::task::{Context, Poll, Waker};
+use crossbeam_queue::SegQueue;
 use hashbrown::HashMap;
+use spin::RwLock;
 
 static WAKE_CALLED: AtomicBool = AtomicBool::new(false);
 static mut EXECUTOR: Option<ExecutorInner> = None;
@@ -83,13 +83,15 @@ impl Wake for TaskWaker {
 }
 
 pub struct TimeoutWakeHandle {
-    timer: TimerId
+    timer: TimerId,
 }
 
 impl TimeoutWakeHandle {
     fn set_waker(&self, waker: &Waker) {
         unsafe {
-            EXECUTOR.as_ref().unwrap()
+            EXECUTOR
+                .as_ref()
+                .unwrap()
                 .timers
                 .write()
                 .get_mut(&self.timer)
@@ -103,7 +105,9 @@ impl TimeoutWakeHandle {
 impl Drop for TimeoutWakeHandle {
     fn drop(&mut self) {
         unsafe {
-            EXECUTOR.as_ref().unwrap()
+            EXECUTOR
+                .as_ref()
+                .unwrap()
                 .timers
                 .write()
                 .remove(&self.timer);
@@ -115,7 +119,7 @@ struct ExecutorInner {
     queue: RwLock<VecDeque<Task>>,
     add_queue: SegQueue<Task>,
     timers: RwLock<HashMap<TimerId, (u64, Option<Waker>)>>,
-    last_timer_id: AtomicU64
+    last_timer_id: AtomicU64,
 }
 
 pub fn init() {
@@ -124,7 +128,7 @@ pub fn init() {
             queue: RwLock::new(VecDeque::new()),
             add_queue: SegQueue::new(),
             timers: RwLock::new(HashMap::new()),
-            last_timer_id: AtomicU64::new(0)
+            last_timer_id: AtomicU64::new(0),
         })
     }
 }
@@ -190,20 +194,29 @@ pub fn run() -> ! {
 
 fn wake_at_time(time: u64) -> TimeoutWakeHandle {
     unsafe {
-        let id = EXECUTOR.as_ref().unwrap().last_timer_id.fetch_add(1, Ordering::SeqCst);
-        EXECUTOR.as_ref().unwrap().timers.write().insert(id, (time, None));
-        TimeoutWakeHandle  { timer: id }
+        let id = EXECUTOR
+            .as_ref()
+            .unwrap()
+            .last_timer_id
+            .fetch_add(1, Ordering::SeqCst);
+        EXECUTOR
+            .as_ref()
+            .unwrap()
+            .timers
+            .write()
+            .insert(id, (time, None));
+        TimeoutWakeHandle { timer: id }
     }
 }
 
 pub fn spawn<F>(future: F)
-    where
-        F: Future<Output = ()> + 'static,
+where
+    F: Future<Output = ()> + 'static,
 {
     unsafe {
         if let Some(executor) = EXECUTOR.as_ref() {
             executor.add_queue.push(Task {
-                future: Box::pin(future)
+                future: Box::pin(future),
             });
         } else {
             // kblog!("Futures", "Spawn invoked before executor started") FIXME can deadlock
@@ -222,7 +235,7 @@ impl Future for SleepFuture {
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         if interrupts::now() >= self.time {
             Poll::Ready(())
-        } else{
+        } else {
             self.timeout_wake_handle.set_waker(cx.waker());
             Poll::Pending
         }
@@ -232,10 +245,15 @@ impl Future for SleepFuture {
 pub fn sleep(timeout: Duration) -> impl Future<Output = ()> {
     let time = interrupts::now() + timeout.num_milliseconds() as u64;
     let handle = wake_at_time(time);
-    SleepFuture { time, timeout_wake_handle: handle }
+    SleepFuture {
+        time,
+        timeout_wake_handle: handle,
+    }
 }
 
 /// Schedules future on main kernel loop
 macro_rules! spawn {
-    ($arg:expr) => { crate::futures::spawn($arg); };
+    ($arg:expr) => {
+        crate::futures::spawn($arg);
+    };
 }

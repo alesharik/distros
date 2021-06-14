@@ -1,6 +1,6 @@
+use crate::interrupts::Irq;
 use spin::Mutex;
 use x86_64::instructions::port::PortWriteOnly;
-use crate::interrupts::Irq;
 
 const PIT_FREQ: u32 = 1193182;
 const COUNTER0_FREQ: u32 = 1000;
@@ -27,17 +27,18 @@ const PIT_CMD_READBACK: u8 = 0xc0;
 
 pub const PIT_IRQ: Irq = Irq(0);
 
-lazy_static!(
+lazy_static! {
     static ref COUNTER0: Mutex<PortWriteOnly<u8>> = Mutex::new(PortWriteOnly::<u8>::new(0x40));
     static ref COUNTER_CTRL: Mutex<PortWriteOnly<u8>> = Mutex::new(PortWriteOnly::<u8>::new(0x43));
-);
+}
 
 pub fn init_pit() -> Irq {
     let mut counter0 = COUNTER0.lock();
     let mut counter_ctrl = COUNTER_CTRL.lock();
     let divisor = PIT_FREQ / COUNTER0_FREQ;
     unsafe {
-        counter_ctrl.write(PIT_CMD_BINARY | PIT_CMD_MODE_SQUARE | PIT_CMD_RW_BOTH | PIT_CMD_COUNTER0);
+        counter_ctrl
+            .write(PIT_CMD_BINARY | PIT_CMD_MODE_SQUARE | PIT_CMD_RW_BOTH | PIT_CMD_COUNTER0);
         counter0.write(divisor as u8);
         counter0.write((divisor >> 8) as u8)
     }

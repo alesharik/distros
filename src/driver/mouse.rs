@@ -1,5 +1,5 @@
-use fixedbitset::FixedBitSet;
 use crate::flow::Message;
+use fixedbitset::FixedBitSet;
 
 #[derive(Debug)]
 pub struct MouseMessage {

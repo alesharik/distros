@@ -1,14 +1,14 @@
-use crate::memory::{MemoryManager, AllocatePage};
-use x86_64::VirtAddr;
-use x86_64::structures::paging::{Page, Size2MiB};
-use x86_64::structures::paging::mapper::MapToError;
-use linked_list_allocator::Heap;
-use crate::kblog;
-use core::ops::Deref;
-use spin::Mutex;
-use core::alloc::{GlobalAlloc, Layout};
-use core::ptr::NonNull;
 use crate::interrupts;
+use crate::kblog;
+use crate::memory::{AllocatePage, MemoryManager};
+use core::alloc::{GlobalAlloc, Layout};
+use core::ops::Deref;
+use core::ptr::NonNull;
+use linked_list_allocator::Heap;
+use spin::Mutex;
+use x86_64::structures::paging::mapper::MapToError;
+use x86_64::structures::paging::{Page, Size2MiB};
+use x86_64::VirtAddr;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 8 * 1024 * 1024; // 8 MiB
@@ -75,6 +75,11 @@ pub fn init_kheap() -> Result<(), MapToError<Size2MiB>> {
         ALLOCATOR.lock().init(HEAP_START, HEAP_SIZE);
     }
 
-    kblog!("KHeap", "Kernel heap started at pos {:#x} with size {} MiB", HEAP_START, HEAP_SIZE / 1024 / 1024);
+    kblog!(
+        "KHeap",
+        "Kernel heap started at pos {:#x} with size {} MiB",
+        HEAP_START,
+        HEAP_SIZE / 1024 / 1024
+    );
     Ok(())
 }

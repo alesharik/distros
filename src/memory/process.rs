@@ -1,5 +1,3 @@
 /// Process Memory Manager
 
-struct ProcessMemory {
-
-}
+struct ProcessMemory {}

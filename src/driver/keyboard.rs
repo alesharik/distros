@@ -1,9 +1,9 @@
-use pc_keyboard::DecodedKey;
 use crate::flow::Message;
+use pc_keyboard::DecodedKey;
 
 #[derive(Debug)]
 pub struct KeyboardMessage {
-    pub key: DecodedKey
+    pub key: DecodedKey,
 }
 
 impl Message for KeyboardMessage {}

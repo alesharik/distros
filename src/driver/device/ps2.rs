@@ -1,29 +1,32 @@
-use ps2::Controller;
-use ps2::flags::{ControllerConfigFlags, KeyboardLedFlags, MouseMovementFlags};
-use x86_64::structures::idt::InterruptStackFrame;
-use spin::{Lazy, Mutex};
 use crate::driver::keyboard::KeyboardMessage;
-use crate::flow::{Producer, Sender, FlowManager};
-use alloc::sync::Arc;
-use pc_keyboard::{Keyboard, layouts, ScancodeSet2, HandleControl, DecodedKey, KeyCode, KeyState};
+use crate::driver::mouse::MouseMessage;
+use crate::flow::{FlowManager, Producer, Sender};
 use crate::interrupts;
 use crate::interrupts::Irq;
-use ps2::error::{ControllerError, KeyboardError, MouseError};
-use core::sync::atomic::{AtomicBool, Ordering};
+use alloc::sync::Arc;
 use core::ops::Deref;
-use crate::driver::mouse::MouseMessage;
+use core::sync::atomic::{AtomicBool, Ordering};
 use fixedbitset::FixedBitSet;
+use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, KeyState, Keyboard, ScancodeSet2};
+use ps2::error::{ControllerError, KeyboardError, MouseError};
+use ps2::flags::{ControllerConfigFlags, KeyboardLedFlags, MouseMovementFlags};
+use ps2::Controller;
+use spin::{Lazy, Mutex};
+use x86_64::structures::idt::InterruptStackFrame;
 
-static KEYBOARD_SENDER: Lazy<Arc<Mutex<Producer<KeyboardMessage>>>> = Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
-static MOUSE_SENDER: Lazy<Arc<Mutex<Producer<MouseMessage>>>> = Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
-static INT_CONTROLLER: Lazy<Mutex<Controller>> = Lazy::new(|| Mutex::new(unsafe { Controller::new() }));
-static KEYBOARD_PARSER: Lazy<Mutex<Keyboard<layouts::Us104Key, ScancodeSet2>>> = Lazy::new(|| Mutex::new(
-    Keyboard::new(
+static KEYBOARD_SENDER: Lazy<Arc<Mutex<Producer<KeyboardMessage>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
+static MOUSE_SENDER: Lazy<Arc<Mutex<Producer<MouseMessage>>>> =
+    Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
+static INT_CONTROLLER: Lazy<Mutex<Controller>> =
+    Lazy::new(|| Mutex::new(unsafe { Controller::new() }));
+static KEYBOARD_PARSER: Lazy<Mutex<Keyboard<layouts::Us104Key, ScancodeSet2>>> = Lazy::new(|| {
+    Mutex::new(Keyboard::new(
         layouts::Us104Key,
         ScancodeSet2,
-        HandleControl::Ignore
-    )
-));
+        HandleControl::Ignore,
+    ))
+});
 static CAPS_STATE: AtomicBool = AtomicBool::new(false);
 static NUM_STATE: AtomicBool = AtomicBool::new(false);
 static SCROLL_STATE: AtomicBool = AtomicBool::new(false);
@@ -32,7 +35,7 @@ static SCROLL_STATE: AtomicBool = AtomicBool::new(false);
 enum Ps2Error {
     ControllerError(ControllerError),
     KeyboardError(KeyboardError),
-    MouseError(MouseError)
+    MouseError(MouseError),
 }
 
 impl From<ControllerError> for Ps2Error {
@@ -139,9 +142,10 @@ pub fn init() -> Result<(), ControllerError> {
 }
 
 async fn send_decoded(decoded: DecodedKey) {
-    KEYBOARD_SENDER.lock().send(KeyboardMessage {
-        key: decoded,
-    }).await;
+    KEYBOARD_SENDER
+        .lock()
+        .send(KeyboardMessage { key: decoded })
+        .await;
 }
 
 async fn send_mouse(packet: (MouseMovementFlags, i16, i16)) {
@@ -155,11 +159,14 @@ async fn send_mouse(packet: (MouseMovementFlags, i16, i16)) {
     if packet.0.contains(MouseMovementFlags::RIGHT_BUTTON_PRESSED) {
         bitset.set(2, true);
     }
-    MOUSE_SENDER.lock().send(MouseMessage {
-        keys_pressed: bitset,
-        movement_x: packet.1,
-        movement_y: packet.2
-    }).await;
+    MOUSE_SENDER
+        .lock()
+        .send(MouseMessage {
+            keys_pressed: bitset,
+            movement_x: packet.1,
+            movement_y: packet.2,
+        })
+        .await;
 }
 
 int_handler!(noint keyboard_handler |_: InterruptStackFrame| {

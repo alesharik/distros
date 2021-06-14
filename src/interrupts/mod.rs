@@ -1,6 +1,6 @@
 macro_rules! int_handler {
     (pub noint $name:ident $body:expr) => {
-        pub extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame)  {
+        pub extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame) {
             crate::interrupts::no_int(|| {
                 $body(stack_frame);
                 crate::interrupts::eoi();
@@ -8,7 +8,7 @@ macro_rules! int_handler {
         }
     };
     (noint $name:ident $body:expr) => {
-        extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame)  {
+        extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame) {
             crate::interrupts::no_int(|| {
                 $body(stack_frame);
                 crate::interrupts::eoi();
@@ -16,7 +16,7 @@ macro_rules! int_handler {
         }
     };
     ($name:ident $body:expr) => {
-        extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame)  {
+        extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame) {
             $body(stack_frame)
         }
     };
@@ -29,8 +29,8 @@ mod timer;
 use crate::acpi::AcpiInfo;
 
 pub use idt::{init_idt, set_handler};
-pub use timer::{now, sleep};
 pub use pic::{eoi, no_int};
+pub use timer::{now, sleep};
 
 pub const INT_LAPIC_TIMER: InterruptId = InterruptId::from_raw(33);
 pub const INT_LAPIC_ERROR: InterruptId = InterruptId::from_raw(34);

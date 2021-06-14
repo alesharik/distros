@@ -1,20 +1,23 @@
-use core::sync::atomic::{AtomicPtr, Ordering, AtomicUsize};
-use alloc::string::String;
-use core::ptr::null_mut;
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
+use alloc::string::String;
 use core::ops::Deref;
+use core::ptr::null_mut;
+use core::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
 
 const RING_BUFFER_SIZE: usize = 4096;
 
 pub struct RingBuffer {
     write_cursor: AtomicUsize,
-    buffer: [AtomicPtr<String>; RING_BUFFER_SIZE]
+    buffer: [AtomicPtr<String>; RING_BUFFER_SIZE],
 }
 
 impl RingBuffer {
     fn new() -> Self {
-        RingBuffer { write_cursor: AtomicUsize::new(0), buffer: [const { AtomicPtr::<String>::new(null_mut()) }; RING_BUFFER_SIZE] }
+        RingBuffer {
+            write_cursor: AtomicUsize::new(0),
+            buffer: [const { AtomicPtr::<String>::new(null_mut()) }; RING_BUFFER_SIZE],
+        }
     }
 
     pub fn add(&self, string: &str) {
@@ -25,9 +28,9 @@ impl RingBuffer {
     }
 }
 
-lazy_static!(
+lazy_static! {
     pub static ref SYSLOG_RING_BUFFER: RingBuffer = RingBuffer::new();
-);
+}
 
 pub struct RingBufferIter {
     read_cursor: AtomicUsize,
@@ -49,9 +52,18 @@ impl Iterator for RingBufferIter {
             let current_idx = self.read_cursor.load(Ordering::SeqCst);
             let write_cursor = SYSLOG_RING_BUFFER.write_cursor.load(Ordering::SeqCst);
             if current_idx >= write_cursor {
-                return None
+                return None;
             } else {
-                if self.read_cursor.compare_exchange(current_idx, current_idx + 1, Ordering::SeqCst, Ordering::Acquire).is_ok() {
+                if self
+                    .read_cursor
+                    .compare_exchange(
+                        current_idx,
+                        current_idx + 1,
+                        Ordering::SeqCst,
+                        Ordering::Acquire,
+                    )
+                    .is_ok()
+                {
                     break current_idx;
                 }
             }

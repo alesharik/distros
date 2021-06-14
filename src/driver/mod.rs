@@ -1,6 +1,6 @@
+mod device;
 pub mod keyboard;
 pub mod mouse;
-mod device;
 mod pci;
 mod syslog;
 mod tty;

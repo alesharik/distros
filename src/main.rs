@@ -17,7 +17,7 @@ extern crate log;
 
 use core::panic::PanicInfo;
 
-use bootloader::{BootInfo, entry_point};
+use bootloader::{entry_point, BootInfo};
 use x86_64::VirtAddr;
 
 #[macro_use]
@@ -29,13 +29,13 @@ mod memory;
 #[macro_use]
 mod futures;
 mod acpi;
-mod cpuid;
-mod cmos;
-mod random;
-mod fpu;
-mod flow;
-mod driver;
 mod basic_term;
+mod cmos;
+mod cpuid;
+mod driver;
+mod flow;
+mod fpu;
+mod random;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -55,7 +55,10 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     cpuid::init_cpuid();
     gdt::init_gdt();
     interrupts::init_idt();
-    memory::init_memory(VirtAddr::new(boot_info.physical_memory_offset), &boot_info.memory_map);
+    memory::init_memory(
+        VirtAddr::new(boot_info.physical_memory_offset),
+        &boot_info.memory_map,
+    );
     memory::print_table();
     memory::init_kheap().unwrap();
     let acpi = acpi::init_acpi();

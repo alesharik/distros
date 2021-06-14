@@ -1,10 +1,10 @@
+use crate::kblog;
 use raw_cpuid::{CpuId, FeatureInfo};
 use spin::Mutex;
-use crate::kblog;
 
-lazy_static!(
+lazy_static! {
     static ref CPUID: Mutex<Option<CpuId>> = Mutex::new(Option::None);
-);
+}
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct FpuInfo {
@@ -49,7 +49,10 @@ pub fn has_apic() -> bool {
     let guard = CPUID.lock();
     let cpuid = guard.as_ref();
     if let Some(cpuid) = cpuid {
-        cpuid.get_feature_info().expect("Failed to get feature info").has_apic()
+        cpuid
+            .get_feature_info()
+            .expect("Failed to get feature info")
+            .has_apic()
     } else {
         panic!("CPUID not initialized")
     }
@@ -59,7 +62,9 @@ pub fn get_fpu_info() -> FpuInfo {
     let guard = CPUID.lock();
     let cpuid = guard.as_ref();
     if let Some(cpuid) = cpuid {
-        let info = cpuid.get_feature_info().expect("Failed to get feature info");
+        let info = cpuid
+            .get_feature_info()
+            .expect("Failed to get feature info");
         FpuInfo::from_feature_info(&info)
     } else {
         panic!("CPUID not initialized")

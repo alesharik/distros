@@ -1,5 +1,4 @@
 /// this module contains real device drivers
-
 mod ps2;
 
 pub fn init() {

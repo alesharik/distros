@@ -1,11 +1,11 @@
-/// Main physical page manager
-use bootloader::bootinfo::{MemoryRegion, MemoryMap};
-use x86_64::structures::paging::{PhysFrame, Size4KiB, FrameAllocator, Size2MiB, FrameDeallocator};
-use core::ops::Not;
-use x86_64::PhysAddr;
-use alloc::vec::Vec;
-use core::cell::RefCell;
 use alloc::rc::Rc;
+use alloc::vec::Vec;
+/// Main physical page manager
+use bootloader::bootinfo::{MemoryMap, MemoryRegion};
+use core::cell::RefCell;
+use core::ops::Not;
+use x86_64::structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size2MiB, Size4KiB};
+use x86_64::PhysAddr;
 
 const FRAME_LENGTH: u32 = 4096;
 
@@ -26,7 +26,10 @@ struct MemoryRegionContainer {
 
 impl MemoryRegionContainer {
     fn new(region: &MemoryRegion) -> Self {
-        MemoryRegionContainer { end: region.range.end_frame_number, pointer: region.range.start_frame_number }
+        MemoryRegionContainer {
+            end: region.range.end_frame_number,
+            pointer: region.range.start_frame_number,
+        }
     }
 
     fn take(&mut self, frames: u64) -> Option<PhysFrame<Size4KiB>> {
@@ -42,7 +45,11 @@ impl MemoryRegionContainer {
 
 impl Frame {
     fn new(start: PhysFrame<Size4KiB>, size: u64, used: bool) -> Self {
-        let mut frame = Frame { start_frame: start, size, next: None };
+        let mut frame = Frame {
+            start_frame: start,
+            size,
+            next: None,
+        };
         frame.set_used(used);
         frame
     }
@@ -76,8 +83,15 @@ pub struct FrameAlloc {
 impl FrameAlloc {
     pub fn new(memory_map: &'static MemoryMap, offset: u32) -> FrameAlloc {
         let mut alloc = FrameAlloc {
-            regions: memory_map.iter().map(|r| MemoryRegionContainer::new(r)).collect::<Vec<_>>(),
-            root: Rc::new(RefCell::new(Frame::new(PhysFrame::from_start_address(PhysAddr::new(0)).unwrap(), 0, true)))
+            regions: memory_map
+                .iter()
+                .map(|r| MemoryRegionContainer::new(r))
+                .collect::<Vec<_>>(),
+            root: Rc::new(RefCell::new(Frame::new(
+                PhysFrame::from_start_address(PhysAddr::new(0)).unwrap(),
+                0,
+                true,
+            ))),
         };
         alloc.allocate(offset / FRAME_LENGTH);
         alloc
@@ -99,7 +113,8 @@ impl FrameAlloc {
                 contents.set_used(true);
                 return Some(contents.start_frame);
             }
-            if matches!(contents.next, None) { // last iteration
+            if matches!(contents.next, None) {
+                // last iteration
                 for reg in &mut self.regions {
                     if let Some(phys) = reg.take(frames as u64) {
                         let frame = Frame::new(phys.clone(), frames as u64, true);
@@ -118,7 +133,8 @@ impl FrameAlloc {
         while !matches!(it, None) {
             let arc = it.unwrap();
             let mut contents = arc.borrow_mut();
-            if contents.start_frame == address { // we found current frame
+            if contents.start_frame == address {
+                // we found current frame
                 contents.set_used(false);
 
                 // merge all free frames after current
@@ -164,7 +180,9 @@ impl FrameDeallocator<Size4KiB> for FrameAlloc {
 
 impl FrameDeallocator<Size2MiB> for FrameAlloc {
     unsafe fn deallocate_frame(&mut self, frame: PhysFrame<Size2MiB>) {
-        self.deallocate(PhysFrame::from_start_address_unchecked(frame.start_address()))
+        self.deallocate(PhysFrame::from_start_address_unchecked(
+            frame.start_address(),
+        ))
     }
 }
 

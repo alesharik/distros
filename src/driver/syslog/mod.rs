@@ -3,14 +3,14 @@
 //! This module setups `log` logger to write all kernel messages in internal rung buffer.
 //! This buffer is exposed by `/dev/syslog` flow.
 //! It does not use kblog and other vga facilities to not intervene with tty device.
-use log::{Log, Metadata, Record};
-use core::sync::atomic::{Ordering, AtomicBool, AtomicU64};
-use alloc::string::String;
-use crate::flow::{Message, Provider, Consumer, Subscription, FlowManager};
-use core::fmt::{Debug, Formatter};
-use alloc::boxed::Box;
-use alloc::sync::Arc;
 use crate::driver::syslog::ring::{RingBufferIter, SYSLOG_RING_BUFFER};
+use crate::flow::{Consumer, FlowManager, Message, Provider, Subscription};
+use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::sync::Arc;
+use core::fmt::{Debug, Formatter};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use log::{Log, Metadata, Record};
 use spin::Mutex;
 
 mod ring;
@@ -30,7 +30,12 @@ impl Log for SysLog {
     }
 
     fn log(&self, record: &Record<'_>) {
-        let string = format!("[{}][{}] {}", record.level(), record.target(), record.args());
+        let string = format!(
+            "[{}][{}] {}",
+            record.level(),
+            record.target(),
+            record.args()
+        );
         SYSLOG_RING_BUFFER.add(&string);
     }
 
@@ -78,10 +83,15 @@ struct SyslogProvider {
 
 impl SyslogProvider {
     fn new() -> Self {
-        SyslogProvider { id_counter: AtomicU64::new(0) }
+        SyslogProvider {
+            id_counter: AtomicU64::new(0),
+        }
     }
 
-    async fn spawn_consumer(consumer: Box<dyn Consumer<SyslogMessage>>, stop_flag: Arc<AtomicBool>) {
+    async fn spawn_consumer(
+        consumer: Box<dyn Consumer<SyslogMessage>>,
+        stop_flag: Arc<AtomicBool>,
+    ) {
         let mut iterator = RingBufferIter::new();
         while !stop_flag.load(Ordering::SeqCst) {
             if let Some(message) = iterator.next().map(|m| SyslogMessage(m)) {
@@ -94,7 +104,10 @@ impl SyslogProvider {
 }
 
 impl Provider<SyslogMessage> for SyslogProvider {
-    fn add_consumer(&mut self, consumer: Box<dyn Consumer<SyslogMessage>>) -> Box<dyn Subscription> {
+    fn add_consumer(
+        &mut self,
+        consumer: Box<dyn Consumer<SyslogMessage>>,
+    ) -> Box<dyn Subscription> {
         let stop_flag = Arc::new(AtomicBool::new(false));
         spawn!(SyslogProvider::spawn_consumer(consumer, stop_flag.clone()));
         Box::new(SyslogSubscription {
@@ -106,5 +119,9 @@ impl Provider<SyslogMessage> for SyslogProvider {
 
 pub fn init() {
     log::set_logger(&LOG_INSTANCE).expect("Cannot start syslog instance");
-    FlowManager::register_endpoint("/dev/syslog", Arc::new(Mutex::new(SyslogProvider::new())), None);
+    FlowManager::register_endpoint(
+        "/dev/syslog",
+        Arc::new(Mutex::new(SyslogProvider::new())),
+        None,
+    );
 }

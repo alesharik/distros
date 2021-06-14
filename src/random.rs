@@ -1,19 +1,19 @@
-use x86_64::instructions::random::RdRand;
-use rand_pcg::Pcg64Mcg;
-use rand::{RngCore, Error};
-use alloc::boxed::Box;
 use crate::interrupts;
+use alloc::boxed::Box;
+use rand::{Error, RngCore};
+use rand_pcg::Pcg64Mcg;
+use x86_64::instructions::random::RdRand;
 
 struct HwRng {
     rdrand: RdRand,
-    fallback: Pcg64Mcg
+    fallback: Pcg64Mcg,
 }
 
 impl HwRng {
     fn new(rdrand: RdRand) -> Self {
         HwRng {
             rdrand,
-            fallback: Pcg64Mcg::new((interrupts::now() as u128) * 2000 / 3 * 13)
+            fallback: Pcg64Mcg::new((interrupts::now() as u128) * 2000 / 3 * 13),
         }
     }
 
@@ -51,7 +51,6 @@ impl RngCore for HwRng {
         self.fill_bytes(dest);
         Ok(())
     }
-
 }
 
 pub fn rng() -> Box<dyn RngCore> {

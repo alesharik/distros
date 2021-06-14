@@ -1,13 +1,13 @@
-use crate::flow::{Consumer, Subscription, FlowManager, FlowManagerError};
 use crate::driver::TtyMessage;
-use alloc::boxed::Box;
-use futures::lock::BiLock;
-use alloc::string::{String, ToString};
+use crate::flow::{Consumer, FlowManager, FlowManagerError, Subscription};
 use alloc::borrow::ToOwned;
+use alloc::boxed::Box;
+use alloc::string::{String, ToString};
 use async_trait::async_trait;
+use futures::lock::BiLock;
 
 struct Sub {
-    line: BiLock<String>
+    line: BiLock<String>,
 }
 
 impl Sub {

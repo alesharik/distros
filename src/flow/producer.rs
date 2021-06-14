@@ -1,19 +1,19 @@
-use crate::flow::{Provider, Consumer, Subscription, Sender, Message};
+use crate::flow::{Consumer, Message, Provider, Sender, Subscription};
 use alloc::boxed::Box;
-use alloc::vec::Vec;
 use alloc::sync::Arc;
-use spin::RwLock;
+use alloc::vec::Vec;
 use async_trait::async_trait;
+use spin::RwLock;
 
 struct ConsumerHolder<T: Message> {
     id: u64,
-    consumer: Box<dyn Consumer<T>>
+    consumer: Box<dyn Consumer<T>>,
 }
 
 struct SubscriptionImpl<T: Message> {
     id: u64,
     consumers: Arc<RwLock<Vec<ConsumerHolder<T>>>>,
-    dropped: bool
+    dropped: bool,
 }
 
 impl<T: Message> Subscription for SubscriptionImpl<T> {
@@ -33,7 +33,7 @@ impl<T: Message> Subscription for SubscriptionImpl<T> {
 impl<T: Message> Drop for SubscriptionImpl<T> {
     fn drop(&mut self) {
         if self.dropped {
-            return
+            return;
         }
         let mut consumers = self.consumers.write();
         if let Some(idx) = consumers.iter().position(|x| x.id == self.id) {
@@ -51,7 +51,7 @@ impl<T: Message + 'static> Producer<T> {
     pub fn new() -> Producer<T> {
         Producer {
             consumers: Arc::new(RwLock::new(Vec::new())),
-            id_counter: 0
+            id_counter: 0,
         }
     }
 
@@ -72,11 +72,12 @@ impl<T: 'static + Message> Provider<T> for Producer<T> {
         let id = self.id_counter;
         self.id_counter += 1;
         let mut consumers = self.consumers.write();
-        consumers.push(ConsumerHolder {
+        consumers.push(ConsumerHolder { id, consumer });
+        Box::new(SubscriptionImpl {
             id,
-            consumer,
-        });
-        Box::new(SubscriptionImpl {id, consumers: self.consumers.clone(), dropped: false })
+            consumers: self.consumers.clone(),
+            dropped: false,
+        })
     }
 }
 

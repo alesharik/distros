@@ -1,9 +1,9 @@
-use acpi::HpetInfo;
+use crate::interrupts::Irq;
 use crate::memory;
-use x86_64::{PhysAddr, VirtAddr};
+use acpi::HpetInfo;
 use bit_field::BitField;
 use core::ops::Not;
-use crate::interrupts::Irq;
+use x86_64::{PhysAddr, VirtAddr};
 
 const RTC_COMP: u8 = 0;
 
@@ -98,15 +98,17 @@ pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
                 *cmp_val.as_mut_ptr::<u64>() = target;
                 *cmp_val.as_mut_ptr::<u64>() = target;
             }
-            return irq
+            return irq;
         }
     }
     panic!("Cannot map HPET RTC timer to irq")
 }
 
 pub fn start_hpet(info: &HpetInfo) {
-    let addr: VirtAddr = memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x010 as usize;
-    let counter_addr: VirtAddr = memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x0F0 as usize;
+    let addr: VirtAddr =
+        memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x010 as usize;
+    let counter_addr: VirtAddr =
+        memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x0F0 as usize;
     unsafe {
         let mut val = *addr.as_ptr::<u64>();
         val |= 1;

@@ -1,8 +1,8 @@
-use pci_types::{PciAddress, PciHeader, ConfigRegionAccess};
-use x86_64::instructions::port::{PortWriteOnly, Port};
+use bit_field::BitField;
 use core::cell::RefCell;
 use pci_types::device_type::DeviceType;
-use bit_field::BitField;
+use pci_types::{ConfigRegionAccess, PciAddress, PciHeader};
+use x86_64::instructions::port::{Port, PortWriteOnly};
 
 struct AccessImpl {
     address_port: RefCell<PortWriteOnly<u32>>,
@@ -13,16 +13,14 @@ impl AccessImpl {
     fn new() -> AccessImpl {
         AccessImpl {
             address_port: RefCell::new(PortWriteOnly::new(0xCF8)),
-            data_port: RefCell::new(Port::new(0xCFC))
+            data_port: RefCell::new(Port::new(0xCFC)),
         }
     }
 }
 
 impl ConfigRegionAccess for AccessImpl {
     fn function_exists(&self, address: PciAddress) -> bool {
-        unsafe {
-            self.read(address, 0) & 0xFFFF != 0xFFFF
-        }
+        unsafe { self.read(address, 0) & 0xFFFF != 0xFFFF }
     }
 
     unsafe fn read(&self, address: PciAddress, offset: u16) -> u32 {
@@ -59,12 +57,16 @@ fn check_device(access: &AccessImpl, bus: u8, device: u8) {
     let pci_header = PciHeader::new(PciAddress::new(0, bus, device, 0));
     let (vendor_id, _) = pci_header.id(access);
     if vendor_id == 0xFFFF {
-        return
+        return;
     }
     check_function(access, bus, device, 0);
     if pci_header.has_multiple_functions(access) {
         for fun in 1..8 {
-            if PciHeader::new(PciAddress::new(0, bus, device, fun)).id(access).0 != 0xFFFF {
+            if PciHeader::new(PciAddress::new(0, bus, device, fun))
+                .id(access)
+                .0
+                != 0xFFFF
+            {
                 check_function(access, bus, device, fun);
             }
         }

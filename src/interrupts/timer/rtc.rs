@@ -1,16 +1,16 @@
-use x86_64::structures::idt::InterruptStackFrame;
 use core::sync::atomic::{AtomicU64, Ordering};
-use x86_64::instructions::port::{PortWriteOnly, Port};
 use spin::Mutex;
+use x86_64::instructions::port::{Port, PortWriteOnly};
+use x86_64::structures::idt::InterruptStackFrame;
 
 const RATE: u8 = 6 & 0x0F;
 
 static TIME: AtomicU64 = AtomicU64::new(0);
 
-lazy_static!(
+lazy_static! {
     static ref ADDRESS: Mutex<PortWriteOnly<u8>> = Mutex::new(PortWriteOnly::<u8>::new(0x70));
     static ref DATA: Mutex<Port<u8>> = Mutex::new(Port::<u8>::new(0x71));
-);
+}
 
 pub fn start_rtc() {
     let start_time = crate::cmos::read_time();

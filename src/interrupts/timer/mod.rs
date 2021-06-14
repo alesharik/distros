@@ -1,12 +1,12 @@
 use core::time::Duration;
 
+mod hpet;
 mod pit;
 mod rtc;
-mod hpet;
 
-pub use rtc::now;
 use crate::acpi::AcpiInfo;
 use crate::interrupts::RTC_IRQ;
+pub use rtc::now;
 use x86_64::structures::idt::InterruptStackFrame;
 
 pub fn sleep(duration: Duration) {
@@ -38,6 +38,8 @@ pub fn init_timer(acpi: &AcpiInfo) {
     }
 }
 
-int_handler!(pit_stub |_: InterruptStackFrame| {
-    crate::interrupts::eoi();
-});
+int_handler!(
+    pit_stub | _: InterruptStackFrame | {
+        crate::interrupts::eoi();
+    }
+);
