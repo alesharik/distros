@@ -62,7 +62,6 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
     futures::init();
-    FlowManager::init();
 
     driver::init();
     basic_term::init().unwrap();

@@ -36,11 +36,11 @@ impl TtyWriter for Stdin {
 }
 
 pub struct StdinKeyboardConsumer {
-    stdin: Arc<RwLock<Stdin>>,
+    stdin: Arc<Mutex<Stdin>>,
 }
 
 impl StdinKeyboardConsumer {
-    pub fn new(stdin: Arc<RwLock<Stdin>>) -> Self {
+    pub fn new(stdin: Arc<Mutex<Stdin>>) -> Self {
         StdinKeyboardConsumer { stdin }
     }
 }
@@ -51,12 +51,12 @@ impl Consumer<KeyboardMessage> for StdinKeyboardConsumer {
         match message.key {
             DecodedKey::Unicode(code) => {
                 let message = format!("{}", code);
-                self.stdin.write().send(&message).await;
+                self.stdin.lock().send(&message).await;
             }
             DecodedKey::RawKey(code) => match code {
-                KeyCode::ArrowLeft => self.stdin.write().send("\x1B[1D").await,
-                KeyCode::ArrowRight => self.stdin.write().send("\x1B[1C").await,
-                KeyCode::Backspace => self.stdin.write().send("^A").await,
+                KeyCode::ArrowLeft => self.stdin.lock().send("\x1B[1D").await,
+                KeyCode::ArrowRight => self.stdin.lock().send("\x1B[1C").await,
+                KeyCode::Backspace => self.stdin.lock().send("^A").await,
                 _ => {return;}
             }
         }
@@ -68,11 +68,11 @@ impl Consumer<KeyboardMessage> for StdinKeyboardConsumer {
 pub struct Stdout<H: Handler<Stdin>> {
     handler: H,
     processor: Processor,
-    stdin: Arc<RwLock<Stdin>>,
+    stdin: Arc<Mutex<Stdin>>,
 }
 
 impl<H: Handler<Stdin>> Stdout<H> {
-    pub fn new(handler: H, stdin: Arc<RwLock<Stdin>>) -> Self {
+    pub fn new(handler: H, stdin: Arc<Mutex<Stdin>>) -> Self {
         Stdout {
             handler,
             stdin,
@@ -84,7 +84,7 @@ impl<H: Handler<Stdin>> Stdout<H> {
 #[async_trait]
 impl<H: Handler<Stdin> + Send + Sync> Sender<TtyMessage> for Stdout<H> {
     async fn send(&mut self, message: TtyMessage) {
-        let mut guard = self.stdin.write();
+        let mut guard = self.stdin.lock();
         for c in message.0.chars() {
             self.processor.advance(&mut self.handler, c as u8, &mut guard);
         }

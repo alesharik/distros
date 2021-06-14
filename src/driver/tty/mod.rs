@@ -7,7 +7,7 @@ use core::marker::PhantomData;
 use core::fmt::{Debug, Formatter};
 use crate::flow::{Message, FlowManager, FlowManagerError};
 use alloc::sync::Arc;
-use spin::{RwLock, Lazy};
+use spin::{RwLock, Lazy, Mutex};
 use crate::driver::tty::flow::{Stdout, StdinKeyboardConsumer, Stdin};
 use alloc::boxed::Box;
 
@@ -518,14 +518,14 @@ impl ToString for TtyMessage {
     }
 }
 
-static VGA_STDIN: Lazy<Arc<RwLock<Stdin>>> = Lazy::new(|| Arc::new(RwLock::new(Stdin::new())));
+static VGA_STDIN: Lazy<Arc<Mutex<Stdin>>> = Lazy::new(|| Arc::new(Mutex::new(Stdin::new())));
 
 pub fn init() -> Result<(), FlowManagerError> {
     debug!("Setting up TTY devices");
     let stdout = Stdout::new(DefaultHandler::new(vga::VgaTextScreen::new()), VGA_STDIN.clone());
     let sub = FlowManager::subscribe("/dev/ps2/keyboard", Box::new(StdinKeyboardConsumer::new(VGA_STDIN.clone())))?;
     core::mem::forget(sub); // never unsubscribe from device
-    FlowManager::register_endpoint("/dev/tty/vga", VGA_STDIN.clone(), Some(Arc::new(RwLock::new(stdout))));
+    FlowManager::register_endpoint("/dev/tty/vga", VGA_STDIN.clone(), Some(Arc::new(Mutex::new(stdout))));
     debug!("VGA TTY device set up");
     Ok(())
 }

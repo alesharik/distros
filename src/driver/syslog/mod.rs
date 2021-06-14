@@ -15,6 +15,7 @@ use core::ops::Deref;
 use alloc::sync::Arc;
 use crate::driver::syslog::ring::{RingBufferIter, SYSLOG_RING_BUFFER};
 use spin::rwlock::RwLock;
+use spin::Mutex;
 
 mod ring;
 mod wait;
@@ -109,5 +110,5 @@ impl Provider<SyslogMessage> for SyslogProvider {
 
 pub fn init() {
     log::set_logger(&LOG_INSTANCE).expect("Cannot start syslog instance");
-    FlowManager::register_endpoint("/dev/syslog", Arc::new(RwLock::new(SyslogProvider::new())), None);
+    FlowManager::register_endpoint("/dev/syslog", Arc::new(Mutex::new(SyslogProvider::new())), None);
 }

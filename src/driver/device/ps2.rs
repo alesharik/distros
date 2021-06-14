@@ -6,16 +6,17 @@ use crate::driver::keyboard::KeyboardMessage;
 use crate::flow::{Producer, Sender, FlowManager};
 use alloc::sync::Arc;
 use pc_keyboard::{Keyboard, layouts, ScancodeSet2, HandleControl, DecodedKey, KeyCode, KeyState};
-use crate::{futures, interrupts};
+use crate::interrupts;
 use crate::interrupts::Irq;
 use ps2::error::{ControllerError, KeyboardError, MouseError};
 use core::sync::atomic::{AtomicBool, Ordering};
 use core::ops::Deref;
 use crate::driver::mouse::MouseMessage;
 use fixedbitset::FixedBitSet;
+use futures::lock::BiLock;
 
-static KEYBOARD_SENDER: Lazy<Arc<RwLock<Producer<KeyboardMessage>>>> = Lazy::new(|| Arc::new(RwLock::new(Producer::new())));
-static MOUSE_SENDER: Lazy<Arc<RwLock<Producer<MouseMessage>>>> = Lazy::new(|| Arc::new(RwLock::new(Producer::new())));
+static KEYBOARD_SENDER: Lazy<Arc<Mutex<Producer<KeyboardMessage>>>> = Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
+static MOUSE_SENDER: Lazy<Arc<Mutex<Producer<MouseMessage>>>> = Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
 static INT_CONTROLLER: Lazy<Mutex<Controller>> = Lazy::new(|| Mutex::new(unsafe { Controller::new() }));
 static KEYBOARD_PARSER: Lazy<Mutex<Keyboard<layouts::Us104Key, ScancodeSet2>>> = Lazy::new(|| Mutex::new(
     Keyboard::new(
@@ -139,7 +140,7 @@ pub fn init() -> Result<(), ControllerError> {
 }
 
 async fn send_decoded(decoded: DecodedKey) {
-    KEYBOARD_SENDER.write().send(KeyboardMessage {
+    KEYBOARD_SENDER.lock().send(KeyboardMessage {
         key: decoded,
     }).await;
 }
@@ -155,7 +156,7 @@ async fn send_mouse(packet: (MouseMovementFlags, i16, i16)) {
     if packet.0.contains(MouseMovementFlags::RIGHT_BUTTON_PRESSED) {
         bitset.set(2, true);
     }
-    MOUSE_SENDER.write().send(MouseMessage {
+    MOUSE_SENDER.lock().send(MouseMessage {
         keys_pressed: bitset,
         movement_x: packet.1,
         movement_y: packet.2
@@ -170,7 +171,7 @@ int_handler!(noint keyboard_handler |_: InterruptStackFrame| {
         if let Ok(key) = keyboard.add_byte(byte) {
             if let Some(key) = key {
                 if let Some(decoded) = keyboard.process_keyevent(key.clone()) {
-                    futures::spawn(send_decoded(decoded))
+                    crate::futures::spawn(send_decoded(decoded))
                 }
                 let change_led = match key.code {
                     KeyCode::CapsLock => {
@@ -220,6 +221,6 @@ int_handler!(noint mouse_handler |_: InterruptStackFrame| {
     let mut controller = INT_CONTROLLER.lock();
     // ignore timeouts
     if let Ok(packet) = controller.mouse().read_data_packet() {
-        futures::spawn(send_mouse(packet));
+        crate::futures::spawn(send_mouse(packet));
     }
 });
