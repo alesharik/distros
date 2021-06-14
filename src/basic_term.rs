@@ -37,7 +37,10 @@ impl Consumer<TtyMessage> for Sub {
         let input = message.to_string();
         if input == "\n" {
             if line.starts_with("test") {
-                self.print("\n> YAY!!");
+                for x in 31..38 {
+                    self.print(&format!("\x1b[{}m {} ", x, x));
+                }
+                self.print("\n\x1B[33m> YAY!!");
             }
             *line = "".to_owned();
             self.new_line();
