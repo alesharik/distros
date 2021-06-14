@@ -21,6 +21,7 @@ lazy_static! {
         idt.non_maskable_interrupt.set_handler_fn(nmi_handler);
         idt.simd_floating_point.set_handler_fn(fpa_handler);
         idt.machine_check.set_handler_fn(machine_check_handler);
+        idt.general_protection_fault.set_handler_fn(general_protection_fault);
         unsafe {
             idt.double_fault.set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
@@ -116,6 +117,10 @@ extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame,
 
 extern "x86-interrupt" fn machine_check_handler(stack_frame: InterruptStackFrame) -> ! {
     panic!("HARDWARE FAULT\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn general_protection_fault(stack_frame: InterruptStackFrame, error_code: u64) {
+    println!("EXCEPTION: GENERAL PROTECTION FAULT[{:?}]\n{:#?}", error_code, stack_frame);
 }
 
 extern "x86-interrupt" fn page_fault_handler(stack_frame: InterruptStackFrame, error_code: PageFaultErrorCode) {
