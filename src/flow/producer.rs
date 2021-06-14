@@ -42,16 +42,27 @@ impl<T: Message> Drop for SubscriptionImpl<T> {
     }
 }
 
-pub struct Producer<T: Message> {
+pub struct Producer<T: Message + 'static> {
     consumers: Arc<RwLock<Vec<ConsumerHolder<T>>>>,
     id_counter: u64,
 }
 
-impl<T: Message> Producer<T> {
+impl<T: Message + 'static> Producer<T> {
     pub fn new() -> Producer<T> {
         Producer {
             consumers: Arc::new(RwLock::new(Vec::new())),
             id_counter: 0
+        }
+    }
+
+    pub fn send_async(&self, message: T) {
+        crate::futures::spawn(Producer::send_async_inner(message, self.consumers.clone()));
+    }
+
+    async fn send_async_inner(message: T, consumers: Arc<RwLock<Vec<ConsumerHolder<T>>>>) {
+        for consumer in consumers.read().iter() {
+            let x = consumer.consumer.consume(&message);
+            x.await;
         }
     }
 }
