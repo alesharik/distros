@@ -61,6 +61,16 @@ impl FlowManager {
         }
     }
 
+    pub fn send_async<T: 'static + Message>(path: &str, message: T) {
+        crate::futures::spawn(FlowManager::send_async_inner(path.to_owned(), message));
+    }
+
+    async fn send_async_inner<T: 'static + Message>(path: String, message: T) {
+        if let Err(e) = FlowManager::send(&path, message).await {
+            error!("Error while sending message {:?}", e);
+        }
+    }
+
     pub async fn send<T: 'static + Message>(path: &str, message: T) -> Result<(), FlowManagerError> {
         let mut inner = INNER.lock();
         match inner.as_mut().expect("FlowManager not initialized").endpoints.get(path) {

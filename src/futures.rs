@@ -151,7 +151,6 @@ pub fn tick_1ms() {
 }
 
 pub fn run() -> ! {
-    kblog!("Futures", "Runtime running");
     loop {
         unsafe {
             while let Some(task) = EXECUTOR.as_ref().unwrap().add_queue.pop() {

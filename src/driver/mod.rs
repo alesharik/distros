@@ -8,8 +8,10 @@ pub mod keyboard;
 pub mod mouse;
 mod device;
 mod pci;
-// mod tty;
 mod syslog;
+mod tty;
+
+pub use tty::TtyMessage;
 
 struct KeyboardTestConsumer {}
 struct KeyboardTestConsumer1 {}
@@ -43,10 +45,11 @@ pub fn init() {
     device::init();
     kblog!("Driver", "Device drivers started");
 
-    let sub = FlowManager::subscribe("/dev/ps2/keyboard", Box::new(KeyboardTestConsumer {})).unwrap();
-    Box::leak(sub); // keep consumer after function end
+    // let sub = FlowManager::subscribe("/dev/ps2/keyboard", Box::new(KeyboardTestConsumer {})).unwrap();
+    // Box::leak(sub); // keep consumer after function end
     // let sub = FlowManager::subscribe("/dev/ps2/mouse", Box::new(KeyboardTestConsumer1 {})).unwrap();
     // Box::leak(sub); // keep consumer after function end
 
     pci::print();
+    tty::init().unwrap();
 }

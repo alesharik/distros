@@ -30,3 +30,5 @@
 - `/dev/ps2/keyboard` - PS/2 keyboard (sends `KeyboardMessage`)
 - `/dev/ps2/mouse` - PS/2 mouse (sends `MouseMessage`)
 - `/dev/syslog` - System log (sends `SyslogMessage`)
+- `/dev/tty` - TTY devices
+- `/dev/tty/vga` - TTY VGA device (sends/receives `TtyMessage`)
