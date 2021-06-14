@@ -22,7 +22,7 @@ rand = { version = "0.8.3", default-features = false, features = ["alloc"] }
 rand_pcg = "0.3.0"
 bit_field = "0.10.1"
 rpds = { version = "0.9.0", default-features = false }
-futures = { version = "0.3.13", default-features = false, features = ["alloc", "async-await"] }
+futures = { version = "0.3.13", default-features = false, features = ["alloc", "async-await", "bilock", "unstable"] }
 async-trait = "0.1.50"
 crossbeam-queue = { version = "0.3.2", default-features = false, features = ["alloc"] }
 hashbrown = "0.11.2"
@@ -41,3 +41,6 @@ cc = "1.0.68"
 
 [target.'cfg(target_os = "none")']
 runner = "bootimage runner"
+
+[package.metadata.bootloader]
+kernel-stack-size = 256

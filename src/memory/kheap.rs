@@ -11,7 +11,7 @@ use core::ptr::NonNull;
 use crate::interrupts;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
-pub const HEAP_SIZE: usize = 4 * 1024 * 1024; // 2 MiB
+pub const HEAP_SIZE: usize = 8 * 1024 * 1024; // 8 MiB
 
 pub struct LockedHeap(Mutex<Heap>);
 
