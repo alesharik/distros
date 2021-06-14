@@ -1,5 +1,5 @@
 use pci_types::{PciAddress, PciHeader, ConfigRegionAccess};
-use x86_64::instructions::port::{PortWriteOnly, PortReadOnly, Port};
+use x86_64::instructions::port::{PortWriteOnly, Port};
 use core::cell::RefCell;
 use pci_types::device_type::DeviceType;
 use bit_field::BitField;
