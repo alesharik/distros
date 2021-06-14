@@ -28,7 +28,7 @@ pub fn read_time_unsafe() -> NaiveDateTime {
         data.read()
     };
 
-    let status_b = StatusB::from_bits(get_register(0x0B)).unwrap_or(StatusB::empty());
+    let status_b = StatusB::from_bits(get_register(0x0B)).unwrap_or_else(StatusB::empty);
 
     while get_register(0x0A) & 0x80 == 0x80 {}
 
@@ -89,5 +89,5 @@ pub fn read_time_unsafe() -> NaiveDateTime {
 }
 
 pub fn read_time() -> NaiveDateTime {
-    crate::interrupts::no_int(|| read_time_unsafe())
+    crate::interrupts::no_int(read_time_unsafe)
 }

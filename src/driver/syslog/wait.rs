@@ -33,7 +33,7 @@ impl SyslogWaitHandle {
     }
 }
 
-static HANDLES: Lazy<SegQueue<Weak<SyslogWaitHandle>>> = Lazy::new(|| SegQueue::new());
+static HANDLES: Lazy<SegQueue<Weak<SyslogWaitHandle>>> = Lazy::new(SegQueue::new);
 
 struct SyslogWaitFuture {
     handle: Option<Arc<SyslogWaitHandle>>,

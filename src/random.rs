@@ -36,11 +36,15 @@ impl HwRng {
 
 impl RngCore for HwRng {
     fn next_u32(&mut self) -> u32 {
-        self.rdrand.get_u32().unwrap_or(self.fallback.next_u32())
+        self.rdrand
+            .get_u32()
+            .unwrap_or_else(|| self.fallback.next_u32())
     }
 
     fn next_u64(&mut self) -> u64 {
-        self.rdrand.get_u64().unwrap_or(self.fallback.next_u64())
+        self.rdrand
+            .get_u64()
+            .unwrap_or_else(|| self.fallback.next_u64())
     }
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {

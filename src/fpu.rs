@@ -5,12 +5,12 @@ use x86_64::registers::xcontrol::{XCr0, XCr0Flags};
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 enum SaveState {
-    NONE,
-    FXSAVE,
-    XSAVE,
+    None,
+    Fxsave,
+    Xsave,
 }
 
-static mut SAVE_STATE: SaveState = SaveState::NONE;
+static mut SAVE_STATE: SaveState = SaveState::None;
 
 fn init_sse(info: &FpuInfo) -> bool {
     if !info.sse {
@@ -82,9 +82,9 @@ pub fn init_fpu() {
     kblog!("FPU", "CPU info: {:?}", &info);
     if init_sse(&info) && check_fpu(&info) {
         let state = if init_avx(&info) {
-            SaveState::XSAVE
+            SaveState::Xsave
         } else {
-            SaveState::FXSAVE
+            SaveState::Fxsave
         };
         unsafe { SAVE_STATE = state }
     }
@@ -102,17 +102,17 @@ impl FpuState {
     }
     pub unsafe fn save(&mut self) {
         match SAVE_STATE {
-            SaveState::FXSAVE => self.fxsave(),
-            SaveState::XSAVE => self.xsave(),
-            SaveState::NONE => {}
+            SaveState::Fxsave => self.fxsave(),
+            SaveState::Xsave => self.xsave(),
+            SaveState::None => {}
         }
     }
 
     pub unsafe fn restore(&self) {
         match SAVE_STATE {
-            SaveState::FXSAVE => self.fxrstor(),
-            SaveState::XSAVE => self.xrstor(),
-            SaveState::NONE => {}
+            SaveState::Fxsave => self.fxrstor(),
+            SaveState::Xsave => self.xrstor(),
+            SaveState::None => {}
         }
     }
 

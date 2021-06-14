@@ -204,7 +204,7 @@ impl<S: TtyScreen, W: TtyWriter> DefaultHandler<S, W> {
 impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
     #[inline]
     fn set_title_utf(&mut self, title: Option<String>) {
-        let x = title.unwrap_or("".to_owned());
+        let x = title.unwrap_or_else(|| "".to_owned());
         self.writer.set_title(&x);
         self.title = x;
     }

@@ -53,19 +53,17 @@ impl Iterator for RingBufferIter {
             let write_cursor = SYSLOG_RING_BUFFER.write_cursor.load(Ordering::SeqCst);
             if current_idx >= write_cursor {
                 return None;
-            } else {
-                if self
-                    .read_cursor
-                    .compare_exchange(
-                        current_idx,
-                        current_idx + 1,
-                        Ordering::SeqCst,
-                        Ordering::Acquire,
-                    )
-                    .is_ok()
-                {
-                    break current_idx;
-                }
+            } else if self
+                .read_cursor
+                .compare_exchange(
+                    current_idx,
+                    current_idx + 1,
+                    Ordering::SeqCst,
+                    Ordering::Acquire,
+                )
+                .is_ok()
+            {
+                break current_idx;
             }
         } % RING_BUFFER_SIZE;
         let ptr = &SYSLOG_RING_BUFFER.buffer[idx];

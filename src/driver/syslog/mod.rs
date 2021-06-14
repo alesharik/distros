@@ -94,7 +94,7 @@ impl SyslogProvider {
     ) {
         let mut iterator = RingBufferIter::new();
         while !stop_flag.load(Ordering::SeqCst) {
-            if let Some(message) = iterator.next().map(|m| SyslogMessage(m)) {
+            if let Some(message) = iterator.next().map(SyslogMessage) {
                 consumer.consume(&message).await;
             } else {
                 wait::wait_for_syslog().await;

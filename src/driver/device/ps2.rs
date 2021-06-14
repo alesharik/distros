@@ -105,7 +105,7 @@ pub fn init() -> Result<(), ControllerError> {
         controller.enable_keyboard()?;
         config.set(ControllerConfigFlags::DISABLE_KEYBOARD, false);
         config.set(ControllerConfigFlags::ENABLE_KEYBOARD_INTERRUPT, true);
-        if let Err(_) = controller.keyboard().reset_and_self_test() {
+        if controller.keyboard().reset_and_self_test().is_err() {
             kblog!("PS/2", "Failed to reset keyboard, IT MAY NOT WORK")
         }
 
@@ -119,11 +119,11 @@ pub fn init() -> Result<(), ControllerError> {
         controller.enable_mouse()?;
         config.set(ControllerConfigFlags::DISABLE_MOUSE, false);
         config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, true);
-        if let Err(_) = controller.mouse().reset_and_self_test() {
+        if controller.mouse().reset_and_self_test().is_err() {
             kblog!("PS/2", "Failed to reset mouse, IT MAY NOT WORK")
         }
         // This will start streaming events from the mouse
-        if let Err(_) = controller.mouse().enable_data_reporting() {
+        if controller.mouse().enable_data_reporting().is_err() {
             kblog!("PS/2", "Failed to enable mouse stream");
             config.set(ControllerConfigFlags::DISABLE_MOUSE, true);
             config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, false);
@@ -174,49 +174,47 @@ int_handler!(noint keyboard_handler |_: InterruptStackFrame| {
     // ignore timeouts
     if let Ok(byte) = controller.read_data() {
         let mut keyboard = KEYBOARD_PARSER.lock();
-        if let Ok(key) = keyboard.add_byte(byte) {
-            if let Some(key) = key {
-                if let Some(decoded) = keyboard.process_keyevent(key.clone()) {
-                    spawn!(send_decoded(decoded))
+        if let Ok(Some(key)) = keyboard.add_byte(byte) {
+            if let Some(decoded) = keyboard.process_keyevent(key.clone()) {
+                spawn!(send_decoded(decoded))
+            }
+            let change_led = match key.code {
+                KeyCode::CapsLock => {
+                    CAPS_STATE.store(match key.state {
+                        KeyState::Up => false,
+                        KeyState::Down => true
+                    }, Ordering::SeqCst);
+                    true
                 }
-                let change_led = match key.code {
-                    KeyCode::CapsLock => {
-                        CAPS_STATE.store(match key.state {
-                            KeyState::Up => false,
-                            KeyState::Down => true
-                        }, Ordering::SeqCst);
-                        true
-                    }
-                    KeyCode::NumpadLock => {
-                        NUM_STATE.store(match key.state {
-                            KeyState::Up => false,
-                            KeyState::Down => true
-                        }, Ordering::SeqCst);
-                        true
-                    }
-                    KeyCode::ScrollLock => {
-                        SCROLL_STATE.store(match key.state {
-                            KeyState::Up => false,
-                            KeyState::Down => true
-                        }, Ordering::SeqCst);
-                        true
-                    }
-                    _ => false
-                };
-                if change_led {
-                    let mut flags = KeyboardLedFlags::empty();
-                    if SCROLL_STATE.load(Ordering::SeqCst) {
-                        flags |= KeyboardLedFlags::SCROLL_LOCK;
-                    }
-                    if CAPS_STATE.load(Ordering::SeqCst) {
-                        flags |= KeyboardLedFlags::CAPS_LOCK;
-                    }
-                    if NUM_STATE.load(Ordering::SeqCst) {
-                        flags |= KeyboardLedFlags::NUM_LOCK;
-                    }
-                    if let Err(_) = controller.keyboard().set_leds(flags) {
-                        // ignore timeout
-                    }
+                KeyCode::NumpadLock => {
+                    NUM_STATE.store(match key.state {
+                        KeyState::Up => false,
+                        KeyState::Down => true
+                    }, Ordering::SeqCst);
+                    true
+                }
+                KeyCode::ScrollLock => {
+                    SCROLL_STATE.store(match key.state {
+                        KeyState::Up => false,
+                        KeyState::Down => true
+                    }, Ordering::SeqCst);
+                    true
+                }
+                _ => false
+            };
+            if change_led {
+                let mut flags = KeyboardLedFlags::empty();
+                if SCROLL_STATE.load(Ordering::SeqCst) {
+                    flags |= KeyboardLedFlags::SCROLL_LOCK;
+                }
+                if CAPS_STATE.load(Ordering::SeqCst) {
+                    flags |= KeyboardLedFlags::CAPS_LOCK;
+                }
+                if NUM_STATE.load(Ordering::SeqCst) {
+                    flags |= KeyboardLedFlags::NUM_LOCK;
+                }
+                if controller.keyboard().set_leds(flags).is_err() {
+                    // ignore timeout
                 }
             }
         }

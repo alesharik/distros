@@ -57,7 +57,7 @@ pub fn init_acpi() -> AcpiInfo {
         };
         match platform_info.interrupt_model {
             InterruptModel::Unknown => panic!("This kernel requires APIC to run"),
-            InterruptModel::Apic(apic) => return AcpiInfo { apic, hpet },
+            InterruptModel::Apic(apic) => AcpiInfo { apic, hpet },
             _ => panic!("ACPI does not have interrupt model info"),
         }
     }

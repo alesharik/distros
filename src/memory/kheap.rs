@@ -45,7 +45,9 @@ unsafe impl GlobalAlloc for LockedHeap {
                 .lock()
                 .allocate_first_fit(layout)
                 .ok()
-                .map_or(0 as *mut u8, |allocation| allocation.as_ptr())
+                .map_or(core::ptr::null_mut::<u8>(), |allocation| {
+                    allocation.as_ptr()
+                })
         })
     }
 

@@ -59,7 +59,7 @@ fn find_hpet_periodic_timer(info: &HpetInfo, addr: &VirtAddr, off: u8) -> u8 {
     unsafe {
         let mut cur_off = 0;
         for cmp in 0..info.num_comparators() {
-            let cmp_cap: VirtAddr = addr.clone() + 0x100 as usize + (0x20 * cmp) as usize;
+            let cmp_cap: VirtAddr = addr.clone() + 0x100_usize + (0x20 * cmp) as usize;
             let cfg = TimerConfiguration(*cmp_cap.as_ptr());
             if cfg.supports_periodic() {
                 cur_off += 1;
@@ -76,18 +76,18 @@ pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
     let addr: VirtAddr = memory::map_physical_address(PhysAddr::new(info.base_address as u64));
     let comparator = find_hpet_periodic_timer(info, &addr, RTC_COMP);
     let period = unsafe { *(addr.as_ptr::<u32>()) };
-    let frequency = (10 as u64).pow(15) / period as u64;
+    let frequency = (10_u64).pow(15) / period as u64;
     let target = frequency / 1000; // 1kHz divider
     if frequency < 1000 {
         panic!("HPET cannot keep 1kHz frequency (has {} Hz)", frequency)
     }
-    let cmp_cap: VirtAddr = addr + 0x100 as usize + (0x20 * comparator) as usize;
+    let cmp_cap: VirtAddr = addr + 0x100_usize + (0x20 * comparator) as usize;
     let mut cfg = TimerConfiguration(unsafe { *cmp_cap.as_ptr() });
     cfg.set_periodic(true);
     cfg.set_interrupts_enabled(true);
     cfg.allow_set_accumulator();
 
-    let cmp_val: VirtAddr = addr + 0x100 as usize + (0x20 * comparator) as usize;
+    let cmp_val: VirtAddr = addr + 0x100_usize + (0x20 * comparator) as usize;
 
     for irq in 0..24 {
         let irq = Irq::from_raw(irq);
@@ -106,13 +106,13 @@ pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
 
 pub fn start_hpet(info: &HpetInfo) {
     let addr: VirtAddr =
-        memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x010 as usize;
+        memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x010_usize;
     let counter_addr: VirtAddr =
-        memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x0F0 as usize;
+        memory::map_physical_address(PhysAddr::new(info.base_address as u64)) + 0x0F0_usize;
     unsafe {
         let mut val = *addr.as_ptr::<u64>();
         val |= 1;
-        val &= (2 as u64).not();
+        val &= (2_u64).not();
         *(addr.as_mut_ptr::<u64>()) = val;
         *(counter_addr.as_mut_ptr::<u64>()) = 0;
     }

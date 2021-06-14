@@ -63,8 +63,7 @@ impl IoApicManager {
         let apic = self
             .apics
             .iter_mut()
-            .filter(|holder| holder.in_range(*global_irq))
-            .next();
+            .find(|holder| holder.in_range(*global_irq));
         if let Some(apic) = apic {
             unsafe {
                 apic.handler
@@ -82,13 +81,8 @@ impl IoApicManager {
         let apic = self
             .apics
             .iter()
-            .filter(|holder| holder.in_range(*global_irq))
-            .next();
-        if let Some(_) = apic {
-            Some(crate::interrupts::INT_IOAPIC_OFFSET + (*global_irq as usize))
-        } else {
-            None
-        }
+            .find(|holder| holder.in_range(*global_irq));
+        apic.map(|_| crate::interrupts::INT_IOAPIC_OFFSET + (*global_irq as usize))
     }
 }
 

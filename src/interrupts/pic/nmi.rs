@@ -1,4 +1,5 @@
 use core::ops::Not;
+use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortReadOnly};
 
@@ -30,12 +31,15 @@ lazy_static! {
     static ref CONTROL_PORT: Mutex<Port<u8>> = Mutex::new(Port::<u8>::new(0x70));
     static ref STATUS_A: Mutex<PortReadOnly<u8>> = Mutex::new(PortReadOnly::<u8>::new(0x92));
     static ref STATUS_B: Mutex<PortReadOnly<u8>> = Mutex::new(PortReadOnly::<u8>::new(0x61));
-    static ref ENABLED: Mutex<bool> = Mutex::new(false);
 }
 
+static ENABLED: AtomicBool = AtomicBool::new(false);
+
 pub fn nmi_enable() {
-    let mut enabled = ENABLED.lock();
-    if enabled.clone() {
+    if ENABLED
+        .compare_exchange(false, true, Ordering::SeqCst, Ordering::Acquire)
+        .is_err()
+    {
         return;
     }
     let mut ctl = CONTROL_PORT.lock();
@@ -43,12 +47,13 @@ pub fn nmi_enable() {
         let val = ctl.read();
         ctl.write(val & 0x7F);
     }
-    *enabled = true;
 }
 
 pub fn nmi_disable() {
-    let mut enabled = ENABLED.lock();
-    if enabled.not() {
+    if ENABLED
+        .compare_exchange(true, false, Ordering::SeqCst, Ordering::Acquire)
+        .is_err()
+    {
         return;
     }
     let mut ctl = CONTROL_PORT.lock();
@@ -56,12 +61,12 @@ pub fn nmi_disable() {
         let val = ctl.read();
         ctl.write(val | 0x80);
     }
-    *enabled = true;
 }
 
 #[must_use]
+#[inline]
 pub fn nmi_enabled() -> bool {
-    ENABLED.lock().clone()
+    ENABLED.load(Ordering::SeqCst)
 }
 
 #[must_use]
@@ -70,8 +75,8 @@ pub fn nmi_status() -> (StatusA, StatusB) {
         let mut status_a = STATUS_A.lock();
         let mut status_b = STATUS_B.lock();
         (
-            StatusA::from_bits(status_a.read()).unwrap_or(StatusA::empty()),
-            StatusB::from_bits(status_b.read()).unwrap_or(StatusB::empty()),
+            StatusA::from_bits(status_a.read()).unwrap_or_else(StatusA::empty),
+            StatusB::from_bits(status_b.read()).unwrap_or_else(StatusB::empty),
         )
     }
 }

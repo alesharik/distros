@@ -155,7 +155,7 @@ pub fn init_memory(phys_offset: VirtAddr, memory_map: &'static MemoryMap) {
         let mut frame_allocator = FRAME_ALLOCATOR.lock();
         *frame_allocator = Option::Some(KFrameAlloc::new(memory_map));
         let mut phys_off = PHYS_OFFSET.lock();
-        *phys_off = Some(phys_offset.clone());
+        *phys_off = Some(phys_offset);
     }
     kblog!("MemoryManager", "Memory manager ready");
 }

@@ -68,9 +68,9 @@ impl Frame {
 
     fn set_used(&mut self, used: bool) {
         if used {
-            self.size = self.size | ((1u64 << 63) as u64)
+            self.size |= ((1u64 << 63) as u64)
         } else {
-            self.size = self.size & ((1u64 << 63) as u64).not()
+            self.size &= ((1u64 << 63) as u64).not()
         }
     }
 }
@@ -117,7 +117,7 @@ impl FrameAlloc {
                 // last iteration
                 for reg in &mut self.regions {
                     if let Some(phys) = reg.take(frames as u64) {
-                        let frame = Frame::new(phys.clone(), frames as u64, true);
+                        let frame = Frame::new(phys, frames as u64, true);
                         contents.next = Some(Rc::new(RefCell::new(frame)));
                         return Some(phys);
                     }
