@@ -29,3 +29,4 @@
 - `/dev/ps2` - PS/2 devices
 - `/dev/ps2/keyboard` - PS/2 keyboard (sends `KeyboardMessage`)
 - `/dev/ps2/mouse` - PS/2 mouse (sends `MouseMessage`)
+- `/dev/syslog` - System log (sends `SyslogMessage`)

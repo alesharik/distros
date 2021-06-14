@@ -3,13 +3,17 @@
 #![no_std]
 #![no_main]
 #![feature(alloc_error_handler)]
+#![feature(inline_const)]
 #![allow(dead_code)]
 
+#[macro_use]
 extern crate alloc;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate bitflags;
+#[macro_use]
+extern crate log;
 
 use core::panic::PanicInfo;
 

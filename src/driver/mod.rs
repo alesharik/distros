@@ -8,6 +8,8 @@ pub mod keyboard;
 pub mod mouse;
 mod device;
 mod pci;
+// mod tty;
+mod syslog;
 
 struct KeyboardTestConsumer {}
 struct KeyboardTestConsumer1 {}
@@ -35,6 +37,8 @@ impl Consumer<MouseMessage> for KeyboardTestConsumer1 {
 }
 
 pub fn init() {
+    syslog::init();
+
     kblog!("Driver", "Starting device drivers");
     device::init();
     kblog!("Driver", "Device drivers started");
