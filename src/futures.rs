@@ -234,3 +234,8 @@ pub fn sleep(timeout: Duration) -> impl Future<Output = ()> {
     let handle = wake_at_time(time);
     SleepFuture { time, timeout_wake_handle: handle }
 }
+
+/// Schedules future on main kernel loop
+macro_rules! spawn {
+    ($arg:expr) => { crate::futures::spawn($arg); };
+}

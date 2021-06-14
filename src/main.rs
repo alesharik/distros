@@ -27,13 +27,14 @@ mod gdt;
 #[macro_use]
 mod interrupts;
 mod memory;
+#[macro_use]
+mod futures;
 mod acpi;
 mod cpuid;
 mod cmos;
 mod random;
 mod fpu;
 mod flow;
-mod futures;
 mod driver;
 mod basic_term;
 

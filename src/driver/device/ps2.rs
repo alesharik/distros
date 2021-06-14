@@ -171,7 +171,7 @@ int_handler!(noint keyboard_handler |_: InterruptStackFrame| {
         if let Ok(key) = keyboard.add_byte(byte) {
             if let Some(key) = key {
                 if let Some(decoded) = keyboard.process_keyevent(key.clone()) {
-                    crate::futures::spawn(send_decoded(decoded))
+                    spawn!(send_decoded(decoded))
                 }
                 let change_led = match key.code {
                     KeyCode::CapsLock => {
@@ -221,6 +221,6 @@ int_handler!(noint mouse_handler |_: InterruptStackFrame| {
     let mut controller = INT_CONTROLLER.lock();
     // ignore timeouts
     if let Ok(packet) = controller.mouse().read_data_packet() {
-        crate::futures::spawn(send_mouse(packet));
+        spawn!(send_mouse(packet));
     }
 });

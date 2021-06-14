@@ -54,7 +54,7 @@ impl FlowManager {
     }
 
     pub fn send_async<T: 'static + Message>(path: &str, message: T) {
-        crate::futures::spawn(FlowManager::send_async_inner(path.to_owned(), message));
+        spawn!(FlowManager::send_async_inner(path.to_owned(), message));
     }
 
     async fn send_async_inner<T: 'static + Message>(path: String, message: T) {
