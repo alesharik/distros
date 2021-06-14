@@ -50,7 +50,7 @@ impl Consumer<TtyMessage> for Sub {
         }
     }
 
-    async fn close(&self, sub: &Box<dyn Subscription>) {}
+    async fn close(&self, _sub: &Box<dyn Subscription>) {}
 }
 
 pub fn init() -> Result<(), FlowManagerError> {

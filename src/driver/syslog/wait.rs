@@ -3,8 +3,7 @@
 use futures::Future;
 use core::task::{Context, Poll};
 use core::pin::Pin;
-use spin::{Lazy, RwLock, Mutex};
-use alloc::vec::Vec;
+use spin::Lazy;
 use crossbeam_queue::SegQueue;
 use futures::task::Waker;
 use alloc::sync::{Weak, Arc};

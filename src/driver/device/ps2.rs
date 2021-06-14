@@ -1,7 +1,7 @@
 use ps2::Controller;
 use ps2::flags::{ControllerConfigFlags, KeyboardLedFlags, MouseMovementFlags};
 use x86_64::structures::idt::InterruptStackFrame;
-use spin::{Lazy, RwLock, Mutex};
+use spin::{Lazy, Mutex};
 use crate::driver::keyboard::KeyboardMessage;
 use crate::flow::{Producer, Sender, FlowManager};
 use alloc::sync::Arc;
@@ -13,7 +13,6 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use core::ops::Deref;
 use crate::driver::mouse::MouseMessage;
 use fixedbitset::FixedBitSet;
-use futures::lock::BiLock;
 
 static KEYBOARD_SENDER: Lazy<Arc<Mutex<Producer<KeyboardMessage>>>> = Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
 static MOUSE_SENDER: Lazy<Arc<Mutex<Producer<MouseMessage>>>> = Lazy::new(|| Arc::new(Mutex::new(Producer::new())));
@@ -103,7 +102,7 @@ pub fn init() -> Result<(), ControllerError> {
         controller.enable_keyboard()?;
         config.set(ControllerConfigFlags::DISABLE_KEYBOARD, false);
         config.set(ControllerConfigFlags::ENABLE_KEYBOARD_INTERRUPT, true);
-        if let Err(e) = controller.keyboard().reset_and_self_test() {
+        if let Err(_) = controller.keyboard().reset_and_self_test() {
             kblog!("PS/2", "Failed to reset keyboard, IT MAY NOT WORK")
         }
 
@@ -117,11 +116,11 @@ pub fn init() -> Result<(), ControllerError> {
         controller.enable_mouse()?;
         config.set(ControllerConfigFlags::DISABLE_MOUSE, false);
         config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, true);
-        if let Err(e) = controller.mouse().reset_and_self_test() {
+        if let Err(_) = controller.mouse().reset_and_self_test() {
             kblog!("PS/2", "Failed to reset mouse, IT MAY NOT WORK")
         }
         // This will start streaming events from the mouse
-        if let Err(e) = controller.mouse().enable_data_reporting() {
+        if let Err(_) = controller.mouse().enable_data_reporting() {
             kblog!("PS/2", "Failed to enable mouse stream");
             config.set(ControllerConfigFlags::DISABLE_MOUSE, true);
             config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, false);

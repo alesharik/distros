@@ -1,5 +1,5 @@
 use crate::driver::tty::TtyScreen;
-use vte::ansi::{Color, CursorStyle, CursorShape, Rgb};
+use vte::ansi::{CursorStyle, CursorShape, Rgb};
 use vga::writers::{Text80x25, TextWriter, ScreenCharacter};
 use vga::colors::{Color16, TextModeColor};
 

@@ -4,17 +4,13 @@
 //! This buffer is exposed by `/dev/syslog` flow.
 //! It does not use kblog and other vga facilities to not intervene with tty device.
 use log::{Log, Metadata, Record};
-use core::sync::atomic::{AtomicU32, Ordering, AtomicBool, AtomicU64, AtomicPtr};
+use core::sync::atomic::{Ordering, AtomicBool, AtomicU64};
 use alloc::string::String;
 use crate::flow::{Message, Provider, Consumer, Subscription, FlowManager};
 use core::fmt::{Debug, Formatter};
-use core::ptr::null_mut;
-use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
-use core::ops::Deref;
 use alloc::sync::Arc;
 use crate::driver::syslog::ring::{RingBufferIter, SYSLOG_RING_BUFFER};
-use spin::rwlock::RwLock;
 use spin::Mutex;
 
 mod ring;

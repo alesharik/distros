@@ -4,7 +4,7 @@ use alloc::sync::Arc;
 use rpds::HashTrieMapSync;
 use alloc::string::String;
 use core::any::Any;
-use spin::{Mutex, RwLock, Lazy};
+use spin::{Mutex, Lazy};
 use alloc::borrow::ToOwned;
 use core::fmt::{Debug, Formatter};
 
@@ -41,7 +41,7 @@ pub struct FlowManager {}
 
 impl FlowManager {
     pub fn subscribe<T: 'static + Message>(path: &str, consumer: Box<dyn Consumer<T>>) -> Result<Box<dyn Subscription>, FlowManagerError> {
-        let mut inner = INNER.lock();
+        let inner = INNER.lock();
         match inner.endpoints.get(path) {
             Some(inner) => {
                 match inner.downcast_ref::<Endpoint<T>>() {
@@ -64,7 +64,7 @@ impl FlowManager {
     }
 
     pub async fn send<T: 'static + Message>(path: &str, message: T) -> Result<(), FlowManagerError> {
-        let mut inner = INNER.lock();
+        let inner = INNER.lock();
         match inner.endpoints.get(path) {
             Some(inner) => {
                 match inner.downcast_ref::<Endpoint<T>>().as_ref() {

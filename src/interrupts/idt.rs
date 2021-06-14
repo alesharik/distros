@@ -38,7 +38,7 @@ pub fn init_idt() {
     let guard = IDT.lock();
     unsafe { guard.load_unsafe(); }
     kblog!("IDT", "IDT table loaded");
-    unsafe {
+    // unsafe {
         // use x86_64::registers::control::{Cr4Flags, Cr4}; fixme enable, but it not works on my laptop
         // Cr4::update(|flags| {
         //     flags.set(Cr4Flags::MACHINE_CHECK_EXCEPTION, true);
@@ -47,7 +47,7 @@ pub fn init_idt() {
         //     flags.set(Cr4Flags::SUPERVISOR_MODE_EXECUTION_PROTECTION, true);
         //     flags.set(Cr4Flags::SUPERVISOR_MODE_ACCESS_PREVENTION, true);
         // })
-    }
+    // }
 }
 
 pub fn set_handler(int: InterruptId, func: HandlerFunc) {

@@ -19,7 +19,6 @@ use core::panic::PanicInfo;
 
 use bootloader::{BootInfo, entry_point};
 use x86_64::VirtAddr;
-use crate::flow::FlowManager;
 
 #[macro_use]
 mod vga;

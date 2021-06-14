@@ -7,7 +7,7 @@ use core::marker::PhantomData;
 use core::fmt::{Debug, Formatter};
 use crate::flow::{Message, FlowManager, FlowManagerError};
 use alloc::sync::Arc;
-use spin::{RwLock, Lazy, Mutex};
+use spin::{Lazy, Mutex};
 use crate::driver::tty::flow::{Stdout, StdinKeyboardConsumer, Stdin};
 use alloc::boxed::Box;
 
@@ -393,7 +393,7 @@ impl<S: TtyScreen, W: TtyWriter> Handler<W> for DefaultHandler<S, W> {
     fn identify_terminal(&mut self, writer: &mut W, intermediate: Option<char>) {
         match intermediate {
             None => {
-                writer.write_back("\x1b[?6c");;
+                writer.write_back("\x1b[?6c");
             },
             Some('>') => {
                 let version = "1.0";

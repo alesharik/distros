@@ -1,4 +1,4 @@
-use core::sync::atomic::{AtomicU32, AtomicPtr, Ordering, AtomicUsize};
+use core::sync::atomic::{AtomicPtr, Ordering, AtomicUsize};
 use alloc::string::String;
 use core::ptr::null_mut;
 use alloc::borrow::ToOwned;

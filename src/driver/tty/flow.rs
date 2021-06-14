@@ -4,7 +4,7 @@ use alloc::boxed::Box;
 use alloc::borrow::ToOwned;
 use vte::ansi::{Handler, Processor};
 use alloc::sync::Arc;
-use spin::{RwLock, Mutex};
+use spin::Mutex;
 use crate::driver::keyboard::KeyboardMessage;
 use pc_keyboard::{DecodedKey, KeyCode};
 use async_trait::async_trait;
