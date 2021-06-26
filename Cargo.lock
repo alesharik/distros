@@ -400,8 +400,9 @@ dependencies = [
 
 [[package]]
 name = "ps2"
-version = "0.1.1"
-source = "git+https://github.com/alesharik/ps2-rs.git#348c1b7dce3bc029773d419fd1ee92cb6086e846"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b98f916bfd9d42f9911dfe27927d2e794c53d5eefa4144419be573b6089defbb"
 dependencies = [
  "bitflags",
  "x86_64",
