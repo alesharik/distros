@@ -3,15 +3,18 @@ use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::sync::Arc;
-use core::any::Any;
 use core::fmt::{Debug, Formatter};
-use rpds::HashTrieMapSync;
 use spin::{Lazy, Mutex};
+use crate::flow::tree::{FlowTree, FlowTreeError, FlowTreeEndpoint};
+use alloc::vec::Vec;
+
+pub type ElementInfo = super::tree::ElementInfo;
 
 pub enum FlowManagerError {
     ProviderNotFound,
     WrongMessageType,
     SendNotSupported,
+    AlreadyOccupied
 }
 
 impl Debug for FlowManagerError {
@@ -20,22 +23,18 @@ impl Debug for FlowManagerError {
             FlowManagerError::WrongMessageType => writeln!(f, "Wrong message type"),
             FlowManagerError::ProviderNotFound => writeln!(f, "Provider not found"),
             FlowManagerError::SendNotSupported => writeln!(f, "Send not supported"),
+            FlowManagerError::AlreadyOccupied => writeln!(f, "Already occupied")
         }
     }
 }
 
-struct Endpoint<T: Message> {
-    provider: Arc<Mutex<dyn Provider<T> + Send>>,
-    sender: Option<Arc<Mutex<dyn Sender<T> + Send>>>,
-}
-
 struct FlowManagerInner {
-    endpoints: HashTrieMapSync<String, Box<dyn Any + Send>>,
+    endpoints: FlowTree,
 }
 
 static INNER: Lazy<Mutex<FlowManagerInner>> = Lazy::new(|| {
     Mutex::new(FlowManagerInner {
-        endpoints: HashTrieMapSync::new_sync(),
+        endpoints: FlowTree::new(),
     })
 });
 
@@ -47,11 +46,11 @@ impl FlowManager {
         consumer: Box<dyn Consumer<T>>,
     ) -> Result<Box<dyn Subscription>, FlowManagerError> {
         let inner = INNER.lock();
-        match inner.endpoints.get(path) {
-            Some(inner) => match inner.downcast_ref::<Endpoint<T>>() {
-                Some(endpoint) => Ok(endpoint.provider.lock().add_consumer(consumer)),
-                None => Err(FlowManagerError::WrongMessageType),
-            },
+        match inner.endpoints.get::<T>(path).map_err(|e| match e {
+            FlowTreeError::WrongMessageType => FlowManagerError::WrongMessageType,
+            FlowTreeError::AlreadyOccupied => unreachable!()
+        })? {
+            Some(inner) => Ok(inner.provider.lock().add_consumer(consumer)),
             None => Err(FlowManagerError::ProviderNotFound),
         }
     }
@@ -71,16 +70,16 @@ impl FlowManager {
         message: T,
     ) -> Result<(), FlowManagerError> {
         let inner = INNER.lock();
-        match inner.endpoints.get(path) {
-            Some(inner) => match inner.downcast_ref::<Endpoint<T>>().as_ref() {
-                Some(endpoint) => match &endpoint.sender {
-                    Some(sender) => {
-                        sender.lock().send(message).await;
-                        Ok(())
-                    }
-                    None => Err(FlowManagerError::SendNotSupported),
-                },
-                None => Err(FlowManagerError::WrongMessageType),
+        match inner.endpoints.get::<T>(path).map_err(|e| match e {
+            FlowTreeError::WrongMessageType => FlowManagerError::WrongMessageType,
+            FlowTreeError::AlreadyOccupied => unreachable!()
+        })? {
+            Some(endpoint) => match &endpoint.sender {
+                Some(sender) => {
+                    sender.lock().send(message).await;
+                    Ok(())
+                }
+                None => Err(FlowManagerError::SendNotSupported),
             },
             None => Err(FlowManagerError::ProviderNotFound),
         }
@@ -90,10 +89,20 @@ impl FlowManager {
         path: &str,
         provider: Arc<Mutex<dyn Provider<T> + Send>>,
         sender: Option<Arc<Mutex<dyn Sender<T> + Send>>>,
-    ) {
+    ) -> Result<(), FlowManagerError> {
+        let mut endpoint = FlowTreeEndpoint::new(provider);
+        if let Some(sender) = sender {
+            endpoint.sender(sender);
+        }
         let mut inner = INNER.lock();
-        inner
-            .endpoints
-            .insert_mut(path.to_owned(), Box::new(Endpoint { sender, provider }))
+        inner.endpoints.put(path, endpoint).map_err(|e| match e {
+            FlowTreeError::AlreadyOccupied => FlowManagerError::AlreadyOccupied,
+            FlowTreeError::WrongMessageType => unreachable!()
+        })
+    }
+
+    pub fn list(path: &str) -> Vec<ElementInfo> {
+        let inner = INNER.lock();
+        inner.endpoints.list(path)
     }
 }

@@ -651,7 +651,7 @@ pub fn init() -> Result<(), FlowManagerError> {
         "/dev/tty/vga",
         VGA_STDIN.clone(),
         Some(Arc::new(Mutex::new(stdout))),
-    );
+    ).unwrap();
     debug!("VGA TTY device set up");
     Ok(())
 }

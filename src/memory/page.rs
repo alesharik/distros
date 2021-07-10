@@ -68,7 +68,7 @@ impl Frame {
 
     fn set_used(&mut self, used: bool) {
         if used {
-            self.size |= ((1u64 << 63) as u64)
+            self.size |= (1u64 << 63) as u64
         } else {
             self.size &= ((1u64 << 63) as u64).not()
         }

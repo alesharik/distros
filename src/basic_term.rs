@@ -5,6 +5,7 @@ use alloc::boxed::Box;
 use alloc::string::{String, ToString};
 use async_trait::async_trait;
 use futures::lock::BiLock;
+use alloc::vec::Vec;
 
 struct Sub {
     line: BiLock<String>,
@@ -28,6 +29,31 @@ impl Sub {
     fn init(&self) {
         self.print("# ");
     }
+
+    fn read_command(&self, line: &str) {
+        let parts = line.split(" ")
+            .collect::<Vec<_>>();
+        let (command, arguments) = parts
+            .split_first()
+            .unwrap();
+        match *command {
+            "test" => {
+                for x in 31..38 {
+                    self.print(&format!("\x1b[{}m {} ", x, x));
+                }
+                self.print("\n\x1B[33m> YAY!!");
+            },
+            "ls" => {
+                for x in FlowManager::list(arguments[0]) {
+                    self.print(&format!("{}\n", x))
+                }
+            },
+            "" => {},
+            _ => {
+                self.print(&format!("Unknown command {}", line));
+            }
+        }
+    }
 }
 
 #[async_trait]
@@ -36,12 +62,8 @@ impl Consumer<TtyMessage> for Sub {
         let mut line = self.line.lock().await;
         let input = message.to_string();
         if input == "\n" {
-            if line.starts_with("test") {
-                for x in 31..38 {
-                    self.print(&format!("\x1b[{}m {} ", x, x));
-                }
-                self.print("\n\x1B[33m> YAY!!");
-            }
+            self.print("\n");
+            self.read_command(&line);
             *line = "".to_owned();
             self.new_line();
         } else {

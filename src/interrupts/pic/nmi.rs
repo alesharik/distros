@@ -1,4 +1,3 @@
-use core::ops::Not;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortReadOnly};

@@ -123,5 +123,5 @@ pub fn init() {
         "/dev/syslog",
         Arc::new(Mutex::new(SyslogProvider::new())),
         None,
-    );
+    ).unwrap();
 }
