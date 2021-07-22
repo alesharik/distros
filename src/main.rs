@@ -4,6 +4,7 @@
 #![no_main]
 #![feature(alloc_error_handler)]
 #![feature(inline_const)]
+#![feature(ptr_metadata)]
 #![allow(dead_code)]
 
 #[macro_use]

@@ -4,7 +4,7 @@
 //! This buffer is exposed by `/dev/syslog` flow.
 //! It does not use kblog and other vga facilities to not intervene with tty device.
 use crate::driver::syslog::ring::{RingBufferIter, SYSLOG_RING_BUFFER};
-use crate::flow::{Consumer, FlowManager, Message, Provider, Subscription};
+use crate::flow::{Consumer, FlowManager, Message, Provider, Subscription, AnyConsumer};
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -89,13 +89,13 @@ impl SyslogProvider {
     }
 
     async fn spawn_consumer(
-        consumer: Box<dyn Consumer<SyslogMessage>>,
+        consumer: Box<dyn AnyConsumer>,
         stop_flag: Arc<AtomicBool>,
     ) {
         let mut iterator = RingBufferIter::new();
         while !stop_flag.load(Ordering::SeqCst) {
             if let Some(message) = iterator.next().map(SyslogMessage) {
-                consumer.consume(&message).await;
+                consumer.consume_msg(&message).await;
             } else {
                 wait::wait_for_syslog().await;
             }
@@ -103,10 +103,10 @@ impl SyslogProvider {
     }
 }
 
-impl Provider<SyslogMessage> for SyslogProvider {
+impl Provider for SyslogProvider {
     fn add_consumer(
         &mut self,
-        consumer: Box<dyn Consumer<SyslogMessage>>,
+        consumer: Box<dyn AnyConsumer>,
     ) -> Box<dyn Subscription> {
         let stop_flag = Arc::new(AtomicBool::new(false));
         spawn!(SyslogProvider::spawn_consumer(consumer, stop_flag.clone()));
@@ -119,7 +119,7 @@ impl Provider<SyslogMessage> for SyslogProvider {
 
 pub fn init() {
     log::set_logger(&LOG_INSTANCE).expect("Cannot start syslog instance");
-    FlowManager::register_endpoint(
+    FlowManager::register_endpoint::<SyslogMessage>(
         "/dev/syslog",
         Arc::new(Mutex::new(SyslogProvider::new())),
         None,

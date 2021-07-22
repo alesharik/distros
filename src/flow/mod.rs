@@ -8,14 +8,46 @@ mod producer;
 
 pub use manager::{FlowManager, FlowManagerError};
 pub use producer::Producer;
+use core::any::TypeId;
 
 pub trait Message: Send + Sync + Debug {}
 
 #[async_trait]
-pub trait Consumer<T: Message>: Sync + Send {
-    async fn consume(&self, message: &T);
+pub unsafe trait AnyConsumer: Sync + Send {
+    fn check_type(&self, msg_type: &TypeId) -> bool;
+
+    async fn consume_msg(&self, message: &dyn Message);
+
+    async fn close_consumer(&self, sub: &Box<dyn Subscription>);
+}
+
+#[async_trait]
+pub trait Consumer: Sync + Send {
+    type Msg: Message + 'static;
+
+    async fn consume(&self, message: &Self::Msg);
 
     async fn close(&self, sub: &Box<dyn Subscription>);
+}
+
+#[async_trait]
+unsafe impl<T> AnyConsumer for T where T: Consumer {
+    fn check_type(&self, msg_type: &TypeId) -> bool {
+        msg_type == &TypeId::of::<<Self as Consumer>::Msg>()
+    }
+
+    async fn consume_msg(&self, message: &dyn Message) {
+        let msg_ptr = unsafe {
+            let ptr = message as *const dyn Message;
+            let struct_ptr = ptr.to_raw_parts().0.cast::<<Self as Consumer>::Msg>();
+            (&*struct_ptr).clone()
+        };
+        self.consume(msg_ptr).await;
+    }
+
+    async fn close_consumer(&self, sub: &Box<dyn Subscription>) {
+        self.close(sub).await;
+    }
 }
 
 pub trait Subscription: Send + Sync {
@@ -24,11 +56,13 @@ pub trait Subscription: Send + Sync {
     fn cancel(self);
 }
 
-pub trait Provider<T: Message>: Send + Sync {
-    fn add_consumer(&mut self, consumer: Box<dyn Consumer<T>>) -> Box<dyn Subscription>;
+pub trait Provider: Send + Sync {
+    fn add_consumer(&mut self, consumer: Box<dyn AnyConsumer>) -> Box<dyn Subscription>;
 }
 
 #[async_trait]
-pub trait Sender<T: Message>: Send + Sync {
-    async fn send(&mut self, message: T);
+pub trait Sender: Send + Sync {
+    type Msg: Message;
+
+    async fn send(&mut self, message: Self::Msg);
 }

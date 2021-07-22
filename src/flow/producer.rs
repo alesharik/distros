@@ -1,22 +1,23 @@
-use crate::flow::{Consumer, Message, Provider, Sender, Subscription};
+use crate::flow::{Consumer, Message, Provider, Sender, Subscription, AnyConsumer};
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use async_trait::async_trait;
 use spin::RwLock;
+use core::marker::PhantomData;
 
-struct ConsumerHolder<T: Message> {
+struct ConsumerHolder {
     id: u64,
-    consumer: Box<dyn Consumer<T>>,
+    consumer: Box<dyn AnyConsumer>,
 }
 
-struct SubscriptionImpl<T: Message> {
+struct SubscriptionImpl {
     id: u64,
-    consumers: Arc<RwLock<Vec<ConsumerHolder<T>>>>,
+    consumers: Arc<RwLock<Vec<ConsumerHolder>>>,
     dropped: bool,
 }
 
-impl<T: Message> Subscription for SubscriptionImpl<T> {
+impl Subscription for SubscriptionImpl {
     fn get_id(&self) -> u64 {
         self.id
     }
@@ -30,7 +31,7 @@ impl<T: Message> Subscription for SubscriptionImpl<T> {
     }
 }
 
-impl<T: Message> Drop for SubscriptionImpl<T> {
+impl Drop for SubscriptionImpl {
     fn drop(&mut self) {
         if self.dropped {
             return;
@@ -43,8 +44,9 @@ impl<T: Message> Drop for SubscriptionImpl<T> {
 }
 
 pub struct Producer<T: Message + 'static> {
-    consumers: Arc<RwLock<Vec<ConsumerHolder<T>>>>,
+    consumers: Arc<RwLock<Vec<ConsumerHolder>>>,
     id_counter: u64,
+    msg_type: PhantomData<T>,
 }
 
 impl<T: Message + 'static> Producer<T> {
@@ -52,6 +54,7 @@ impl<T: Message + 'static> Producer<T> {
         Producer {
             consumers: Arc::new(RwLock::new(Vec::new())),
             id_counter: 0,
+            msg_type: PhantomData::default(),
         }
     }
 
@@ -59,16 +62,16 @@ impl<T: Message + 'static> Producer<T> {
         spawn!(Producer::send_async_inner(message, self.consumers.clone()));
     }
 
-    async fn send_async_inner(message: T, consumers: Arc<RwLock<Vec<ConsumerHolder<T>>>>) {
+    async fn send_async_inner(message: T, consumers: Arc<RwLock<Vec<ConsumerHolder>>>) {
         for consumer in consumers.read().iter() {
-            let x = consumer.consumer.consume(&message);
+            let x = consumer.consumer.consume_msg(&message);
             x.await;
         }
     }
 }
 
-impl<T: 'static + Message> Provider<T> for Producer<T> {
-    fn add_consumer(&mut self, consumer: Box<dyn Consumer<T>>) -> Box<dyn Subscription> {
+impl<T: 'static + Message> Provider for Producer<T> {
+    fn add_consumer(&mut self, consumer: Box<dyn AnyConsumer>) -> Box<dyn Subscription> {
         let id = self.id_counter;
         self.id_counter += 1;
         let mut consumers = self.consumers.write();
@@ -82,10 +85,12 @@ impl<T: 'static + Message> Provider<T> for Producer<T> {
 }
 
 #[async_trait]
-impl<T: Message> Sender<T> for Producer<T> {
+impl<T: Message> Sender for Producer<T> {
+    type Msg = T;
+
     async fn send(&mut self, message: T) {
         for consumer in self.consumers.read().iter() {
-            let x = consumer.consumer.consume(&message);
+            let x = consumer.consumer.consume_msg(&message);
             x.await;
         }
     }

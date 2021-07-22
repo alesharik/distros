@@ -1,6 +1,6 @@
 use crate::driver::keyboard::KeyboardMessage;
 use crate::driver::tty::{TtyMessage, TtyWriter};
-use crate::flow::{Consumer, Producer, Provider, Sender, Subscription};
+use crate::flow::{Consumer, Producer, Provider, Sender, Subscription, AnyConsumer};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::sync::Arc;
@@ -22,8 +22,8 @@ impl Stdin {
     }
 }
 
-impl Provider<TtyMessage> for Stdin {
-    fn add_consumer(&mut self, consumer: Box<dyn Consumer<TtyMessage>>) -> Box<dyn Subscription> {
+impl Provider for Stdin {
+    fn add_consumer(&mut self, consumer: Box<dyn AnyConsumer>) -> Box<dyn Subscription> {
         self.0.add_consumer(consumer)
     }
 }
@@ -46,8 +46,11 @@ impl StdinKeyboardConsumer {
 }
 
 #[async_trait]
-impl Consumer<KeyboardMessage> for StdinKeyboardConsumer {
+impl Consumer for StdinKeyboardConsumer {
+    type Msg = KeyboardMessage;
+
     async fn consume(&self, message: &KeyboardMessage) {
+        info!("MSG {:?}", message);
         match message.key {
             DecodedKey::Unicode(code) => {
                 let message = format!("{}", code);
@@ -84,7 +87,9 @@ impl<H: Handler<Stdin>> Stdout<H> {
 }
 
 #[async_trait]
-impl<H: Handler<Stdin> + Send + Sync> Sender<TtyMessage> for Stdout<H> {
+impl<H: Handler<Stdin> + Send + Sync> Sender for Stdout<H> {
+    type Msg = TtyMessage;
+
     async fn send(&mut self, message: TtyMessage) {
         let mut guard = self.stdin.lock();
         for c in message.0.chars() {

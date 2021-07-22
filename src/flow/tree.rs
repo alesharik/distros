@@ -6,32 +6,35 @@ use hashbrown::HashMap;
 use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
 use alloc::boxed::Box;
-use core::any::Any;
+use core::any::{Any, TypeId};
 use core::fmt::{Debug, Formatter, Display};
 
-pub struct FlowTreeEndpoint<T: Message> {
-    pub provider: Arc<Mutex<dyn Provider<T> + Send>>,
-    pub sender: Option<Arc<Mutex<dyn Sender<T> + Send>>>
+pub struct FlowTreeEndpoint {
+    pub provider: Arc<Mutex<dyn Provider + Send>>,
+    pub sender: Option<Arc<Mutex<dyn Sender<Msg = dyn Message> + Send>>>,
+    pub message_type: TypeId,
 }
 
-impl<T: Message> Clone for FlowTreeEndpoint<T> {
+impl Clone for FlowTreeEndpoint {
     fn clone(&self) -> Self {
         FlowTreeEndpoint {
             sender: self.sender.clone(),
             provider: self.provider.clone(),
+            message_type: self.message_type.clone(),
         }
     }
 }
 
-impl<T: Message> FlowTreeEndpoint<T> {
-    pub fn new(provider: Arc<Mutex<dyn Provider<T> + Send>>) -> Self {
+impl FlowTreeEndpoint {
+    pub fn new<T: Message + 'static>(provider: Arc<Mutex<dyn Provider + Send>>) -> Self {
         FlowTreeEndpoint {
             provider,
-            sender: None
+            sender: None,
+            message_type: TypeId::of::<T>(),
         }
     }
 
-    pub fn sender<'a>(&'a mut self, sender: Arc<Mutex<dyn Sender<T> + Send>>) -> &'a mut FlowTreeEndpoint<T> {
+    pub fn sender<'a>(&'a mut self, sender: Arc<Mutex<dyn Sender<Msg = dyn Message> + Send>>) -> &'a mut FlowTreeEndpoint {
         self.sender = Some(sender);
         self
     }
@@ -47,11 +50,11 @@ type Result<T> = core::result::Result<T, FlowTreeError>;
 #[derive(Default)]
 struct FlowTreeBranch {
     nodes: HashMap<String, FlowTreeNode>,
-    this_endpoint: Option<Box<dyn Any + Send>>
+    this_endpoint: Option<FlowTreeEndpoint>
 }
 
 enum FlowTreeNode {
-    Endpoint(Box<dyn Any + Send>),
+    Endpoint(FlowTreeEndpoint),
     Branch(FlowTreeBranch),
     // Collector() TODO
 }
@@ -85,7 +88,7 @@ impl FlowTree {
         }
     }
 
-    pub fn put<T: Message + 'static>(&mut self, path: &str, item: FlowTreeEndpoint<T>) -> Result<()> {
+    pub fn put<T: Message + 'static>(&mut self, path: &str, item: FlowTreeEndpoint) -> Result<()> {
         let parts = path.split("/")
             .collect::<Vec<_>>();
         let (last, parts) = parts
@@ -107,14 +110,14 @@ impl FlowTree {
             current = if let FlowTreeNode::Branch(b) = node { b } else { unreachable!() };
         }
 
-        if let Err(mut error) = current.nodes.try_insert(last.to_owned().to_owned(), FlowTreeNode::Endpoint(Box::new(item.clone()))) {
+        if let Err(mut error) = current.nodes.try_insert(last.to_owned().to_owned(), FlowTreeNode::Endpoint(item.clone())) {
             let placed = error.entry.get_mut();
             match placed {
                 FlowTreeNode::Endpoint(_) => Err(FlowTreeError::AlreadyOccupied),
                 FlowTreeNode::Branch(branch) => if branch.this_endpoint.is_some() {
                     Err(FlowTreeError::AlreadyOccupied)
                 } else {
-                    branch.this_endpoint = Some(Box::new(item));
+                    branch.this_endpoint = Some(item);
                     Ok(())
                 }
             }
@@ -123,7 +126,7 @@ impl FlowTree {
         }
     }
 
-    pub fn get<T: Message + 'static>(&self, path: &str) -> Result<Option<FlowTreeEndpoint<T>>> {
+    pub fn get(&self, path: &str) -> Option<FlowTreeEndpoint> {
         let parts = path.split("/")
             .collect::<Vec<_>>();
         let (last, parts) = parts
@@ -132,30 +135,15 @@ impl FlowTree {
         let mut current = &self.node;
         for part in parts {
             let part = part.to_owned();
-            match current.nodes.get(part) {
-                Some(node) => match node {
-                    FlowTreeNode::Branch(branch) => current = branch,
-                    FlowTreeNode::Endpoint(_) => return Ok(None)
-                }
-                None => return Ok(None)
+            match current.nodes.get(part)? {
+                FlowTreeNode::Branch(branch) => current = branch,
+                FlowTreeNode::Endpoint(_) => return None
             }
         }
         let last = last.to_owned();
-        match current.nodes.get(last) {
-            Some(node) => match node {
-                FlowTreeNode::Branch(branch) => match &branch.this_endpoint {
-                    Some(e) => match e.downcast_ref::<FlowTreeEndpoint<T>>() {
-                        Some(e) => Ok(Some(e.clone())),
-                        None => Err(FlowTreeError::WrongMessageType)
-                    },
-                    None => Ok(None)
-                },
-                FlowTreeNode::Endpoint(endpoint) => match endpoint.downcast_ref::<FlowTreeEndpoint<T>>() {
-                    Some(e) => Ok(Some(e.clone())),
-                    None => Err(FlowTreeError::WrongMessageType)
-                }
-            }
-            None => Ok(None)
+        match current.nodes.get(last)? {
+            FlowTreeNode::Branch(branch) => branch.this_endpoint.clone(),
+            FlowTreeNode::Endpoint(endpoint) => Some(endpoint.clone())
         }
     }
 
@@ -178,7 +166,7 @@ impl FlowTree {
         }
         let last = last.to_owned();
         if last == "" {
-            let mut nodes = current.nodes.iter().map(|(k, v)| ElementInfo {
+            let nodes = current.nodes.iter().map(|(k, v)| ElementInfo {
                 name: k.clone(),
                 directory: matches!(v, FlowTreeNode::Branch(_))
             }).collect::<Vec<_>>();
@@ -196,7 +184,7 @@ impl FlowTree {
                     }
                     nodes
                 },
-                FlowTreeNode::Endpoint(endpoint) => vec![ElementInfo {
+                FlowTreeNode::Endpoint(_) => vec![ElementInfo {
                     name: last.to_owned(),
                     directory: false
                 }]

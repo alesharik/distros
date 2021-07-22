@@ -110,7 +110,7 @@ pub fn init() -> Result<(), ControllerError> {
         }
 
         let sender = KEYBOARD_SENDER.deref();
-        FlowManager::register_endpoint("/dev/ps2/keyboard", sender.clone(), None).unwrap();
+        FlowManager::register_endpoint::<KeyboardMessage>("/dev/ps2/keyboard", sender.clone(), None).unwrap();
         let int = Irq::from_raw(1).map_to_int(0);
         interrupts::set_handler(int, keyboard_handler);
         kblog!("PS/2", "PS/2 keyboard started");
@@ -129,7 +129,7 @@ pub fn init() -> Result<(), ControllerError> {
             config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, false);
         } else {
             let sender = MOUSE_SENDER.deref();
-            FlowManager::register_endpoint("/dev/ps2/mouse", sender.clone(), None).unwrap();
+            FlowManager::register_endpoint::<MouseMessage>("/dev/ps2/mouse", sender.clone(), None).unwrap();
             let int = Irq::from_raw(12).map_to_int(0);
             interrupts::set_handler(int, mouse_handler);
             kblog!("PS/2", "PS/2 mouse started");
