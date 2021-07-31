@@ -10,6 +10,7 @@
 - PS/2 device support
 - PCI support
 - very basic terminal
+- SMBios support
 
 ## TODO
 - [ ] Serial Log
@@ -35,3 +36,4 @@
 - `/dev/tty/vga` - TTY VGA device (sends/receives `TtyMessage`)
 - `/dev/pci/{bus}/{device}/{function}` - PCI device information
 - `/dev/pci/{bus}/{device}/{function}/bar/{id}` - PCI device BAR information
+- `/dev/smbios` - SMBios information
