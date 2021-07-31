@@ -77,6 +77,7 @@ where
         msg_type == &TypeId::of::<<Self as Consumer>::Msg>()
     }
 
+    #[allow(clippy::clone_double_ref)]
     async fn consume_msg(&self, message: &dyn Message) {
         let msg_ptr = unsafe {
             let ptr = message as *const dyn Message;

@@ -19,7 +19,7 @@ impl Clone for FlowTreeEndpoint {
         FlowTreeEndpoint {
             sender: self.sender.clone(),
             provider: self.provider.clone(),
-            message_type: self.message_type.clone(),
+            message_type: self.message_type,
         }
     }
 }
@@ -33,10 +33,10 @@ impl FlowTreeEndpoint {
         }
     }
 
-    pub fn sender<'a>(
-        &'a mut self,
+    pub fn sender(
+        &mut self,
         sender: Arc<Mutex<dyn Sender<Msg = dyn Message> + Send>>,
-    ) -> &'a mut FlowTreeEndpoint {
+    ) -> &mut FlowTreeEndpoint {
         self.sender = Some(sender);
         self
     }
@@ -91,7 +91,7 @@ impl FlowTree {
     }
 
     pub fn put<T: Message + 'static>(&mut self, path: &str, item: FlowTreeEndpoint) -> Result<()> {
-        let parts = path.split("/").collect::<Vec<_>>();
+        let parts = path.split('/').collect::<Vec<_>>();
         let (last, parts) = parts.split_last().unwrap();
         let mut current = &mut self.node;
         for part in parts {
@@ -102,10 +102,9 @@ impl FlowTree {
                 .and_replace_entry_with(|_k, entry| {
                     Some(FlowTreeNode::Branch(match entry {
                         FlowTreeNode::Branch(b) => b,
-                        FlowTreeNode::Endpoint(endpoint) => {
-                            let mut new_branch = FlowTreeBranch::default();
-                            new_branch.this_endpoint = Some(endpoint);
-                            new_branch
+                        FlowTreeNode::Endpoint(endpoint) => FlowTreeBranch {
+                            this_endpoint: Some(endpoint),
+                            ..Default::default()
                         }
                     }))
                 })
@@ -139,7 +138,7 @@ impl FlowTree {
     }
 
     pub fn get(&self, path: &str) -> Option<FlowTreeEndpoint> {
-        let parts = path.split("/").collect::<Vec<_>>();
+        let parts = path.split('/').collect::<Vec<_>>();
         let (last, parts) = parts.split_last().unwrap();
         let mut current = &self.node;
         for part in parts {
@@ -157,7 +156,7 @@ impl FlowTree {
     }
 
     pub fn list(&self, path: &str) -> Vec<ElementInfo> {
-        let parts = path.split("/").collect::<Vec<_>>();
+        let parts = path.split('/').collect::<Vec<_>>();
         let (last, parts) = parts.split_last().unwrap();
         let mut current = &self.node;
         for part in parts {
@@ -171,7 +170,7 @@ impl FlowTree {
             }
         }
         let last = last.to_owned();
-        if last == "" {
+        if last.is_empty() {
             let nodes = current
                 .nodes
                 .iter()

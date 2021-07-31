@@ -59,7 +59,7 @@ fn find_hpet_periodic_timer(info: &HpetInfo, addr: &VirtAddr, off: u8) -> u8 {
     unsafe {
         let mut cur_off = 0;
         for cmp in 0..info.num_comparators() {
-            let cmp_cap: VirtAddr = addr.clone() + 0x100_usize + (0x20 * cmp) as usize;
+            let cmp_cap: VirtAddr = *addr + 0x100_usize + (0x20 * cmp) as usize;
             let cfg = TimerConfiguration(*cmp_cap.as_ptr());
             if cfg.supports_periodic() {
                 cur_off += 1;

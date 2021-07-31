@@ -34,7 +34,7 @@ impl Sub {
     }
 
     fn read_command(&self, line: &str) {
-        let parts = line.split(" ").collect::<Vec<_>>();
+        let parts = line.split(' ').collect::<Vec<_>>();
         let (command, arguments) = parts.split_first().unwrap();
         match *command {
             "test" => {
