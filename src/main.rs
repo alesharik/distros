@@ -33,8 +33,9 @@ mod acpi;
 mod basic_term;
 mod cmos;
 mod cpuid;
-mod driver;
+#[macro_use]
 mod flow;
+mod driver;
 mod fpu;
 mod random;
 

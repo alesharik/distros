@@ -17,17 +17,17 @@ macro_rules! primitive_message {
             }
         }
 
-        impl Message for $name {}
+        impl crate::flow::Message for $name {}
     };
 }
 
 macro_rules! register {
-    (content $path:expr => $msg:expr) => {
+    (content $path:expr => $type:ident ($($args:tt)*)) => { {
         use alloc::sync::Arc;
         use spin::Mutex;
         use crate::flow::{FlowManager, ContentProvider};
-        FlowManager::register_endpoint(&$path, Arc::new(Mutex::new(ContentProvider::new($msg))), None)?;
-    };
+        FlowManager::register_endpoint::<$type>(&$path, Arc::new(Mutex::new(ContentProvider::new($type::new($($args)*)))), None)?;
+    } };
 }
 
 mod tree;
