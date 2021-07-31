@@ -542,7 +542,7 @@ dependencies = [
 [[package]]
 name = "smbios-lib"
 version = "0.8.0"
-source = "git+https://github.com/alesharik/smbios-lib.git#11a65697017ca44bdf5adc6957dbf293638ded85"
+source = "git+https://github.com/alesharik/smbios-lib.git?branch=struct_clone#5a2f8458d5ef3400cc1a94728a49bdbded68b08a"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
