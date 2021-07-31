@@ -2,14 +2,44 @@ use alloc::boxed::Box;
 use async_trait::async_trait;
 use core::fmt::Debug;
 
+macro_rules! primitive_message {
+    ($name:ident $type:ty) => {
+        #[derive(Clone, Debug)]
+        pub struct $name($type);
+
+        impl $name {
+            pub fn new(message: $type) -> Self {
+                $name(message)
+            }
+
+            pub fn get(&self) -> $type {
+                self.0
+            }
+        }
+
+        impl Message for $name {}
+    };
+}
+
+macro_rules! register {
+    (content $path:expr => $msg:expr) => {
+        use alloc::sync::Arc;
+        use spin::Mutex;
+        use crate::flow::{FlowManager, ContentProvider};
+        FlowManager::register_endpoint(&$path, Arc::new(Mutex::new(ContentProvider::new($msg))), None)?;
+    };
+}
+
 mod tree;
 mod manager;
 mod producer;
 mod content;
+mod message;
 
 pub use manager::{FlowManager, FlowManagerError};
 pub use producer::Producer;
 pub use content::ContentProvider;
+pub use message::*;
 use core::any::TypeId;
 
 pub trait Message: Send + Sync + Debug {}
