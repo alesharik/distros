@@ -1,7 +1,6 @@
 use serde::{ser, Serialize};
 use super::error::{Error, Result};
 use alloc::prelude::v1::{String, ToString};
-use crate::flow::FlowManager;
 use super::super::message::*;
 use alloc::borrow::ToOwned;
 
@@ -128,7 +127,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
-        let mut serializer = ArrSerializer { path: self.path.clone(), idx: 0 };
+        let serializer = ArrSerializer { path: self.path.clone(), idx: 0 };
         Ok(serializer)
     }
 
@@ -141,22 +140,22 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_tuple_variant(self, _name: &'static str, _variant_index: u32, variant: &'static str, _len: usize) -> Result<Self::SerializeTupleVariant> {
-        let mut serializer = ArrSerializer { path: format!("{}/{}", &self.path, variant), idx: 0 };
+        let serializer = ArrSerializer { path: format!("{}/{}", &self.path, variant), idx: 0 };
         Ok(serializer)
     }
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
-        let mut serializer = MapSerializer { path: self.path.clone(), key: "".to_owned() };
+        let serializer = MapSerializer { path: self.path.clone(), key: "".to_owned() };
         Ok(serializer)
     }
 
     fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
-        let mut serializer = MapSerializer { path: self.path.clone(), key: "".to_owned() };
+        let serializer = MapSerializer { path: self.path.clone(), key: "".to_owned() };
         Ok(serializer)
     }
 
     fn serialize_struct_variant(self, _name: &'static str, _variant_index: u32, variant: &'static str, _len: usize) -> Result<Self::SerializeStructVariant> {
-        let mut serializer = MapSerializer { path: format!("{}/{}", &self.path, variant), key: "".to_owned() };
+        let serializer = MapSerializer { path: format!("{}/{}", &self.path, variant), key: "".to_owned() };
         Ok(serializer)
     }
 }
@@ -310,7 +309,7 @@ impl <'a> ser::Serializer for &'a mut StringSerializer {
         Ok(())
     }
 
-    fn serialize_bytes(self, v: &[u8]) -> Result<()> {
+    fn serialize_bytes(self, _v: &[u8]) -> Result<()> {
         Err(Error::Unsupported)
     }
 
@@ -326,47 +325,47 @@ impl <'a> ser::Serializer for &'a mut StringSerializer {
         Err(Error::Unsupported)
     }
 
-    fn serialize_unit_struct(self, name: &'static str) -> Result<()> {
+    fn serialize_unit_struct(self, _name: &'static str) -> Result<()> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_unit_variant(self, name: &'static str, variant_index: u32, variant: &'static str) -> Result<()> {
+    fn serialize_unit_variant(self, _name: &'static str, _variant_index: u32, _variant: &'static str) -> Result<()> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_newtype_struct<T: ?Sized>(self, name: &'static str, value: &T) -> Result<()> where T: Serialize {
+    fn serialize_newtype_struct<T: ?Sized>(self, _name: &'static str, value: &T) -> Result<()> where T: Serialize {
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T: ?Sized>(self, name: &'static str, variant_index: u32, variant: &'static str, value: &T) -> Result<()> where T: Serialize {
+    fn serialize_newtype_variant<T: ?Sized>(self, _name: &'static str, _variant_index: u32, _variant: &'static str, _value: &T) -> Result<()> where T: Serialize {
         Err(Error::Unsupported)
     }
 
-    fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
+    fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple> {
+    fn serialize_tuple(self, _len: usize) -> Result<Self::SerializeTuple> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_tuple_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeTupleStruct> {
+    fn serialize_tuple_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeTupleStruct> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_tuple_variant(self, name: &'static str, variant_index: u32, variant: &'static str, len: usize) -> Result<Self::SerializeTupleVariant> {
+    fn serialize_tuple_variant(self, _name: &'static str, _variant_index: u32, _variant: &'static str, _len: usize) -> Result<Self::SerializeTupleVariant> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap> {
+    fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_struct(self, name: &'static str, len: usize) -> Result<Self::SerializeStruct> {
+    fn serialize_struct(self, _name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
         Err(Error::Unsupported)
     }
 
-    fn serialize_struct_variant(self, name: &'static str, variant_index: u32, variant: &'static str, len: usize) -> Result<Self::SerializeStructVariant> {
+    fn serialize_struct_variant(self, _name: &'static str, _variant_index: u32, _variant: &'static str, _len: usize) -> Result<Self::SerializeStructVariant> {
         Err(Error::Unsupported)
     }
 }

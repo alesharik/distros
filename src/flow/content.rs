@@ -14,7 +14,7 @@ impl Subscription for SubscriptionImpl {
     }
 
     #[inline]
-    fn cancel(mut self) {
+    fn cancel(self) {
         self.dropped.store(true, Ordering::SeqCst);
     }
 }
@@ -39,7 +39,7 @@ impl<T: Message + 'static> ContentProvider<T> {
 
         if !dropped.load(Ordering::SeqCst) {
             consumer.consume_msg(data.deref()).await;
-            consumer.close_consumer(&SubscriptionImpl { dropped });
+            consumer.close_consumer(&SubscriptionImpl { dropped }).await;
         }
     }
 }

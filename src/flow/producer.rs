@@ -1,4 +1,4 @@
-use crate::flow::{Consumer, Message, Provider, Sender, Subscription, AnyConsumer};
+use crate::flow::{Message, Provider, Sender, Subscription, AnyConsumer};
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use alloc::vec::Vec;

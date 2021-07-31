@@ -1,4 +1,4 @@
-use crate::flow::{Consumer, Message, Provider, Sender, Subscription, AnyConsumer};
+use crate::flow::{Message, Provider, Sender, Subscription, AnyConsumer};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::String;
@@ -8,7 +8,6 @@ use spin::{Lazy, Mutex};
 use crate::flow::tree::{FlowTree, FlowTreeError, FlowTreeEndpoint};
 use alloc::vec::Vec;
 use core::any::TypeId;
-use core::ffi::c_void;
 use core::ops::DerefMut;
 
 pub type ElementInfo = super::tree::ElementInfo;

@@ -1,4 +1,4 @@
-use serde::{ser, Serialize};
+use serde::ser;
 use core::fmt::Display;
 use alloc::fmt;
 use alloc::prelude::v1::{String, ToString};

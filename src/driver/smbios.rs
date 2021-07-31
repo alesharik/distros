@@ -1,14 +1,10 @@
 use x86_64::{PhysAddr, VirtAddr};
 use smbioslib::*;
 use crate::memory;
-use crate::flow::{Message, ContentProvider, FlowSerdeError};
-use core::fmt::{Debug, Formatter};
-use core::marker::PhantomData;
-use core::ops::Deref;
 use alloc::vec::IntoIter;
 use itertools::Itertools;
-use futures::StreamExt;
 use core::mem::discriminant;
+use crate::flow::FlowSerdeError;
 
 struct MemoryMapperImpl {}
 
@@ -86,7 +82,7 @@ pub fn init() {
     let table: DefinedStructTable<'_> = data.iter().collect();
     let iter: IntoIter<DefinedStruct<'_>> = table.into_iter();
     for values in iter
-        .sorted_by_key(|v| unsafe { core::intrinsics::discriminant_value(v) as u32 })
+        .sorted_by_key(|v| core::intrinsics::discriminant_value(v) as u32)
         .collect_vec()
         .group_by(|a, b| discriminant(a) == discriminant(b)) {
         for (pos, v) in values.iter().enumerate() {
