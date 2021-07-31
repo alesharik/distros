@@ -8,6 +8,8 @@
 - basic future runtime
 - data flow manager
 - PS/2 device support
+- PCI support
+- very basic terminal
 
 ## TODO
 - [ ] Serial Log
@@ -21,7 +23,6 @@
 - [ ] Syscalls (map memory pointers as kernel-access memory)
 
 ## External TODO
-- [ ] Make `ps2` crate async
 - [ ] Add scroll wheel support to `ps2` crate
 
 ## Global flow system
@@ -32,3 +33,5 @@
 - `/dev/syslog` - System log (sends `SyslogMessage`)
 - `/dev/tty` - TTY devices
 - `/dev/tty/vga` - TTY VGA device (sends/receives `TtyMessage`)
+- `/dev/pci/{bus}/{device}/{function}` - PCI device information
+- `/dev/pci/{bus}/{device}/{function}/bar/{id}` - PCI device BAR information
