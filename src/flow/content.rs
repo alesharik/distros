@@ -1,7 +1,7 @@
-use crate::flow::{Message, Provider, Subscription, AnyConsumer};
-use core::sync::atomic::{AtomicBool, Ordering};
+use crate::flow::{AnyConsumer, Message, Provider, Subscription};
 use alloc::boxed::Box;
 use alloc::sync::Arc;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 struct SubscriptionImpl {
     dropped: Arc<AtomicBool>,
@@ -31,7 +31,9 @@ pub struct ContentProvider<T: Message + 'static> {
 
 impl<T: Message + 'static> ContentProvider<T> {
     pub fn new(data: T) -> ContentProvider<T> {
-        ContentProvider { data: Arc::new(data) }
+        ContentProvider {
+            data: Arc::new(data),
+        }
     }
 
     async fn send(data: Arc<T>, consumer: Box<dyn AnyConsumer>, dropped: Arc<AtomicBool>) {
@@ -47,7 +49,11 @@ impl<T: Message + 'static> ContentProvider<T> {
 impl<T: 'static + Message> Provider for ContentProvider<T> {
     fn add_consumer(&mut self, consumer: Box<dyn AnyConsumer>) -> Box<dyn Subscription> {
         let dropped = Arc::new(AtomicBool::new(false));
-        crate::futures::spawn(ContentProvider::send(self.data.clone(), consumer, dropped.clone()));
+        crate::futures::spawn(ContentProvider::send(
+            self.data.clone(),
+            consumer,
+            dropped.clone(),
+        ));
         Box::new(SubscriptionImpl { dropped })
     }
 }

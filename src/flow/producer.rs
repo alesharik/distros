@@ -1,10 +1,10 @@
-use crate::flow::{Message, Provider, Sender, Subscription, AnyConsumer};
+use crate::flow::{AnyConsumer, Message, Provider, Sender, Subscription};
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use async_trait::async_trait;
-use spin::RwLock;
 use core::marker::PhantomData;
+use spin::RwLock;
 
 struct ConsumerHolder {
     id: u64,

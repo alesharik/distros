@@ -1,11 +1,11 @@
+use crate::flow::{FlowManagerError, U16Message, U8Message};
 use bit_field::BitField;
 use core::cell::RefCell;
-use pci_types::device_type::DeviceType;
-use pci_types::{ConfigRegionAccess, PciAddress, PciHeader, EndpointHeader, Bar};
-use x86_64::instructions::port::{Port, PortWriteOnly};
-use crate::flow::{U8Message, U16Message, FlowManagerError};
-use pci_types::MAX_BARS;
 use core::option::Option::Some;
+use pci_types::device_type::DeviceType;
+use pci_types::MAX_BARS;
+use pci_types::{Bar, ConfigRegionAccess, EndpointHeader, PciAddress, PciHeader};
+use x86_64::instructions::port::{Port, PortWriteOnly};
 
 primitive_message!(PciDeviceTypeMessage DeviceType);
 primitive_message!(PciDeviceBarMessage Bar);
@@ -54,7 +54,13 @@ impl ConfigRegionAccess for AccessImpl {
     }
 }
 
-fn create_device(access: &AccessImpl, header: PciHeader, bus: u8, device: u8, function: u8) -> Result<()> {
+fn create_device(
+    access: &AccessImpl,
+    header: PciHeader,
+    bus: u8,
+    device: u8,
+    function: u8,
+) -> Result<()> {
     let (vendor, device_id) = header.id(access);
     let (revision, base, sub, interface) = header.revision_and_class(access);
     register!(content format!("/dev/pci/{}/{}/{}/header_type", bus, device, function) => U8Message (header.header_type(access)));
@@ -78,7 +84,10 @@ fn create_device(access: &AccessImpl, header: PciHeader, bus: u8, device: u8, fu
 fn check_function(access: &AccessImpl, bus: u8, device: u8, function: u8) {
     let header = PciHeader::new(PciAddress::new(0, bus, device, function));
     if let Err(error) = create_device(access, header, bus, device, function) {
-        error!("[PCI][{:02}:{:02}.{:02}] Failed to create PCI device: {:?}", bus, device, function, error);
+        error!(
+            "[PCI][{:02}:{:02}.{:02}] Failed to create PCI device: {:?}",
+            bus, device, function, error
+        );
     }
 }
 

@@ -2,13 +2,13 @@ mod device;
 pub mod keyboard;
 pub mod mouse;
 mod pci;
+mod smbios;
 mod syslog;
 mod tty;
-mod smbios;
 
-pub use tty::TtyMessage;
-pub use syslog::SyslogMessage;
 pub use pci::{PciDeviceBarMessage, PciDeviceTypeMessage};
+pub use syslog::SyslogMessage;
+pub use tty::TtyMessage;
 
 pub fn init() {
     syslog::init();

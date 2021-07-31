@@ -33,18 +33,18 @@ macro_rules! register {
     }
 }
 
-mod tree;
-mod manager;
-mod producer;
 mod content;
+mod manager;
 mod message;
+mod producer;
 mod serde;
+mod tree;
 
-pub use manager::{FlowManager, FlowManagerError};
-pub use producer::Producer;
-pub use content::ContentProvider;
-pub use message::*;
 pub use self::serde::{register_serialized, FlowSerdeError};
+pub use content::ContentProvider;
+pub use manager::{FlowManager, FlowManagerError};
+pub use message::*;
+pub use producer::Producer;
 
 use core::any::TypeId;
 
@@ -69,7 +69,10 @@ pub trait Consumer: Sync + Send {
 }
 
 #[async_trait]
-unsafe impl<T> AnyConsumer for T where T: Consumer {
+unsafe impl<T> AnyConsumer for T
+where
+    T: Consumer,
+{
     fn check_type(&self, msg_type: &TypeId) -> bool {
         msg_type == &TypeId::of::<<Self as Consumer>::Msg>()
     }

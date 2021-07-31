@@ -1,20 +1,18 @@
-use crate::driver::{TtyMessage};
-use crate::flow::{Consumer, FlowManager, FlowManagerError, Subscription, Message, AnyConsumer};
+use crate::driver::TtyMessage;
+use crate::flow::{AnyConsumer, Consumer, FlowManager, FlowManagerError, Message, Subscription};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
-use async_trait::async_trait;
-use futures::lock::BiLock;
 use alloc::vec::Vec;
+use async_trait::async_trait;
 use core::any::TypeId;
+use futures::lock::BiLock;
 
 struct Sub {
     line: BiLock<String>,
 }
 
-struct CatSub {
-
-}
+struct CatSub {}
 
 impl Sub {
     fn new() -> Sub {
@@ -36,35 +34,30 @@ impl Sub {
     }
 
     fn read_command(&self, line: &str) {
-        let parts = line.split(" ")
-            .collect::<Vec<_>>();
-        let (command, arguments) = parts
-            .split_first()
-            .unwrap();
+        let parts = line.split(" ").collect::<Vec<_>>();
+        let (command, arguments) = parts.split_first().unwrap();
         match *command {
             "test" => {
                 for x in 31..38 {
                     self.print(&format!("\x1b[{}m {} ", x, x));
                 }
                 self.print("\n\x1B[33m> YAY!!");
-            },
+            }
             "ls" => {
                 for x in FlowManager::list(arguments[0]) {
                     self.print(&format!("{}\n", x))
                 }
-            },
-            "cat" => {
-                match FlowManager::subscribe(arguments[0], Box::new(CatSub {})) {
-                    Ok(sub) => {
-                        self.print(&format!("Sub id = {}", sub.get_id()));
-                        core::mem::forget(sub);
-                    }
-                    Err(e) => {
-                        self.print(&format!("\x1b[31mError is {:?}\x1B[37m>", e));
-                    }
+            }
+            "cat" => match FlowManager::subscribe(arguments[0], Box::new(CatSub {})) {
+                Ok(sub) => {
+                    self.print(&format!("Sub id = {}", sub.get_id()));
+                    core::mem::forget(sub);
+                }
+                Err(e) => {
+                    self.print(&format!("\x1b[31mError is {:?}\x1B[37m>", e));
                 }
             },
-            "" => {},
+            "" => {}
             _ => {
                 self.print(&format!("Unknown command {}", line));
             }
