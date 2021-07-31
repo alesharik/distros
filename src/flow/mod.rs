@@ -28,6 +28,9 @@ macro_rules! register {
         use crate::flow::{FlowManager, ContentProvider};
         FlowManager::register_endpoint::<$type>(&$path, Arc::new(Mutex::new(ContentProvider::new($type::new($($args)*)))), None)?;
     } };
+    (serial $path:expr => $var:expr) => {
+        crate::flow::register_serialized(&$path, &$var)
+    }
 }
 
 mod tree;
@@ -35,11 +38,14 @@ mod manager;
 mod producer;
 mod content;
 mod message;
+mod serde;
 
 pub use manager::{FlowManager, FlowManagerError};
 pub use producer::Producer;
 pub use content::ContentProvider;
 pub use message::*;
+pub use self::serde::{register_serialized, FlowSerdeError};
+
 use core::any::TypeId;
 
 pub trait Message: Send + Sync + Debug {}

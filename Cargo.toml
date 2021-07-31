@@ -31,7 +31,9 @@ ps2 = "0.1.2" # PS2 keyboard and mouse support
 pc-keyboard = "0.5.1" # keyboard parser
 pci_types = "0.2.0" # PCI types
 vte = { git = "https://github.com/alesharik/vte.git", branch = "move-ansi", features = ["ansi"] } # ANSI terminal parser
-smbios-lib = { git = "https://github.com/alesharik/smbios-lib.git", features = ["no_std", "x86_64"], default-features = false, branch = "struct_clone" }
+smbios-lib = { git = "https://github.com/alesharik/smbios-lib.git", features = ["no_std", "x86_64"], default-features = false, branch = "struct_clone" } # SMBIOS
+serde = { version = "1.0.127", features = ["derive", "alloc"], default-features = false }
+itertools = { version = "0.10.1", default-features = false, features = ["use_alloc"] }
 
 [dependencies.lazy_static]
 version = "1.4.0"

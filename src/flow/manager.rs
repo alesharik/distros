@@ -13,6 +13,7 @@ use core::ops::DerefMut;
 
 pub type ElementInfo = super::tree::ElementInfo;
 
+#[derive(Clone, Eq, PartialEq)]
 pub enum FlowManagerError {
     ProviderNotFound,
     WrongMessageType,
