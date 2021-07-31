@@ -5,6 +5,8 @@
 #![feature(alloc_error_handler)]
 #![feature(inline_const)]
 #![feature(ptr_metadata)]
+#![feature(core_intrinsics)]
+#![feature(slice_group_by)]
 #![allow(dead_code)]
 
 #[macro_use]
