@@ -67,7 +67,7 @@ impl Consumer for StdinKeyboardConsumer {
         }
     }
 
-    async fn close(&self, _sub: &Box<dyn Subscription>) {}
+    async fn close(&self, _sub: &dyn Subscription) {}
 }
 
 pub struct Stdout<H: Handler<Stdin>> {

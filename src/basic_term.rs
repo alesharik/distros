@@ -82,7 +82,7 @@ unsafe impl AnyConsumer for CatSub {
         FlowManager::send_async("/dev/tty/vga", TtyMessage::new(&format!("{:?}", message)));
     }
 
-    async fn close_consumer(&self, _sub: &Box<dyn Subscription>) {
+    async fn close_consumer(&self, _sub: &dyn Subscription) {
         FlowManager::send_async("/dev/tty/vga", TtyMessage::new("CLOSED"));
     }
 }
@@ -105,7 +105,7 @@ impl Consumer for Sub {
         }
     }
 
-    async fn close(&self, _sub: &Box<dyn Subscription>) {}
+    async fn close(&self, _sub: &dyn Subscription) {}
 }
 
 pub fn init() -> Result<(), FlowManagerError> {

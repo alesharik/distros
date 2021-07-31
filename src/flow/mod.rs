@@ -18,7 +18,7 @@ pub unsafe trait AnyConsumer: Sync + Send {
 
     async fn consume_msg(&self, message: &dyn Message);
 
-    async fn close_consumer(&self, sub: &Box<dyn Subscription>);
+    async fn close_consumer(&self, sub: &dyn Subscription);
 }
 
 #[async_trait]
@@ -27,7 +27,7 @@ pub trait Consumer: Sync + Send {
 
     async fn consume(&self, message: &Self::Msg);
 
-    async fn close(&self, sub: &Box<dyn Subscription>);
+    async fn close(&self, sub: &dyn Subscription);
 }
 
 #[async_trait]
@@ -45,7 +45,7 @@ unsafe impl<T> AnyConsumer for T where T: Consumer {
         self.consume(msg_ptr).await;
     }
 
-    async fn close_consumer(&self, sub: &Box<dyn Subscription>) {
+    async fn close_consumer(&self, sub: &dyn Subscription) {
         self.close(sub).await;
     }
 }
