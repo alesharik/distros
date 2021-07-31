@@ -5,9 +5,11 @@ use core::fmt::Debug;
 mod tree;
 mod manager;
 mod producer;
+mod content;
 
 pub use manager::{FlowManager, FlowManagerError};
 pub use producer::Producer;
+pub use content::ContentProvider;
 use core::any::TypeId;
 
 pub trait Message: Send + Sync + Debug {}
