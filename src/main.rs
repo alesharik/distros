@@ -7,6 +7,7 @@
 #![feature(ptr_metadata)]
 #![feature(core_intrinsics)]
 #![feature(slice_group_by)]
+#![feature(naked_functions)]
 #![allow(dead_code)]
 
 #[macro_use]
@@ -44,6 +45,7 @@ mod driver;
 mod elf;
 mod fpu;
 mod random;
+mod sched;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -78,6 +80,8 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
 
     driver::init();
     basic_term::init().unwrap();
+
+    sched::start();
 
     futures::run();
 }
