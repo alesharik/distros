@@ -63,12 +63,12 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
         VirtAddr::new(boot_info.physical_memory_offset),
         &boot_info.memory_map,
     );
-    memory::print_table();
-    memory::init_kheap().unwrap();
+    // memory::print_table();
     let acpi = acpi::init_acpi();
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
     futures::init();
+    memory::init_kheap_info();
 
     driver::init();
     basic_term::init().unwrap();

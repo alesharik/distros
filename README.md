@@ -37,3 +37,4 @@
 - `/dev/pci/{bus}/{device}/{function}` - PCI device information
 - `/dev/pci/{bus}/{device}/{function}/bar/{id}` - PCI device BAR information
 - `/dev/smbios` - SMBios information
+- `/dev/kernel_heap/info` - Kernel heap info

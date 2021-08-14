@@ -1,21 +1,24 @@
+//! This module manages physical frames and frame regions
+
 use alloc::rc::Rc;
-use alloc::vec::Vec;
-/// Main physical page manager
-use bootloader::bootinfo::{MemoryMap, MemoryRegion};
+use bootloader::bootinfo::{MemoryMap, MemoryRegion, MemoryRegionType};
 use core::cell::RefCell;
 use core::ops::Not;
-use x86_64::structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size2MiB, Size4KiB};
+use x86_64::structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size2MiB, Size4KiB, PageSize};
 use x86_64::PhysAddr;
+use spin::Mutex;
+use arrayvec::ArrayVec;
 
-const FRAME_LENGTH: u32 = 4096;
-
+/// Frame region representation
 #[derive(Clone)]
 #[repr(C)]
 struct Frame {
+    /// Start frame of the region
     start_frame: PhysFrame<Size4KiB>,
-    /// size in page length
+    /// Size in page length
     /// last bit - used(1)/free(0)
     size: u64,
+    /// Next frame region
     next: Option<Rc<RefCell<Frame>>>,
 }
 
@@ -33,9 +36,9 @@ impl MemoryRegionContainer {
     }
 
     fn take(&mut self, frames: u64) -> Option<PhysFrame<Size4KiB>> {
-        if self.end - self.pointer >= FRAME_LENGTH as u64 * frames {
-            let frame = PhysFrame::from_start_address(PhysAddr::new(self.pointer)).unwrap();
-            self.pointer += FRAME_LENGTH as u64 * frames;
+        if self.end - self.pointer >= Size4KiB::SIZE as u64 * frames {
+            let frame = PhysFrame::containing_address(PhysAddr::new(self.pointer));
+            self.pointer += Size4KiB::SIZE as u64 * frames;
             Some(frame)
         } else {
             None
@@ -76,24 +79,27 @@ impl Frame {
 }
 
 pub struct FrameAlloc {
-    regions: Vec<MemoryRegionContainer>,
+    regions: ArrayVec<MemoryRegionContainer, 16>,
     root: Rc<RefCell<Frame>>,
 }
 
 impl FrameAlloc {
-    pub fn new(memory_map: &'static MemoryMap, offset: u32) -> FrameAlloc {
+    fn new(memory_map: &'static MemoryMap, offset: usize) -> FrameAlloc {
+        let mut regions = ArrayVec::<MemoryRegionContainer, 16>::new();
+        for region in memory_map.iter().filter(|m| m.region_type == MemoryRegionType::Usable) {
+            regions.push(MemoryRegionContainer::new(region));
+        }
         let mut alloc = FrameAlloc {
-            regions: memory_map
-                .iter()
-                .map(|r| MemoryRegionContainer::new(r))
-                .collect::<Vec<_>>(),
+            regions,
             root: Rc::new(RefCell::new(Frame::new(
                 PhysFrame::from_start_address(PhysAddr::new(0)).unwrap(),
                 0,
                 true,
             ))),
         };
-        alloc.allocate(offset / FRAME_LENGTH);
+        for pages in 0u64..(offset as u64 / Size2MiB::SIZE) {
+            alloc.allocate((pages * Size2MiB::SIZE / Size4KiB::SIZE) as u32);
+        }
         alloc
     }
 
@@ -187,3 +193,20 @@ impl FrameDeallocator<Size2MiB> for FrameAlloc {
 }
 
 unsafe impl Send for FrameAlloc {}
+
+lazy_static!(
+    static ref MEMORY_FRAME_ALLOCATOR: Mutex<Option<FrameAlloc>> = Mutex::new(None);
+);
+
+pub fn init(memory_map: &'static MemoryMap, offset: usize) {
+    let mut alloc = MEMORY_FRAME_ALLOCATOR.lock();
+    *alloc = Some(FrameAlloc::new(memory_map, offset));
+}
+
+pub fn with_frame_alloc<T, F: Fn(&mut FrameAlloc) -> T>(function: F) -> T {
+    crate::interrupts::no_int(|| {
+        let mut alloc = MEMORY_FRAME_ALLOCATOR.lock();
+        let alloc = alloc.as_mut().unwrap();
+        function(alloc)
+    })
+}
