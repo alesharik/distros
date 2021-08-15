@@ -14,7 +14,7 @@ mod kheap;
 mod liballoc;
 mod frame;
 mod process;
-mod util;
+pub mod util;
 
 pub use kheap::{init_kheap, init_kheap_info};
 use core::sync::atomic::{AtomicU64, Ordering};
@@ -29,7 +29,7 @@ pub fn init_memory(phys_offset: VirtAddr, memory_map: &'static MemoryMap) {
     page_table::init(phys_offset);
     let kernel_heap_info = kheap::init_kheap(memory_map).unwrap();
     PHYS_OFFSET.store(phys_offset.as_u64(), Ordering::SeqCst);
-    frame::init(memory_map, kernel_heap_info.size);
+    frame::init(memory_map, &kernel_heap_info.offsets);
     kblog!("MemoryManager", "Memory manager ready");
 }
 

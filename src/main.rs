@@ -22,6 +22,7 @@ use core::panic::PanicInfo;
 
 use bootloader::{entry_point, BootInfo};
 use x86_64::VirtAddr;
+use crate::elf::ElfProgram;
 
 #[macro_use]
 mod vga;
@@ -40,6 +41,7 @@ mod flow;
 mod driver;
 mod fpu;
 mod random;
+mod elf;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -69,6 +71,8 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     fpu::init_fpu();
     futures::init();
     memory::init_kheap_info();
+
+    // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();
 
     driver::init();
     basic_term::init().unwrap();

@@ -36,9 +36,9 @@ impl MemoryRegionContainer {
     }
 
     fn take(&mut self, frames: u64) -> Option<PhysFrame<Size4KiB>> {
-        if self.end - self.pointer >= Size4KiB::SIZE as u64 * frames {
-            let frame = PhysFrame::containing_address(PhysAddr::new(self.pointer));
-            self.pointer += Size4KiB::SIZE as u64 * frames;
+        if self.end - self.pointer >= frames {
+            let frame = PhysFrame::containing_address(PhysAddr::new(self.pointer * Size4KiB::SIZE));
+            self.pointer += frames;
             Some(frame)
         } else {
             None
@@ -84,10 +84,19 @@ pub struct FrameAlloc {
 }
 
 impl FrameAlloc {
-    fn new(memory_map: &'static MemoryMap, offset: usize) -> FrameAlloc {
+    fn new(memory_map: &'static MemoryMap, offsets: &[u64]) -> FrameAlloc {
         let mut regions = ArrayVec::<MemoryRegionContainer, 16>::new();
         for region in memory_map.iter().filter(|m| m.region_type == MemoryRegionType::Usable) {
             regions.push(MemoryRegionContainer::new(region));
+        }
+        for (i, x) in regions.iter_mut().enumerate() {
+            if let Some(off) = offsets.get(i) {
+                let mut page_off = *off / Size4KiB::SIZE;
+                if page_off * Size4KiB::SIZE != *off {
+                    page_off += 1;
+                }
+                x.pointer += page_off + 1;
+            }
         }
         let mut alloc = FrameAlloc {
             regions,
@@ -97,9 +106,6 @@ impl FrameAlloc {
                 true,
             ))),
         };
-        for pages in 0u64..(offset as u64 / Size2MiB::SIZE) {
-            alloc.allocate((pages * Size2MiB::SIZE / Size4KiB::SIZE) as u32);
-        }
         alloc
     }
 
@@ -198,9 +204,9 @@ lazy_static!(
     static ref MEMORY_FRAME_ALLOCATOR: Mutex<Option<FrameAlloc>> = Mutex::new(None);
 );
 
-pub fn init(memory_map: &'static MemoryMap, offset: usize) {
+pub fn init(memory_map: &'static MemoryMap, offsets: &[u64]) {
     let mut alloc = MEMORY_FRAME_ALLOCATOR.lock();
-    *alloc = Some(FrameAlloc::new(memory_map, offset));
+    *alloc = Some(FrameAlloc::new(memory_map, offsets));
 }
 
 pub fn with_frame_alloc<T, F: Fn(&mut FrameAlloc) -> T>(function: F) -> T {

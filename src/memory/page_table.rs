@@ -38,7 +38,8 @@ pub fn map<T: NotGiantPageSize>(frame: PhysFrame<T>, page: Page<T>, flags: PageT
     frame::with_frame_alloc(|a| {
         match unsafe {
             let mut table = PAGE_TABLE.lock();
-            table.as_mut().unwrap().map_to(page, frame, flags, a)
+            let x = table.as_mut().unwrap();
+            x.map_to(page, frame, flags, a)
         } {
             Ok(f) => {
                 f.flush();

@@ -16,7 +16,7 @@ use alloc::boxed::Box;
 use alloc::sync::Arc;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
-pub const HEAP_START: usize = 0x_5444_4444_0000;
+pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 8 * 1024 * 1024; // 8 MiB
 
 pub struct LockedHeap(Mutex<Heap>);
@@ -87,6 +87,11 @@ impl Display for KernelHeapInfo {
 
 impl Message for KernelHeapInfo {}
 
+pub struct KernelInitHeapInfo {
+    pub info: KernelHeapInfo,
+    pub offsets: [u64; 16],
+}
+
 struct KHeapFrameAllocator<'a> {
     alloc_map: &'a mut [u64],
     map: &'static MemoryMap,
@@ -107,7 +112,7 @@ unsafe impl<'a> FrameAllocator<Size4KiB> for KHeapFrameAllocator<'a> {
     }
 }
 
-pub fn init_kheap(map: &'static MemoryMap) -> Result<KernelHeapInfo, MapToError<Size2MiB>> {
+pub fn init_kheap(map: &'static MemoryMap) -> Result<KernelInitHeapInfo, MapToError<Size2MiB>> {
     kblog!("KHeap", "Starting kernel heap");
     let heap_start = VirtAddr::new(HEAP_START as u64);
     let heap_end = heap_start + HEAP_SIZE - 1u64;
@@ -123,8 +128,8 @@ pub fn init_kheap(map: &'static MemoryMap) -> Result<KernelHeapInfo, MapToError<
             alloc_map[idx] += page.size();
             let phys_frame = PhysFrame::containing_address(PhysAddr::new(region.range.start_frame_number * 4096 + alloc_map[idx] + 1));
             let mut alloc = KHeapFrameAllocator { allocated: 0, map, alloc_map: &mut alloc_map };
-            page_table::map_init(phys_frame, page, PageTableFlags::PRESENT | PageTableFlags::WRITABLE, &mut alloc).unwrap();
-            table_frame_size = alloc.allocated;
+            page_table::map_init(phys_frame, page, PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::GLOBAL, &mut alloc).unwrap();
+            table_frame_size += alloc.allocated;
             break
         }
     }
@@ -140,11 +145,14 @@ pub fn init_kheap(map: &'static MemoryMap) -> Result<KernelHeapInfo, MapToError<
         HEAP_SIZE / 1024 / 1024
     );
     TABLE_FRAME_SIZE.store(table_frame_size, Ordering::SeqCst);
-    Ok(KernelHeapInfo {
-        size: HEAP_SIZE,
-        virt_start: HEAP_START as u64,
-        used: 0,
-        table_frame_size,
+    Ok(KernelInitHeapInfo {
+        info: KernelHeapInfo {
+            size: HEAP_SIZE,
+            virt_start: HEAP_START as u64,
+            used: 0,
+            table_frame_size,
+        },
+        offsets: alloc_map,
     })
 }
 

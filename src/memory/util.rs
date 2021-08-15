@@ -27,8 +27,9 @@ pub struct MemoryToken {
 
 impl Drop for MemoryToken {
     fn drop(&mut self) {
+        let frame1 = self.addr;
         frame::with_frame_alloc(|a| {
-            a.deallocate(self.addr)
+            a.deallocate(frame1)
         })
     }
 }
