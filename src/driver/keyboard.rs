@@ -1,4 +1,4 @@
-use crate::flow::Message;
+use libkernel::flow::Message;
 use pc_keyboard::DecodedKey;
 
 #[derive(Debug)]

@@ -1,4 +1,4 @@
-use super::super::message::*;
+use libkernel::flow::message::*;
 use super::error::{Error, Result};
 use alloc::borrow::ToOwned;
 use alloc::prelude::v1::{String, ToString};

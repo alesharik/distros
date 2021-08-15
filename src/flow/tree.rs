@@ -1,4 +1,4 @@
-use crate::flow::{Message, Provider, Sender};
+use libkernel::flow::{Message, Provider, Sender};
 use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::sync::Arc;

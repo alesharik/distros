@@ -14,13 +14,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "example_elf"
-version = "0.1.0"
-dependencies = [
- "libkernel",
-]
-
-[[package]]
 name = "libkernel"
 version = "0.1.0"
 dependencies = [

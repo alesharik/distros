@@ -1,6 +1,7 @@
 use crate::driver::keyboard::KeyboardMessage;
 use crate::driver::tty::{TtyMessage, TtyWriter};
-use crate::flow::{AnyConsumer, Consumer, Producer, Provider, Sender, Subscription};
+use crate::flow::Producer;
+use libkernel::flow::{AnyConsumer, Consumer, Provider, Sender, Subscription};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::sync::Arc;

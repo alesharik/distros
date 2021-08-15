@@ -1,4 +1,4 @@
-use crate::flow::{AnyConsumer, Message, Provider, Subscription};
+use libkernel::flow::{AnyConsumer, Message, Provider, Subscription};
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use core::sync::atomic::{AtomicBool, Ordering};

@@ -36,6 +36,7 @@ serde = { version = "1.0.127", features = ["derive", "alloc"], default-features 
 itertools = { version = "0.10.1", default-features = false, features = ["use_alloc"] }
 goblin = { version = "0.4.2", default-features = false, features = ["alloc", "endian_fd", "elf32", "elf64", "archive"] }
 arrayvec = { version = "0.7.1", default-features = false }
+libkernel = { path = "libraries/libkernel" }
 
 [dependencies.lazy_static]
 version = "1.4.0"

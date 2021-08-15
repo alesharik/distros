@@ -1,5 +1,5 @@
 use crate::flow::tree::{FlowTree, FlowTreeEndpoint, FlowTreeError};
-use crate::flow::{AnyConsumer, Message, Provider, Sender, Subscription};
+use libkernel::flow::{AnyConsumer, Message, Provider, Sender, Subscription};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::String;

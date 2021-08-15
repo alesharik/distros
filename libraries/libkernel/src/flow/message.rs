@@ -1,4 +1,4 @@
-use crate::flow::Message;
+use super::Message;
 use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::vec::Vec;

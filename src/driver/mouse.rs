@@ -1,4 +1,4 @@
-use crate::flow::Message;
+use libkernel::flow::Message;
 use fixedbitset::FixedBitSet;
 
 #[derive(Debug)]

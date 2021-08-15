@@ -4,7 +4,8 @@
 //! This buffer is exposed by `/dev/syslog` flow.
 //! It does not use kblog and other vga facilities to not intervene with tty device.
 use crate::driver::syslog::ring::{RingBufferIter, SYSLOG_RING_BUFFER};
-use crate::flow::{AnyConsumer, FlowManager, Message, Provider, Subscription};
+use crate::flow::FlowManager;
+use libkernel::flow::{AnyConsumer, Message, Provider, Subscription};
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::sync::Arc;

@@ -1,5 +1,6 @@
 use crate::driver::TtyMessage;
-use crate::flow::{AnyConsumer, Consumer, FlowManager, FlowManagerError, Message, Subscription};
+use crate::flow::{FlowManager, FlowManagerError};
+use libkernel::flow::{AnyConsumer, Consumer, Message, Subscription};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};

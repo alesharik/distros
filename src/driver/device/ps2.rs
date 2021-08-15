@@ -1,6 +1,7 @@
 use crate::driver::keyboard::KeyboardMessage;
 use crate::driver::mouse::MouseMessage;
-use crate::flow::{FlowManager, Producer, Sender};
+use crate::flow::{FlowManager, Producer};
+use libkernel::flow::Sender;
 use crate::interrupts;
 use crate::interrupts::Irq;
 use alloc::sync::Arc;

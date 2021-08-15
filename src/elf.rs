@@ -5,6 +5,7 @@ use alloc::vec::Vec;
 use crate::memory::util::{MemoryToken, MemoryError};
 use goblin::elf::program_header::{PT_LOAD, PT_GNU_STACK};
 use goblin::error::Error;
+use crate::interrupts;
 
 #[derive(Debug)]
 pub enum ElfError {
@@ -57,6 +58,8 @@ impl ElfProgram {
                 _ => {},
             }
         }
+        let syscall_token = interrupts::init_syscall_block().map_err(|e| ElfError::Memory(e))?;
+        tokens.push(syscall_token);
         Ok(ElfProgram { tokens, entry: elf.entry })
     }
 

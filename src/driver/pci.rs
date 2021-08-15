@@ -1,4 +1,5 @@
-use crate::flow::{FlowManagerError, U16Message, U8Message};
+use crate::flow::FlowManagerError;
+use libkernel::flow::{U16Message, U8Message};
 use bit_field::BitField;
 use core::cell::RefCell;
 use core::option::Option::Some;

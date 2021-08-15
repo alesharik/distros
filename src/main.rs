@@ -17,6 +17,8 @@ extern crate lazy_static;
 extern crate bitflags;
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate libkernel;
 
 use core::panic::PanicInfo;
 
@@ -65,12 +67,12 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
         VirtAddr::new(boot_info.physical_memory_offset),
         &boot_info.memory_map,
     );
-    // memory::print_table();
     let acpi = acpi::init_acpi();
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
     futures::init();
     memory::init_kheap_info();
+    interrupts::syscall_init();
 
     // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();
 

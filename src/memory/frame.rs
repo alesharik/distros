@@ -98,7 +98,7 @@ impl FrameAlloc {
                 x.pointer += page_off + 1;
             }
         }
-        let mut alloc = FrameAlloc {
+        let alloc = FrameAlloc {
             regions,
             root: Rc::new(RefCell::new(Frame::new(
                 PhysFrame::from_start_address(PhysAddr::new(0)).unwrap(),

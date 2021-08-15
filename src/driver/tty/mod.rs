@@ -1,5 +1,6 @@
 use crate::driver::tty::flow::{Stdin, StdinKeyboardConsumer, Stdout};
-use crate::flow::{FlowManager, FlowManagerError, Message};
+use crate::flow::{FlowManager, FlowManagerError};
+use libkernel::flow::Message;
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};

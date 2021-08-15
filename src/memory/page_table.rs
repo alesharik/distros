@@ -1,7 +1,7 @@
 //! This module manages all page table stuff
 
 use spin::Mutex;
-use x86_64::structures::paging::{OffsetPageTable, PageTable, Mapper, PhysFrame, Size4KiB, Page, PageTableFlags, FrameAllocator, Translate};
+use x86_64::structures::paging::{OffsetPageTable, PageTable, Mapper, PhysFrame, Size4KiB, Page, PageTableFlags, FrameAllocator};
 use x86_64::VirtAddr;
 use super::frame;
 use x86_64::structures::paging::mapper::MapToError;

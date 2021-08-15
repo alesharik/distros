@@ -25,12 +25,15 @@ macro_rules! int_handler {
 mod idt;
 mod pic;
 mod timer;
+mod syscall;
 
 use crate::acpi::AcpiInfo;
 
 pub use idt::{init_idt, set_handler};
 pub use pic::{eoi, no_int};
 pub use timer::{now, sleep};
+pub use syscall::init as syscall_init;
+pub use syscall::init_syscall_block;
 
 pub const INT_LAPIC_TIMER: InterruptId = InterruptId::from_raw(33);
 pub const INT_LAPIC_ERROR: InterruptId = InterruptId::from_raw(34);
