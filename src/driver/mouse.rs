@@ -1,5 +1,5 @@
-use libkernel::flow::Message;
 use fixedbitset::FixedBitSet;
+use libkernel::flow::Message;
 
 #[derive(Debug)]
 pub struct MouseMessage {

@@ -4,5 +4,5 @@
 
 extern crate alloc;
 
-pub mod syscall;
 pub mod flow;
+pub mod syscall;

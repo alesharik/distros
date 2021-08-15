@@ -1,11 +1,11 @@
 use crate::driver::keyboard::KeyboardMessage;
 use crate::driver::tty::{TtyMessage, TtyWriter};
 use crate::flow::Producer;
-use libkernel::flow::{AnyConsumer, Consumer, Provider, Sender, Subscription};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use async_trait::async_trait;
+use libkernel::flow::{AnyConsumer, Consumer, Provider, Sender, Subscription};
 use pc_keyboard::{DecodedKey, KeyCode};
 use spin::Mutex;
 use vte::ansi::{Handler, Processor};

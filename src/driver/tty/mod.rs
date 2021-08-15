@@ -1,6 +1,5 @@
 use crate::driver::tty::flow::{Stdin, StdinKeyboardConsumer, Stdout};
 use crate::flow::{FlowManager, FlowManagerError};
-use libkernel::flow::Message;
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -9,6 +8,7 @@ use alloc::vec::Vec;
 use core::fmt::{Debug, Formatter};
 use core::marker::PhantomData;
 use hashbrown::HashMap;
+use libkernel::flow::Message;
 use spin::{Lazy, Mutex};
 use vte::ansi::{
     Attr, CharsetIndex, ClearMode, Color, CursorShape, CursorStyle, Handler, LineClearMode, Mode,

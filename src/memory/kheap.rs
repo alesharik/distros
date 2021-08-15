@@ -1,21 +1,23 @@
+use super::page_table;
+use crate::flow::FlowManager;
 use crate::interrupts;
 use crate::kblog;
+use alloc::boxed::Box;
+use alloc::sync::Arc;
+use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
 use core::alloc::{GlobalAlloc, Layout};
+use core::fmt::{Display, Formatter};
 use core::ops::Deref;
 use core::ptr::NonNull;
+use core::sync::atomic::{AtomicUsize, Ordering};
+use libkernel::flow::{AnyConsumer, Message, Provider, Subscription};
 use linked_list_allocator::Heap;
 use spin::Mutex;
 use x86_64::structures::paging::mapper::MapToError;
-use x86_64::structures::paging::{Page, Size2MiB, PhysFrame, PageTableFlags, FrameAllocator, PageSize, Size4KiB};
-use x86_64::{VirtAddr, PhysAddr};
-use core::fmt::{Display, Formatter};
-use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
-use super::page_table;
-use crate::flow::FlowManager;
-use libkernel::flow::{Message, Provider, AnyConsumer, Subscription};
-use alloc::boxed::Box;
-use alloc::sync::Arc;
-use core::sync::atomic::{AtomicUsize, Ordering};
+use x86_64::structures::paging::{
+    FrameAllocator, Page, PageSize, PageTableFlags, PhysFrame, Size2MiB, Size4KiB,
+};
+use x86_64::{PhysAddr, VirtAddr};
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
 pub const HEAP_SIZE: usize = 8 * 1024 * 1024; // 8 MiB
@@ -82,7 +84,14 @@ pub struct KernelHeapInfo {
 
 impl Display for KernelHeapInfo {
     fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
-        write!(f, "Kernel Heap at {:#x}: {} of {} used ({}%)", self.virt_start, self.used, self.size, self.used * 100 / self.size)
+        write!(
+            f,
+            "Kernel Heap at {:#x}: {} of {} used ({}%)",
+            self.virt_start,
+            self.used,
+            self.size,
+            self.used * 100 / self.size
+        )
     }
 }
 
@@ -101,13 +110,23 @@ struct KHeapFrameAllocator<'a> {
 
 unsafe impl<'a> FrameAllocator<Size4KiB> for KHeapFrameAllocator<'a> {
     fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
-        for (idx, region) in self.map.iter().filter(|m| m.region_type == MemoryRegionType::Usable).enumerate() {
-            if (region.range.end_frame_number - region.range.start_frame_number) * 4096 - self.alloc_map[idx] <= Size4KiB::SIZE {
-                continue
+        for (idx, region) in self
+            .map
+            .iter()
+            .filter(|m| m.region_type == MemoryRegionType::Usable)
+            .enumerate()
+        {
+            if (region.range.end_frame_number - region.range.start_frame_number) * 4096
+                - self.alloc_map[idx]
+                <= Size4KiB::SIZE
+            {
+                continue;
             }
             self.alloc_map[idx] += Size4KiB::SIZE;
             self.allocated += Size4KiB::SIZE as usize;
-            return Some(PhysFrame::containing_address(PhysAddr::new(region.range.start_frame_number * 4096 + self.alloc_map[idx] + 1)))
+            return Some(PhysFrame::containing_address(PhysAddr::new(
+                region.range.start_frame_number * 4096 + self.alloc_map[idx] + 1,
+            )));
         }
         None
     }
@@ -122,16 +141,35 @@ pub fn init_kheap(map: &'static MemoryMap) -> Result<KernelInitHeapInfo, MapToEr
     let mut alloc_map = [0u64; 16];
     let mut table_frame_size = 0usize;
     for page in Page::<Size2MiB>::range_inclusive(heap_start_page, heap_end_page) {
-        for (idx, region) in map.iter().filter(|m| m.region_type == MemoryRegionType::Usable).enumerate() {
-            if (region.range.end_frame_number - region.range.start_frame_number) * 4096 - alloc_map[idx] <= page.size() {
-                continue
+        for (idx, region) in map
+            .iter()
+            .filter(|m| m.region_type == MemoryRegionType::Usable)
+            .enumerate()
+        {
+            if (region.range.end_frame_number - region.range.start_frame_number) * 4096
+                - alloc_map[idx]
+                <= page.size()
+            {
+                continue;
             }
             alloc_map[idx] += page.size();
-            let phys_frame = PhysFrame::containing_address(PhysAddr::new(region.range.start_frame_number * 4096 + alloc_map[idx] + 1));
-            let mut alloc = KHeapFrameAllocator { allocated: 0, map, alloc_map: &mut alloc_map };
-            page_table::map_init(phys_frame, page, PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::GLOBAL, &mut alloc).unwrap();
+            let phys_frame = PhysFrame::containing_address(PhysAddr::new(
+                region.range.start_frame_number * 4096 + alloc_map[idx] + 1,
+            ));
+            let mut alloc = KHeapFrameAllocator {
+                allocated: 0,
+                map,
+                alloc_map: &mut alloc_map,
+            };
+            page_table::map_init(
+                phys_frame,
+                page,
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::GLOBAL,
+                &mut alloc,
+            )
+            .unwrap();
             table_frame_size += alloc.allocated;
-            break
+            break;
         }
     }
 
@@ -164,15 +202,14 @@ impl Subscription for SubscriptionImpl {
         0
     }
 
-    fn cancel(self) {
-    }
+    fn cancel(self) {}
 }
 
 struct ProviderImpl {}
 
 impl ProviderImpl {
     async fn send(consumer: Box<dyn AnyConsumer>, info: KernelHeapInfo) {
-        let sub = SubscriptionImpl { };
+        let sub = SubscriptionImpl {};
         consumer.consume_msg(&info).await;
         consumer.close_consumer(&sub).await;
     }
@@ -190,7 +227,7 @@ impl Provider for ProviderImpl {
             }
         };
         crate::futures::spawn(ProviderImpl::send(consumer, info));
-        let sub = SubscriptionImpl { };
+        let sub = SubscriptionImpl {};
         Box::new(sub)
     }
 }
@@ -198,7 +235,8 @@ impl Provider for ProviderImpl {
 pub fn init_kheap_info() {
     FlowManager::register_endpoint::<KernelHeapInfo>(
         "/dev/kernel_heap/info",
-        Arc::new(Mutex::new(ProviderImpl {  })),
+        Arc::new(Mutex::new(ProviderImpl {})),
         None,
-    ).unwrap();
+    )
+    .unwrap();
 }

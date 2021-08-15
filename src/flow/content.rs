@@ -1,7 +1,7 @@
-use libkernel::flow::{AnyConsumer, Message, Provider, Subscription};
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use core::sync::atomic::{AtomicBool, Ordering};
+use libkernel::flow::{AnyConsumer, Message, Provider, Subscription};
 
 struct SubscriptionImpl {
     dropped: Arc<AtomicBool>,

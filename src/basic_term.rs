@@ -1,6 +1,5 @@
 use crate::driver::TtyMessage;
 use crate::flow::{FlowManager, FlowManagerError};
-use libkernel::flow::{AnyConsumer, Consumer, Message, Subscription};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::string::{String, ToString};
@@ -8,6 +7,7 @@ use alloc::vec::Vec;
 use async_trait::async_trait;
 use core::any::TypeId;
 use futures::lock::BiLock;
+use libkernel::flow::{AnyConsumer, Consumer, Message, Subscription};
 
 struct Sub {
     line: BiLock<String>,

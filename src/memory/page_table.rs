@@ -1,15 +1,17 @@
 //! This module manages all page table stuff
 
-use spin::Mutex;
-use x86_64::structures::paging::{OffsetPageTable, PageTable, Mapper, PhysFrame, Size4KiB, Page, PageTableFlags, FrameAllocator};
-use x86_64::VirtAddr;
 use super::frame;
+use spin::Mutex;
 use x86_64::structures::paging::mapper::MapToError;
 use x86_64::structures::paging::page::NotGiantPageSize;
+use x86_64::structures::paging::{
+    FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+};
+use x86_64::VirtAddr;
 
-lazy_static!(
+lazy_static! {
     static ref PAGE_TABLE: Mutex<Option<OffsetPageTable<'static>>> = Mutex::new(None);
-);
+}
 
 unsafe fn active_level_4_table(phys_offset: VirtAddr) -> &'static mut PageTable {
     use x86_64::registers::control::Cr3;
@@ -33,8 +35,14 @@ pub fn init(phys_offset: VirtAddr) {
     }
 }
 
-pub fn map<T: NotGiantPageSize>(frame: PhysFrame<T>, page: Page<T>, flags: PageTableFlags) -> Result<(), MapToError<T>>
-    where for<'a> OffsetPageTable<'a>: Mapper<T> {
+pub fn map<T: NotGiantPageSize>(
+    frame: PhysFrame<T>,
+    page: Page<T>,
+    flags: PageTableFlags,
+) -> Result<(), MapToError<T>>
+where
+    for<'a> OffsetPageTable<'a>: Mapper<T>,
+{
     frame::with_frame_alloc(|a| {
         match unsafe {
             let mut table = PAGE_TABLE.lock();
@@ -44,22 +52,32 @@ pub fn map<T: NotGiantPageSize>(frame: PhysFrame<T>, page: Page<T>, flags: PageT
             Ok(f) => {
                 f.flush();
                 Ok(())
-            },
-            Err(e) => Err(e)
+            }
+            Err(e) => Err(e),
         }
     })
 }
 
-pub fn map_init<T: NotGiantPageSize, A: FrameAllocator<Size4KiB> + Sized>(frame: PhysFrame<T>, page: Page<T>, flags: PageTableFlags, allocator: &mut A) -> Result<(), MapToError<T>>
-    where for<'a> OffsetPageTable<'a>: Mapper<T> {
+pub fn map_init<T: NotGiantPageSize, A: FrameAllocator<Size4KiB> + Sized>(
+    frame: PhysFrame<T>,
+    page: Page<T>,
+    flags: PageTableFlags,
+    allocator: &mut A,
+) -> Result<(), MapToError<T>>
+where
+    for<'a> OffsetPageTable<'a>: Mapper<T>,
+{
     match unsafe {
         let mut table = PAGE_TABLE.lock();
-        table.as_mut().unwrap().map_to(page, frame, flags, allocator)
+        table
+            .as_mut()
+            .unwrap()
+            .map_to(page, frame, flags, allocator)
     } {
         Ok(f) => {
             f.flush();
             Ok(())
-        },
-        Err(e) => Err(e)
+        }
+        Err(e) => Err(e),
     }
 }

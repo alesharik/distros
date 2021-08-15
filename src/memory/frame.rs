@@ -1,13 +1,15 @@
 //! This module manages physical frames and frame regions
 
 use alloc::rc::Rc;
+use arrayvec::ArrayVec;
 use bootloader::bootinfo::{MemoryMap, MemoryRegion, MemoryRegionType};
 use core::cell::RefCell;
 use core::ops::Not;
-use x86_64::structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size2MiB, Size4KiB, PageSize};
-use x86_64::PhysAddr;
 use spin::Mutex;
-use arrayvec::ArrayVec;
+use x86_64::structures::paging::{
+    FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size2MiB, Size4KiB,
+};
+use x86_64::PhysAddr;
 
 /// Frame region representation
 #[derive(Clone)]
@@ -86,7 +88,10 @@ pub struct FrameAlloc {
 impl FrameAlloc {
     fn new(memory_map: &'static MemoryMap, offsets: &[u64]) -> FrameAlloc {
         let mut regions = ArrayVec::<MemoryRegionContainer, 16>::new();
-        for region in memory_map.iter().filter(|m| m.region_type == MemoryRegionType::Usable) {
+        for region in memory_map
+            .iter()
+            .filter(|m| m.region_type == MemoryRegionType::Usable)
+        {
             regions.push(MemoryRegionContainer::new(region));
         }
         for (i, x) in regions.iter_mut().enumerate() {
@@ -200,9 +205,9 @@ impl FrameDeallocator<Size2MiB> for FrameAlloc {
 
 unsafe impl Send for FrameAlloc {}
 
-lazy_static!(
+lazy_static! {
     static ref MEMORY_FRAME_ALLOCATOR: Mutex<Option<FrameAlloc>> = Mutex::new(None);
-);
+}
 
 pub fn init(memory_map: &'static MemoryMap, offsets: &[u64]) {
     let mut alloc = MEMORY_FRAME_ALLOCATOR.lock();

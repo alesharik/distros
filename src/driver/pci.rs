@@ -1,8 +1,8 @@
 use crate::flow::FlowManagerError;
-use libkernel::flow::{U16Message, U8Message};
 use bit_field::BitField;
 use core::cell::RefCell;
 use core::option::Option::Some;
+use libkernel::flow::{U16Message, U8Message};
 use pci_types::device_type::DeviceType;
 use pci_types::MAX_BARS;
 use pci_types::{Bar, ConfigRegionAccess, EndpointHeader, PciAddress, PciHeader};

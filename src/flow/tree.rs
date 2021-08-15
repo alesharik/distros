@@ -1,4 +1,3 @@
-use libkernel::flow::{Message, Provider, Sender};
 use alloc::borrow::ToOwned;
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -6,6 +5,7 @@ use alloc::vec::Vec;
 use core::any::TypeId;
 use core::fmt::{Display, Formatter};
 use hashbrown::HashMap;
+use libkernel::flow::{Message, Provider, Sender};
 use spin::Mutex;
 
 pub struct FlowTreeEndpoint {
@@ -105,7 +105,7 @@ impl FlowTree {
                         FlowTreeNode::Endpoint(endpoint) => FlowTreeBranch {
                             this_endpoint: Some(endpoint),
                             ..Default::default()
-                        }
+                        },
                     }))
                 })
                 .or_insert_with(|| FlowTreeNode::Branch(FlowTreeBranch::default()));

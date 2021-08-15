@@ -10,11 +10,11 @@ macro_rules! register {
     }
 }
 
+mod content;
 mod manager;
+mod producer;
 mod serde;
 mod tree;
-mod content;
-mod producer;
 
 pub use self::serde::{register_serialized, FlowSerdeError};
 pub use content::ContentProvider;

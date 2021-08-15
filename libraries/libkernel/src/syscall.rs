@@ -31,7 +31,7 @@ pub fn run_command(command: SyscallCommand) {
 }
 
 pub enum SyscallMessage {
-    Test
+    Test,
 }
 
 pub struct SyscallSync {

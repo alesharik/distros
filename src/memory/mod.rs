@@ -2,22 +2,19 @@ use bootloader::bootinfo::MemoryMap;
 use x86_64::structures::paging::mapper::MapToError;
 use x86_64::structures::paging::page::NotGiantPageSize;
 use x86_64::structures::paging::Size4KiB;
-use x86_64::{
-    structures::paging::Page,
-    PhysAddr, VirtAddr,
-};
+use x86_64::{structures::paging::Page, PhysAddr, VirtAddr};
 
 use crate::kblog;
 
-mod page_table;
+mod frame;
 mod kheap;
 mod liballoc;
-mod frame;
+mod page_table;
 mod process;
 pub mod util;
 
-pub use kheap::{init_kheap, init_kheap_info};
 use core::sync::atomic::{AtomicU64, Ordering};
+pub use kheap::{init_kheap, init_kheap_info};
 
 pub trait AllocatePage<T: NotGiantPageSize = Size4KiB> {
     fn allocate(page: Page<T>) -> Result<(), MapToError<T>>;
@@ -34,5 +31,5 @@ pub fn init_memory(phys_offset: VirtAddr, memory_map: &'static MemoryMap) {
 }
 
 pub fn map_physical_address(address: PhysAddr) -> VirtAddr {
-    VirtAddr::new(address.as_u64() + PHYS_OFFSET.load(Ordering::SeqCst), )
+    VirtAddr::new(address.as_u64() + PHYS_OFFSET.load(Ordering::SeqCst))
 }

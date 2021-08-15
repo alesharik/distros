@@ -1,7 +1,7 @@
 use alloc::boxed::Box;
 use async_trait::async_trait;
-use core::fmt::Debug;
 use core::any::TypeId;
+use core::fmt::Debug;
 
 #[macro_export]
 macro_rules! primitive_message {

@@ -1,13 +1,13 @@
 use crate::driver::keyboard::KeyboardMessage;
 use crate::driver::mouse::MouseMessage;
 use crate::flow::{FlowManager, Producer};
-use libkernel::flow::Sender;
 use crate::interrupts;
 use crate::interrupts::Irq;
 use alloc::sync::Arc;
 use core::ops::Deref;
 use core::sync::atomic::{AtomicBool, Ordering};
 use fixedbitset::FixedBitSet;
+use libkernel::flow::Sender;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, KeyState, Keyboard, ScancodeSet2};
 use ps2::error::{ControllerError, KeyboardError, MouseError};
 use ps2::flags::{ControllerConfigFlags, KeyboardLedFlags, MouseMovementFlags};

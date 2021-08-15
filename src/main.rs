@@ -22,9 +22,9 @@ extern crate libkernel;
 
 use core::panic::PanicInfo;
 
+use crate::elf::ElfProgram;
 use bootloader::{entry_point, BootInfo};
 use x86_64::VirtAddr;
-use crate::elf::ElfProgram;
 
 #[macro_use]
 mod vga;
@@ -41,9 +41,9 @@ mod cpuid;
 #[macro_use]
 mod flow;
 mod driver;
+mod elf;
 mod fpu;
 mod random;
-mod elf;
 
 /// This function is called on panic.
 #[panic_handler]
