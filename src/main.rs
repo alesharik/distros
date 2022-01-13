@@ -7,6 +7,7 @@
 #![feature(ptr_metadata)]
 #![feature(core_intrinsics)]
 #![feature(slice_group_by)]
+#![feature(linked_list_cursors)]
 #![allow(dead_code)]
 
 #[macro_use]

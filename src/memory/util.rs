@@ -43,7 +43,7 @@ pub fn static_map_memory(
     if frames * 4096 < size {
         frames += 1;
     }
-    let start_phys = match frame::with_frame_alloc(|a| a.allocate(frames as u32)) {
+    let start_phys = match frame::with_frame_alloc(|a| a.allocate(frames as u64)) {
         Some(p) => p,
         None => return Err(MemoryError::NotEnoughMemory),
     };
