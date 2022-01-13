@@ -1,4 +1,4 @@
-use acpi::platform::Apic;
+use acpi::platform::interrupt::Apic;
 use x86_64::PhysAddr;
 
 mod ioapic;

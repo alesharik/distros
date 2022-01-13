@@ -24,31 +24,8 @@ struct Frame {
     next: Option<Rc<RefCell<Frame>>>,
 }
 
-struct MemoryRegionContainer {
-    end: u64,
-    pointer: u64,
-}
-
-impl MemoryRegionContainer {
-    fn new(region: &MemoryRegion) -> Self {
-        MemoryRegionContainer {
-            end: region.range.end_frame_number,
-            pointer: region.range.start_frame_number,
-        }
-    }
-
-    fn take(&mut self, frames: u64) -> Option<PhysFrame<Size4KiB>> {
-        if self.end - self.pointer >= frames {
-            let frame = PhysFrame::containing_address(PhysAddr::new(self.pointer * Size4KiB::SIZE));
-            self.pointer += frames;
-            Some(frame)
-        } else {
-            None
-        }
-    }
-}
-
 impl Frame {
+    /// create new frame
     fn new(start: PhysFrame<Size4KiB>, size: u64, used: bool) -> Self {
         let mut frame = Frame {
             start_frame: start,
@@ -59,23 +36,59 @@ impl Frame {
         frame
     }
 
+    /// Get frame size
     fn get_size(&self) -> u64 {
         self.size & ((1u64 << 63) as u64).not()
     }
 
+    /// Get frame used flag
     fn is_used(&self) -> bool {
         self.size & ((1u64 << 63) as u64) == ((1u64 << 63) as u64)
     }
 
+    /// Set frame size
     fn set_size(&mut self, size: u64) {
         self.size = size | (self.size & ((1u64 << 63) as u64))
     }
 
+    /// Set frame used flag
     fn set_used(&mut self, used: bool) {
         if used {
             self.size |= (1u64 << 63) as u64
         } else {
             self.size &= ((1u64 << 63) as u64).not()
+        }
+    }
+}
+
+/// This container holds memory region information and allows to take frames from it
+struct MemoryRegionContainer {
+    end: u64,
+    pointer: u64,
+}
+
+impl MemoryRegionContainer {
+    /// Create new container
+    fn new(region: &MemoryRegion) -> Self {
+        MemoryRegionContainer {
+            end: region.range.end_frame_number,
+            pointer: region.range.start_frame_number,
+        }
+    }
+
+    /// Take frames from this container
+    ///
+    /// # Returns
+    /// Taken frame or `None` if container does not have enough space to reserve requested frames
+    fn take(&mut self, frames: u64) -> Option<PhysFrame<Size4KiB>> {
+        if self.end - self.pointer >= frames {
+            let frame = PhysFrame::containing_address(
+                PhysAddr::new(self.pointer * Size4KiB::SIZE)
+            );
+            self.pointer += frames;
+            Some(frame)
+        } else {
+            None
         }
     }
 }

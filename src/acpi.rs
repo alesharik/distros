@@ -1,5 +1,5 @@
 use crate::kblog;
-use acpi::platform::Apic;
+use acpi::platform::interrupt::Apic;
 use acpi::AcpiError;
 use acpi::InterruptModel;
 use acpi::{AcpiHandler, AcpiTables, HpetInfo, PhysicalMapping};
@@ -22,18 +22,18 @@ impl AcpiHandler for AcpiMemHandler {
         size: usize,
     ) -> PhysicalMapping<Self, T> {
         let addr = PhysAddr::new(physical_address as u64);
-        PhysicalMapping {
-            handler: self.clone(),
-            physical_start: physical_address,
-            virtual_start: NonNull::new_unchecked(
+        PhysicalMapping::new(
+            physical_address,
+            NonNull::new_unchecked(
                 crate::memory::map_physical_address(addr).as_mut_ptr(),
             ),
-            region_length: size,
-            mapped_length: size,
-        }
+            size,
+            size,
+            self.clone()
+        )
     }
 
-    fn unmap_physical_region<T>(&self, _region: &PhysicalMapping<Self, T>) {}
+    fn unmap_physical_region<T>(_region: &PhysicalMapping<Self, T>) {}
 }
 
 #[derive(Debug)]

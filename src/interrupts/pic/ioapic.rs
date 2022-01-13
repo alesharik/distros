@@ -1,4 +1,4 @@
-use acpi::platform::Apic;
+use acpi::platform::interrupt::Apic;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use spin::Mutex;
