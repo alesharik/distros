@@ -97,7 +97,7 @@ pub struct FpuState {
 }
 
 impl FpuState {
-    fn new() -> Self {
+    pub const fn new() -> Self {
         FpuState { data: [0u8; 2584] }
     }
     pub unsafe fn save(&mut self) {

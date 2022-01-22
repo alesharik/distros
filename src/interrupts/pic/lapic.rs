@@ -14,8 +14,8 @@ pub fn init_lapic(address: VirtAddr) {
             .error_vector(INT_LAPIC_ERROR.0)
             .spurious_vector(INT_LAPIC_SUPROUS.0)
             .set_xapic_base(address.as_u64())
-            .timer_divide(TimerDivide::Div2)
-            .timer_initial(100000)
+            .timer_divide(TimerDivide::Div8)
+            .timer_initial(20_000_000)
             .build()
             .expect("Failed to get Local APIC");
         apic.enable();
@@ -30,5 +30,13 @@ pub fn eoi() {
     let lapic = guard.as_mut().expect("Local APIC is not initialized");
     unsafe {
         lapic.end_of_interrupt();
+    }
+}
+
+pub fn start_lapic_timer() {
+    let mut guard = LAPIC.lock();
+    let lapic = guard.as_mut().expect("Local APIC is not initialized");
+    unsafe {
+        lapic.enable_timer();
     }
 }

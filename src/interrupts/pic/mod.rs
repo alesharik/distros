@@ -8,7 +8,7 @@ mod pic8259;
 
 use core::sync::atomic::{AtomicBool, Ordering};
 pub use ioapic::{convert_isr_irq, map_irc_irq};
-pub use lapic::eoi;
+pub use lapic::{eoi, start_lapic_timer};
 pub use nmi::{nmi_status, StatusA, StatusB};
 
 static INT_ENABLED: AtomicBool = AtomicBool::new(false);
