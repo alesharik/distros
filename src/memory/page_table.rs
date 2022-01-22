@@ -124,7 +124,7 @@ pub fn translate(addr: VirtAddr) -> Option<PhysAddr> {
 
 pub struct P3PageTable {
     entry: PageTableEntry,
-    index: usize,
+    index: u16,
 }
 
 impl P3PageTable {
@@ -139,7 +139,7 @@ impl P3PageTable {
             .level_4_table();
         let table = p4[index].clone();
         p4[index].set_unused();
-        P3PageTable { entry: table, index }
+        P3PageTable { entry: table, index: index as u16 }
     }
 
     pub fn restore(self) {
@@ -148,6 +148,6 @@ impl P3PageTable {
             .as_mut()
             .unwrap()
             .level_4_table();
-        p4[self.index] = self.entry
+        p4[self.index as usize] = self.entry
     }
 }

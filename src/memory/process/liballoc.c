@@ -86,7 +86,7 @@ static void* liballoc_memcpy(void* s1, const void* s2, size_t n)
 
 // ***************************************************************
 
-static struct liballoc_major *allocate_new_page(process_heap_inner *heap, unsigned int size )
+static struct liballoc_major *allocate_new_page(process_heap_inner *heap, unsigned int size, void *page_alloc )
 {
     unsigned int st;
     struct liballoc_major *maj;
@@ -106,7 +106,7 @@ static struct liballoc_major *allocate_new_page(process_heap_inner *heap, unsign
     // Make sure it's >= the minimum size.
     if ( st < l_pageCount ) st = l_pageCount;
 
-    maj = (struct liballoc_major*)liballoc_alloc( st );
+    maj = (struct liballoc_major*)liballoc_alloc( heap, st, page_alloc );
 
     if ( maj == NULL )
     {
@@ -125,7 +125,7 @@ static struct liballoc_major *allocate_new_page(process_heap_inner *heap, unsign
     return maj;
 }
 
-void *PREFIX(malloc)(process_heap_inner *heap, size_t req_size)
+void *PREFIX(malloc)(process_heap_inner *heap, size_t req_size, void *page_alloc)
 {
     int startedBet = 0;
     unsigned long long bestSize = 0;
@@ -147,14 +147,14 @@ void *PREFIX(malloc)(process_heap_inner *heap, size_t req_size)
     if ( size == 0 )
     {
         heap->warning_count += 1;
-        return PREFIX(malloc)(heap,1);
+        return PREFIX(malloc)(heap,1, page_alloc);
     }
 
 
     if ( heap->root == NULL )
     {
         // This is the first time we are being used.
-        heap->root = allocate_new_page( heap,size );
+        heap->root = allocate_new_page( heap,size, page_alloc );
         if ( heap->root == NULL )
         {
             return NULL;
@@ -216,7 +216,7 @@ void *PREFIX(malloc)(process_heap_inner *heap, size_t req_size)
             }
 
             // Create a new major block next to this one and...
-            maj->next = allocate_new_page( heap,size );	// next one will be okay.
+            maj->next = allocate_new_page( heap,size, page_alloc );	// next one will be okay.
             if ( maj->next == NULL ) break;			// no more memory.
             maj->next->prev = maj;
             maj = maj->next;
@@ -378,7 +378,7 @@ void *PREFIX(malloc)(process_heap_inner *heap, size_t req_size)
             }
 
             // we've run out. we need more...
-            maj->next = allocate_new_page( heap, size );		// next one guaranteed to be okay
+            maj->next = allocate_new_page( heap, size, page_alloc );		// next one guaranteed to be okay
             if ( maj->next == NULL ) break;			//  uh oh,  no more memory.....
             maj->next->prev = maj;
 
@@ -391,7 +391,7 @@ void *PREFIX(malloc)(process_heap_inner *heap, size_t req_size)
     return NULL;
 }
 
-void PREFIX(free)(process_heap_inner *heap, void *ptr)
+void PREFIX(free)(process_heap_inner *heap, void *ptr, void *page_alloc)
 {
     struct liballoc_minor *min;
     struct liballoc_major *maj;
@@ -479,7 +479,7 @@ void PREFIX(free)(process_heap_inner *heap, void *ptr)
         if ( maj->next != NULL ) maj->next->prev = maj->prev;
         heap->allocated -= maj->size;
 
-        liballoc_free( maj, maj->pages );
+        liballoc_free( heap, maj, maj->pages, page_alloc );
     }
     else
     {
@@ -494,14 +494,14 @@ void PREFIX(free)(process_heap_inner *heap, void *ptr)
     }
 }
 
-void* PREFIX(calloc)(process_heap_inner *heap, size_t nobj, size_t size)
+void* PREFIX(calloc)(process_heap_inner *heap, size_t nobj, size_t size, void *page_alloc)
 {
     int real_size;
     void *p;
 
     real_size = nobj * size;
 
-    p = PREFIX(malloc)( heap, real_size );
+    p = PREFIX(malloc)( heap, real_size, page_alloc );
 
     liballoc_memset( p, 0, real_size );
 
@@ -510,7 +510,7 @@ void* PREFIX(calloc)(process_heap_inner *heap, size_t nobj, size_t size)
 
 
 
-void*   PREFIX(realloc)(process_heap_inner *heap, void *p, size_t size)
+void*   PREFIX(realloc)(process_heap_inner *heap, void *p, size_t size, void *page_alloc)
 {
     void *ptr;
     struct liballoc_minor *min;
@@ -519,12 +519,12 @@ void*   PREFIX(realloc)(process_heap_inner *heap, void *p, size_t size)
     // Honour the case of size == 0 => free old and return NULL
     if ( size == 0 )
     {
-        PREFIX(free)( heap, p );
+        PREFIX(free)( heap, p, page_alloc );
         return NULL;
     }
 
     // In the case of a NULL pointer, return a simple malloc.
-    if ( p == NULL ) return PREFIX(malloc)( heap, size );
+    if ( p == NULL ) return PREFIX(malloc)( heap, size, page_alloc );
 
     // Unalign the pointer if required.
     ptr = p;
@@ -588,9 +588,9 @@ void*   PREFIX(realloc)(process_heap_inner *heap, void *p, size_t size)
     }
 
     // If we got here then we're reallocating to a block bigger than us.
-    ptr = PREFIX(malloc)( heap, size );					// We need to allocate new memory
+    ptr = PREFIX(malloc)( heap, size, page_alloc );					// We need to allocate new memory
     liballoc_memcpy( ptr, p, real_size );
-    PREFIX(free)( heap, p );
+    PREFIX(free)( heap, p, page_alloc );
 
     return ptr;
 }

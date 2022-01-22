@@ -45,7 +45,7 @@ mod driver;
 mod elf;
 mod fpu;
 mod random;
-// mod process;
+mod process;
 
 /// This function is called on panic.
 #[panic_handler]

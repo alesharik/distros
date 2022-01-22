@@ -57,6 +57,7 @@ typedef struct process_heap_inner
     unsigned long long warning_count;
     unsigned long long error_count;
     unsigned long long possible_overruns;
+    void *context;
 } process_heap_inner;
 
 /** This is the hook into the local system which allocates pages. It
@@ -66,7 +67,7 @@ typedef struct process_heap_inner
  * \return NULL if the pages were not allocated.
  * \return A pointer to the allocated memory.
  */
-extern void* liballoc_alloc(size_t);
+extern void* liballoc_alloc(process_heap_inner *, size_t, void *);
 
 /** This frees previously allocated memory. The void* parameter passed
  * to the function is the exact same value returned from a previous
@@ -76,12 +77,12 @@ extern void* liballoc_alloc(size_t);
  *
  * \return 0 if the memory was successfully freed.
  */
-extern int liballoc_free(void*,size_t);
+extern int liballoc_free(process_heap_inner *, void*,size_t, void *);
 
-extern void    *PREFIX(malloc)(process_heap_inner *, size_t);				///< The standard function.
-extern void    *PREFIX(realloc)(process_heap_inner *, void *, size_t);		///< The standard function.
-extern void    *PREFIX(calloc)(process_heap_inner *, size_t, size_t);		///< The standard function.
-extern void     PREFIX(free)(process_heap_inner *, void *);					///< The standard function.
+extern void    *PREFIX(malloc)(process_heap_inner *, size_t, void *);				///< The standard function.
+extern void    *PREFIX(realloc)(process_heap_inner *, void *, size_t, void *);		///< The standard function.
+extern void    *PREFIX(calloc)(process_heap_inner *, size_t, size_t, void *);		///< The standard function.
+extern void     PREFIX(free)(process_heap_inner *, void *, void *);					///< The standard function.
 
 /** @} */
 
