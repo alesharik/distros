@@ -9,6 +9,8 @@
 #![feature(slice_group_by)]
 #![feature(naked_functions)]
 #![feature(linked_list_cursors)]
+#![feature(asm_sym)]
+#![feature(asm_const)]
 #![allow(dead_code)]
 
 #[macro_use]
@@ -24,7 +26,6 @@ extern crate libkernel;
 
 use core::panic::PanicInfo;
 
-use crate::elf::ElfProgram;
 use bootloader::{entry_point, BootInfo};
 use x86_64::VirtAddr;
 
@@ -45,9 +46,8 @@ mod flow;
 mod driver;
 mod elf;
 mod fpu;
-mod random;
-mod sched;
 mod process;
+mod random;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -80,10 +80,10 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
 
     // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();
 
+    process::setup();
+
     driver::init();
     basic_term::init().unwrap();
 
-    sched::start();
-
-    futures::run();
+    unsafe { process::run() }
 }

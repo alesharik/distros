@@ -14,7 +14,7 @@ pub mod util;
 
 use core::sync::atomic::{AtomicU64, Ordering};
 pub use kheap::{init_kheap, init_kheap_info};
-pub use process::{PageAllocator, PageAllocatorBackup, Liballoc};
+pub use process::{Liballoc, PageAllocator, PageAllocatorBackup};
 
 pub trait AllocatePage<T: NotGiantPageSize = Size4KiB> {
     fn allocate(page: Page<T>) -> Result<(), MapToError<T>>;

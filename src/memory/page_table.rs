@@ -4,10 +4,12 @@ use super::frame;
 use spin::Mutex;
 use x86_64::structures::paging::mapper::{MapToError, TranslateResult, UnmapError};
 use x86_64::structures::paging::page::NotGiantPageSize;
-use x86_64::structures::paging::{FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB, Translate};
-use x86_64::{VirtAddr, PhysAddr};
 use x86_64::structures::paging::page_table::PageTableEntry;
-use pc_keyboard::KeyCode::P;
+use x86_64::structures::paging::{
+    FrameAllocator, Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+    Translate,
+};
+use x86_64::{PhysAddr, VirtAddr};
 
 lazy_static! {
     static ref PAGE_TABLE: Mutex<Option<OffsetPageTable<'static>>> = Mutex::new(None);
@@ -60,11 +62,9 @@ where
 }
 
 /// Unmap virtual page
-pub fn unmap<T: NotGiantPageSize>(
-    page: Page<T>,
-) -> Result<PhysFrame<T>, UnmapError>
-    where
-            for<'a> OffsetPageTable<'a>: Mapper<T>,
+pub fn unmap<T: NotGiantPageSize>(page: Page<T>) -> Result<PhysFrame<T>, UnmapError>
+where
+    for<'a> OffsetPageTable<'a>: Mapper<T>,
 {
     match unsafe {
         let mut table = PAGE_TABLE.lock();
@@ -110,14 +110,13 @@ where
 pub fn translate(addr: VirtAddr) -> Option<PhysAddr> {
     match unsafe {
         let mut table = PAGE_TABLE.lock();
-        table
-            .as_ref()
-            .unwrap()
-            .translate(addr)
+        table.as_ref().unwrap().translate(addr)
     } {
-        TranslateResult::Mapped {frame, offset, flags: _flags } => {
-            Some(frame.start_address() + offset)
-        }
+        TranslateResult::Mapped {
+            frame,
+            offset,
+            flags: _flags,
+        } => Some(frame.start_address() + offset),
         _ => None,
     }
 }
@@ -133,21 +132,18 @@ impl P3PageTable {
             panic!("Invalid P3 page table index - {}", index);
         }
         let mut table = PAGE_TABLE.lock();
-        let mut p4 = table
-            .as_mut()
-            .unwrap()
-            .level_4_table();
+        let mut p4 = table.as_mut().unwrap().level_4_table();
         let table = p4[index].clone();
         p4[index].set_unused();
-        P3PageTable { entry: table, index: index as u16 }
+        P3PageTable {
+            entry: table,
+            index: index as u16,
+        }
     }
 
     pub fn restore(self) {
         let mut table = PAGE_TABLE.lock();
-        let mut p4 = table
-            .as_mut()
-            .unwrap()
-            .level_4_table();
+        let mut p4 = table.as_mut().unwrap().level_4_table();
         p4[self.index as usize] = self.entry
     }
 }

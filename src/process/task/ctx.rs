@@ -1,6 +1,6 @@
 use crate::fpu::FpuState;
+use x86_64::structures::idt::{InterruptStackFrame, InterruptStackFrameValue};
 use x86_64::VirtAddr;
-use pc_keyboard::KeyCode::V;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -23,7 +23,7 @@ pub struct Regs {
 }
 
 impl Regs {
-    pub fn take_from(&mut self, p0: &mut Regs) {
+    pub fn take_from(&mut self, p0: &Regs) {
         self.r15 = p0.r15;
         self.r14 = p0.r14;
         self.r13 = p0.r13;
@@ -101,5 +101,25 @@ impl TaskContext {
             code_segment: 0,
             stack_segment: 0,
         }
+    }
+
+    pub unsafe fn fill_from(frame: &InterruptStackFrame, regs: &Regs) -> TaskContext {
+        let mut ctx = TaskContext::new();
+        ctx.stack_pointer = frame.stack_pointer;
+        ctx.instruction_pointer = frame.instruction_pointer;
+        ctx.stack_segment = frame.stack_segment;
+        ctx.code_segment = frame.code_segment;
+        ctx.fpu.save();
+        ctx.regs.take_from(regs);
+        ctx
+    }
+
+    pub unsafe fn save_info(&self, frame: &mut InterruptStackFrameValue, regs: &mut Regs) {
+        self.fpu.restore();
+        self.regs.put_into(regs);
+        frame.instruction_pointer = self.instruction_pointer;
+        frame.stack_pointer = self.stack_pointer;
+        frame.code_segment = self.code_segment;
+        frame.stack_segment = self.stack_segment;
     }
 }

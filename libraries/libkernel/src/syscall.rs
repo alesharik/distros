@@ -1,3 +1,5 @@
+use core::arch::asm;
+
 pub const SYSCALL_IN_MEM: u64 = 0x_5444_4444_0000;
 pub const SYSCALL_SYNC_MEM: u64 = 0x_5444_4445_0000;
 

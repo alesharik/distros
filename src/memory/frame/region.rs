@@ -1,8 +1,8 @@
 //! Memory region manager
 use arrayvec::ArrayVec;
 use bootloader::bootinfo::{MemoryMap, MemoryRegion, MemoryRegionType};
+use x86_64::structures::paging::{PageSize, Size4KiB};
 use x86_64::PhysAddr;
-use x86_64::structures::paging::{Size4KiB, PageSize};
 
 /// This container holds memory region information and allows to take frames from it
 struct MemoryRegionContainer {

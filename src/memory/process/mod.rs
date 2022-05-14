@@ -1,5 +1,5 @@
-mod page;
 mod liballoc;
+mod page;
 
-pub use page::{PageAllocator, PageAllocatorBackup};
 pub use liballoc::Liballoc;
+pub use page::{PageAllocator, PageAllocatorBackup};

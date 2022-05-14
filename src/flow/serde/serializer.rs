@@ -1,6 +1,6 @@
 use super::error::{Error, Result};
 use alloc::borrow::ToOwned;
-use alloc::prelude::v1::{String, ToString};
+use alloc::string::{String, ToString};
 use libkernel::flow::message::*;
 use serde::{ser, Serialize};
 

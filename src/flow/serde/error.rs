@@ -1,6 +1,6 @@
 use crate::flow::FlowManagerError;
 use alloc::fmt;
-use alloc::prelude::v1::{String, ToString};
+use alloc::string::{String, ToString};
 use core::fmt::Display;
 use serde::ser;
 

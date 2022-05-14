@@ -1,5 +1,6 @@
 use crate::cpuid;
 use crate::cpuid::FpuInfo;
+use core::arch::asm;
 use x86_64::registers::control::{Cr0, Cr0Flags, Cr4, Cr4Flags};
 use x86_64::registers::xcontrol::{XCr0, XCr0Flags};
 
@@ -43,7 +44,7 @@ fn init_avx(info: &FpuInfo) -> bool {
 
     unsafe {
         let mut flags = XCr0::read();
-        flags.set(XCr0Flags::YMM, true);
+        flags.set(XCr0Flags::AVX, true);
         flags.set(XCr0Flags::SSE, true);
         flags.set(XCr0Flags::X87, true);
         XCr0::write(flags);

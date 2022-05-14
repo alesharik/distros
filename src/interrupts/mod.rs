@@ -30,7 +30,7 @@ mod timer;
 use crate::acpi::AcpiInfo;
 
 pub use idt::{init_idt, set_handler};
-pub use pic::{eoi, no_int, start_lapic_timer};
+pub use pic::{eoi, invoke_lapic_timer_interrupt, no_int, start_lapic_timer, disable_interrupts, enable_interrupts};
 pub use syscall::init as syscall_init;
 pub use syscall::init_syscall_block;
 pub use timer::{now, sleep};

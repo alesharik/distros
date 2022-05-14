@@ -1,38 +1,51 @@
-use libkernel::task::{Task, TASK_QUEUE_MEM};
-use core::pin::Pin;
-use core::future::Future;
-use crate::memory;
-use x86_64::VirtAddr;
-use x86_64::structures::paging::PageTableFlags;
-use crate::memory::util::{MemoryToken, MemoryError};
 
+
+use alloc::boxed::Box;
+use alloc::string::String;
+use core::future::Future;
+use core::pin::Pin;
+
+use runtime::ProcessRuntime;
+
+
+
+mod ctx;
+mod int;
 mod runtime;
-pub use runtime::ProcessRuntime;
+use crate::process::task::ctx::TaskContext;
+use crate::process::task::runtime::ProcessRuntimeHandle;
+pub use int::run;
+
+pub enum ProcessTaskState {
+    Ready(Pin<Box<dyn Future<Output = ()>>>),
+    Paused(TaskContext),
+}
+
+#[derive(Clone)]
+pub struct ProcessTaskInfo {
+    pub name: String,
+}
 
 pub struct ProcessTask {
-    task: Task,
+    info: ProcessTaskInfo,
+    state: ProcessTaskState,
 }
 
-impl ProcessTask {
-    pub fn try_take() -> Option<ProcessTask> {
-        unsafe { Task::take_from_queue() }.map(|t| ProcessTask {
-            task: t,
+static mut HANDLE: Option<ProcessRuntimeHandle> = None;
+
+pub fn setup() {
+    unsafe {
+        let runtime = ProcessRuntime::new().expect("Failed to start process runtime");
+        HANDLE = Some(runtime.handle());
+        int::setup(runtime);
+    }
+}
+
+pub fn add_task<F>(info: ProcessTaskInfo, future: F) where F: Future<Output = ()> + 'static {
+    unsafe {
+        HANDLE.as_mut().expect("Process runtime not started").add(ProcessTask {
+            info,
+            state: ProcessTaskState::Ready(Box::pin(future))
         })
     }
-
-    pub fn future(&mut self) -> Pin<&mut dyn Future<Output=u8>> {
-        self.task.future.as_mut()
-    }
-
-    pub fn is_primary(&self) -> bool {
-        self.task.is_primary
-    }
-}
-
-pub unsafe fn setup_current_context() -> Result<MemoryToken, MemoryError> {
-    memory::util::static_map_memory(
-        VirtAddr::new_truncate(TASK_QUEUE_MEM),
-        4096,
-        PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
-    )
 }

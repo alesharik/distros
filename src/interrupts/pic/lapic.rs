@@ -1,11 +1,8 @@
 use crate::interrupts::{INT_LAPIC_ERROR, INT_LAPIC_SUPROUS, INT_LAPIC_TIMER};
-use spin::Mutex;
 use x2apic::lapic::{LocalApic, LocalApicBuilder, TimerDivide};
-use x86_64::VirtAddr;
+use x86_64::{software_interrupt, VirtAddr};
 
-lazy_static! {
-    static ref LAPIC: Mutex<Option<LocalApic>> = Mutex::new(Option::None);
-}
+static mut LAPIC: Option<LocalApic> = None;
 
 pub fn init_lapic(address: VirtAddr) {
     unsafe {
@@ -14,29 +11,29 @@ pub fn init_lapic(address: VirtAddr) {
             .error_vector(INT_LAPIC_ERROR.0)
             .spurious_vector(INT_LAPIC_SUPROUS.0)
             .set_xapic_base(address.as_u64())
-            .timer_divide(TimerDivide::Div8)
-            .timer_initial(20_000_000)
+            .timer_divide(TimerDivide::Div4)
+            .timer_initial(5_000_000)
             .build()
             .expect("Failed to get Local APIC");
         apic.enable();
-        let mut lapic_ref = LAPIC.lock();
-        *lapic_ref = Some(apic);
+        LAPIC = Some(apic);
         kblog!("LAPIC", "LAPIC enabled");
     }
 }
 
 pub fn eoi() {
-    let mut guard = LAPIC.lock();
-    let lapic = guard.as_mut().expect("Local APIC is not initialized");
     unsafe {
-        lapic.end_of_interrupt();
+        LAPIC.as_mut().expect("Local APIC is not initialized").end_of_interrupt();
     }
 }
 
 pub fn start_lapic_timer() {
-    let mut guard = LAPIC.lock();
-    let lapic = guard.as_mut().expect("Local APIC is not initialized");
     unsafe {
-        lapic.enable_timer();
+        LAPIC.as_mut().expect("Local APIC is not initialized").enable_timer();
     }
+}
+
+pub unsafe fn invoke_lapic_timer_interrupt() {
+    use core::arch::asm;
+    software_interrupt!(INT_LAPIC_TIMER.0);
 }

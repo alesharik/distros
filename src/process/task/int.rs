@@ -1,7 +1,10 @@
+use crate::interrupts::INT_LAPIC_TIMER;
+use crate::process::task::ctx::Regs;
+use crate::process::task::ProcessRuntime;
+use core::arch::asm;
 use x86_64::structures::idt::InterruptStackFrame;
-use crate::sched::ctx::{Regs, TaskContext};
-use crate::fpu::FpuState;
-use crate::sched::{SCHEDULER, Task};
+
+static mut RUNTIME: Option<ProcessRuntime> = Option::None;
 
 #[naked]
 pub extern "x86-interrupt" fn switch_context(frame: InterruptStackFrame) {
@@ -41,33 +44,33 @@ pub extern "x86-interrupt" fn switch_context(frame: InterruptStackFrame) {
             "mov     rcx, qword ptr [rsp - 24]",
             "mov     rbx, qword ptr [rsp - 16]",
             "mov     rax, qword ptr [rsp - 8]",
+            "iretq",
             sym switch_context_int,
+            options(noreturn)
         )
     }
 }
 
-static mut CURRENT_TASK: Option<Task> = Some(Task::new());
-
 #[inline]
 unsafe extern "C" fn switch_context_int(mut stack_frame: InterruptStackFrame, regs: &mut Regs) {
-    let task = CURRENT_TASK.take();
-    let mut task = if let Some(task) = task { task } else { return };
-    task.context.stack_pointer = stack_frame.stack_pointer;
-    task.context.instruction_pointer = stack_frame.instruction_pointer;
-    task.context.stack_segment = stack_frame.stack_segment;
-    task.context.code_segment = stack_frame.code_segment;
-    task.context.fpu.save();
-    task.context.regs.take_from(regs);
+    if let Some(runtime) = &mut RUNTIME {
+        runtime.int(stack_frame, regs)
+    }
+}
 
-    let task = SCHEDULER.next_task(task);
+pub fn setup(runtime: ProcessRuntime) {
+    unsafe {
+        RUNTIME = Some(runtime);
+    }
 
-    task.context.fpu.restore();
-    task.context.regs.put_into(regs);
-    let frame = stack_frame.as_mut().extract_inner();
-    frame.instruction_pointer = task.context.instruction_pointer;
-    frame.stack_pointer = task.context.stack_pointer;
-    frame.code_segment = task.context.code_segment;
-    frame.stack_segment = task.context.stack_segment;
-    CURRENT_TASK = Some(task);
-    crate::interrupts::eoi();
+    crate::interrupts::set_handler(INT_LAPIC_TIMER, switch_context);
+    crate::interrupts::start_lapic_timer();
+}
+
+pub unsafe fn run() -> ! {
+    if let Some(runtime) = &mut RUNTIME {
+        runtime.run()
+    } else {
+        panic!("Process runtime not set up");
+    }
 }

@@ -1,17 +1,12 @@
 //! This module manages physical frames and frame regions
 
+use crate::memory::frame::region::MemoryRegionProvider;
 use alloc::collections::LinkedList;
-use alloc::rc::Rc;
-use arrayvec::ArrayVec;
-use bootloader::bootinfo::{MemoryMap, MemoryRegion, MemoryRegionType};
-use core::cell::RefCell;
+use bootloader::bootinfo::MemoryMap;
 use core::ops::Not;
 use spin::Mutex;
-use x86_64::structures::paging::{
-    FrameAllocator, FrameDeallocator, PageSize, PhysFrame, Size2MiB, Size4KiB,
-};
+use x86_64::structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size2MiB, Size4KiB};
 use x86_64::PhysAddr;
-use crate::memory::frame::region::MemoryRegionProvider;
 
 mod region;
 
@@ -23,7 +18,7 @@ struct Frame {
     start_frame: PhysAddr,
     /// Size in page length
     /// last bit - used(1)/free(0)
-    size: u64
+    size: u64,
 }
 
 impl Frame {
@@ -78,7 +73,7 @@ impl FrameAlloc {
     fn new(memory_map: &'static MemoryMap, offsets: &[u64]) -> FrameAlloc {
         FrameAlloc {
             region_provider: MemoryRegionProvider::new(memory_map, offsets),
-            frames: LinkedList::new()
+            frames: LinkedList::new(),
         }
     }
 

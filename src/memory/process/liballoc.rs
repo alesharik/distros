@@ -1,14 +1,9 @@
-use alloc::boxed::Box;
+use crate::memory::process::page::PageAllocator;
 use alloc::sync::Arc;
 /// Liballoc interface
 use core::ffi::c_void;
-use alloc::vec::Vec;
 use spin::Mutex;
-use x86_64::{PhysAddr, VirtAddr};
-use x86_64::structures::paging::{PhysFrame, Size4KiB, Page, PageTableFlags};
-use crate::memory::frame;
-use crate::memory::page_table;
-use crate::memory::process::page::PageAllocator;
+use x86_64::VirtAddr;
 
 //noinspection RsStructNaming
 #[repr(C)]
@@ -41,22 +36,40 @@ pub struct process_heap_inner {
     inuse: u64,
     warning_count: u64,
     error_count: u64,
-    possible_overruns: u64
+    possible_overruns: u64,
 }
 
 struct LiballocContext {
-    page_alloc: Arc<Mutex<PageAllocator>>
+    page_alloc: Arc<Mutex<PageAllocator>>,
 }
 
 extern "C" {
-    fn lalloc_malloc(heap: *mut process_heap_inner, size: usize, page_alloc: *mut c_void) -> *mut c_void;
-    fn lalloc_realloc(heap: *mut process_heap_inner, ptr: *mut c_void, size: usize, page_alloc: *mut c_void) -> *mut c_void;
-    fn lalloc_calloc(heap: *mut process_heap_inner, count: usize, size: usize, page_alloc: *mut c_void) -> *mut c_void;
+    fn lalloc_malloc(
+        heap: *mut process_heap_inner,
+        size: usize,
+        page_alloc: *mut c_void,
+    ) -> *mut c_void;
+    fn lalloc_realloc(
+        heap: *mut process_heap_inner,
+        ptr: *mut c_void,
+        size: usize,
+        page_alloc: *mut c_void,
+    ) -> *mut c_void;
+    fn lalloc_calloc(
+        heap: *mut process_heap_inner,
+        count: usize,
+        size: usize,
+        page_alloc: *mut c_void,
+    ) -> *mut c_void;
     fn lalloc_free(heap: *mut process_heap_inner, ptr: *mut c_void, page_alloc: *mut c_void);
 }
 
 #[no_mangle]
-unsafe fn liballoc_alloc(heap: *mut process_heap_inner, size: usize, page_alloc: *mut c_void) -> *mut c_void {
+unsafe fn liballoc_alloc(
+    heap: *mut process_heap_inner,
+    size: usize,
+    page_alloc: *mut c_void,
+) -> *mut c_void {
     let mut inner = &mut *(page_alloc as *mut PageAllocator);
     let mut pages = size / 4096;
     if pages * 4096 != size {
@@ -64,13 +77,18 @@ unsafe fn liballoc_alloc(heap: *mut process_heap_inner, size: usize, page_alloc:
     }
     let ret = match inner.allocate(pages as u64) {
         None => 0 as *mut c_void,
-        Some(mem) => mem.as_mut_ptr::<c_void>()
+        Some(mem) => mem.as_mut_ptr::<c_void>(),
     };
     ret
 }
 
 #[no_mangle]
-unsafe fn liballoc_free(heap: *mut process_heap_inner, ptr: *mut c_void, size: usize, page_alloc: *mut c_void) -> i32 {
+unsafe fn liballoc_free(
+    heap: *mut process_heap_inner,
+    ptr: *mut c_void,
+    size: usize,
+    page_alloc: *mut c_void,
+) -> i32 {
     let mut inner = &mut *(page_alloc as *mut PageAllocator);
     inner.deallocate(VirtAddr::from_ptr(ptr));
     core::mem::forget(inner);
@@ -78,7 +96,7 @@ unsafe fn liballoc_free(heap: *mut process_heap_inner, ptr: *mut c_void, size: u
 }
 
 pub struct Liballoc {
-    heap: process_heap_inner
+    heap: process_heap_inner,
 }
 
 impl Liballoc {
@@ -91,35 +109,60 @@ impl Liballoc {
                 inuse: 0,
                 error_count: 0,
                 possible_overruns: 0,
-                warning_count: 0
-            }
+                warning_count: 0,
+            },
         }
     }
 
     pub fn malloc(&mut self, page_alloc: &mut PageAllocator, size: usize) -> *mut c_void {
         unsafe {
-            lalloc_malloc(&mut self.heap as *mut process_heap_inner, size, page_alloc as *mut PageAllocator as *mut _)
+            lalloc_malloc(
+                &mut self.heap as *mut process_heap_inner,
+                size,
+                page_alloc as *mut PageAllocator as *mut _,
+            )
         }
     }
 
-
-    pub fn calloc(&mut self, page_alloc: &mut PageAllocator, count: usize, size: usize) -> *mut c_void {
+    pub fn calloc(
+        &mut self,
+        page_alloc: &mut PageAllocator,
+        count: usize,
+        size: usize,
+    ) -> *mut c_void {
         unsafe {
-            lalloc_calloc(&mut self.heap as *mut process_heap_inner, count, size, page_alloc as *mut PageAllocator as *mut _)
+            lalloc_calloc(
+                &mut self.heap as *mut process_heap_inner,
+                count,
+                size,
+                page_alloc as *mut PageAllocator as *mut _,
+            )
         }
     }
 
-
-    pub fn realloc(&mut self, page_alloc: &mut PageAllocator, ptr: *mut c_void, size: usize) -> *mut c_void {
+    pub fn realloc(
+        &mut self,
+        page_alloc: &mut PageAllocator,
+        ptr: *mut c_void,
+        size: usize,
+    ) -> *mut c_void {
         unsafe {
-            lalloc_realloc(&mut self.heap as *mut process_heap_inner, ptr, size, page_alloc as *mut PageAllocator as *mut _)
+            lalloc_realloc(
+                &mut self.heap as *mut process_heap_inner,
+                ptr,
+                size,
+                page_alloc as *mut PageAllocator as *mut _,
+            )
         }
     }
-
 
     pub fn free(&mut self, page_alloc: &mut PageAllocator, ptr: *mut c_void) {
         unsafe {
-            lalloc_free(&mut self.heap as *mut process_heap_inner, ptr, page_alloc as *mut PageAllocator as *mut _)
+            lalloc_free(
+                &mut self.heap as *mut process_heap_inner,
+                ptr,
+                page_alloc as *mut PageAllocator as *mut _,
+            )
         }
     }
 }

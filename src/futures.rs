@@ -82,6 +82,7 @@ impl Wake for TaskWaker {
     }
 }
 
+#[deprecated]
 pub struct TimeoutWakeHandle {
     timer: TimerId,
 }
@@ -122,6 +123,7 @@ struct ExecutorInner {
     last_timer_id: AtomicU64,
 }
 
+#[deprecated]
 pub fn init() {
     unsafe {
         EXECUTOR = Some(ExecutorInner {
@@ -133,6 +135,7 @@ pub fn init() {
     }
 }
 
+#[deprecated]
 pub fn tick_1ms() {
     let inner = unsafe {
         if let Some(exec) = EXECUTOR.as_ref() {
@@ -154,44 +157,8 @@ pub fn tick_1ms() {
     });
 }
 
-pub fn run() -> ! {
-    loop {
-        unsafe {
-            while let Some(task) = EXECUTOR.as_ref().unwrap().add_queue.pop() {
-                EXECUTOR.as_ref().unwrap().queue.write().push_back(task);
-            }
-        }
-        let task = unsafe {
-            let task = EXECUTOR.as_ref().unwrap().queue.write().pop_front();
-            task
-        };
-        if let Some(mut task) = task {
-            let task_waker = unsafe {
-                Arc::new(TaskWaker {
-                    task: SendWrapper::new(RefCell::new(None)),
-                })
-            };
-            WAKE_CALLED.store(false, Ordering::SeqCst);
-            if task
-                .future
-                .as_mut()
-                .poll(&mut Context::from_waker(&task_waker.clone().into()))
-                .is_pending()
-            {
-                if WAKE_CALLED.load(Ordering::SeqCst) {
-                    unsafe {
-                        EXECUTOR.as_ref().unwrap().queue.write().push_back(task);
-                    }
-                } else {
-                    (*task_waker.task).borrow_mut().replace(task);
-                }
-            }
-        } else {
-            x86_64::instructions::hlt(); // FIXME can have interrupt right before this instruction
-        }
-    }
-}
 
+#[deprecated]
 fn wake_at_time(time: u64) -> TimeoutWakeHandle {
     unsafe {
         let id = EXECUTOR
@@ -209,19 +176,22 @@ fn wake_at_time(time: u64) -> TimeoutWakeHandle {
     }
 }
 
+
+#[deprecated]
 pub fn spawn<F>(future: F)
 where
     F: Future<Output = ()> + 'static,
 {
-    unsafe {
-        if let Some(executor) = EXECUTOR.as_ref() {
-            executor.add_queue.push(Task {
-                future: Box::pin(future),
-            });
-        } else {
-            // kblog!("Futures", "Spawn invoked before executor started") FIXME can deadlock
-        }
-    }
+    crate::process::spawn_kernel(future);
+    // unsafe {
+    //     if let Some(executor) = EXECUTOR.as_ref() {
+    //         executor.add_queue.push(Task {
+    //             future: Box::pin(future),
+    //         });
+    //     } else {
+    //         // kblog!("Futures", "Spawn invoked before executor started") FIXME can deadlock
+    //     }
+    // }
 }
 
 struct SleepFuture {
@@ -242,6 +212,7 @@ impl Future for SleepFuture {
     }
 }
 
+#[deprecated]
 pub fn sleep(timeout: Duration) -> impl Future<Output = ()> {
     let time = interrupts::now() + timeout.num_milliseconds() as u64;
     let handle = wake_at_time(time);
@@ -252,8 +223,9 @@ pub fn sleep(timeout: Duration) -> impl Future<Output = ()> {
 }
 
 /// Schedules future on main kernel loop
+#[deprecated]
 macro_rules! spawn {
     ($arg:expr) => {
-        crate::futures::spawn($arg);
+        crate::futures::spawn($arg)
     };
 }

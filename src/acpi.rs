@@ -24,12 +24,10 @@ impl AcpiHandler for AcpiMemHandler {
         let addr = PhysAddr::new(physical_address as u64);
         PhysicalMapping::new(
             physical_address,
-            NonNull::new_unchecked(
-                crate::memory::map_physical_address(addr).as_mut_ptr(),
-            ),
+            NonNull::new_unchecked(crate::memory::map_physical_address(addr).as_mut_ptr()),
             size,
             size,
-            self.clone()
+            self.clone(),
         )
     }
 

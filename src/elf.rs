@@ -1,6 +1,7 @@
 use crate::interrupts;
 use crate::memory::util::{MemoryError, MemoryToken};
 use alloc::vec::Vec;
+use core::arch::asm;
 use goblin::elf::program_header::{PT_GNU_STACK, PT_LOAD};
 use goblin::elf::Elf;
 use goblin::error::Error;

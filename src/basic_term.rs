@@ -6,6 +6,9 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use async_trait::async_trait;
 use core::any::TypeId;
+use core::future::Future;
+use core::pin::Pin;
+use core::task::{Context, Poll};
 use futures::lock::BiLock;
 use libkernel::flow::{AnyConsumer, Consumer, Message, Subscription};
 
@@ -14,6 +17,21 @@ struct Sub {
 }
 
 struct CatSub {}
+
+struct Load {}
+
+impl Future for Load {
+    type Output = ();
+
+    fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<()> {
+        loop {
+
+        }
+    }
+}
+
+impl Unpin for Load {}
+
 
 impl Sub {
     fn new() -> Sub {
@@ -32,6 +50,10 @@ impl Sub {
 
     fn init(&self) {
         self.print("# ");
+    }
+
+    async fn load() {
+        loop {}
     }
 
     fn read_command(&self, line: &str) {
@@ -57,6 +79,9 @@ impl Sub {
                 Err(e) => {
                     self.print(&format!("\x1b[31mError is {:?}\x1B[37m>", e));
                 }
+            },
+            "load" => {
+                spawn!(Load {})
             },
             "" => {}
             _ => {
