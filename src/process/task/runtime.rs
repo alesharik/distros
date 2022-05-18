@@ -92,12 +92,15 @@ pub struct ProcessRuntimeHandle {
 impl ProcessRuntimeHandle {
     /// Add new task to runtime
     pub fn add(&self, task: ProcessTask) {
-        self.queue.push(task)
+        interrupts::no_int(|| {
+            self.queue.push(task)
+        });
     }
 }
 
 pub struct ProcessRuntime {
     queue: Arc<SegQueue<ProcessTask>>,
+    add_task_queue: Arc<SegQueue<ProcessTask>>,
     current_task_info: Option<ProcessTaskInfo>,
     task_running: AtomicBool
 }
@@ -112,6 +115,7 @@ impl ProcessRuntime {
         });
         Ok(ProcessRuntime {
             queue: Arc::new(queue),
+            add_task_queue: Arc::new(SegQueue::new()),
             current_task_info: None,
             task_running: AtomicBool::new(true) // to start main cycle
         })
@@ -119,7 +123,7 @@ impl ProcessRuntime {
 
     pub fn handle(&self) -> ProcessRuntimeHandle {
         return ProcessRuntimeHandle {
-            queue: self.queue.clone(),
+            queue: self.add_task_queue.clone(),
         };
     }
 
@@ -137,6 +141,9 @@ impl ProcessRuntime {
             interrupts::eoi();
             return; // ok, we continue main loop
         }
+        // while let Some(task) = self.add_task_queue.pop() {
+        //     self.queue.push(task);
+        // }
         let task = self.queue.pop();
         if let None = task {
             interrupts::eoi();
@@ -187,6 +194,9 @@ impl ProcessRuntime {
 
     pub unsafe fn run(&mut self) -> ! {
         loop {
+            while let Some(task) = self.add_task_queue.pop() {
+                self.queue.push(task);
+            }
             let task = self.queue.pop();
             if let None = task {
                 x86_64::instructions::hlt();

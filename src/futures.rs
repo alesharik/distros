@@ -223,7 +223,6 @@ pub fn sleep(timeout: Duration) -> impl Future<Output = ()> {
 }
 
 /// Schedules future on main kernel loop
-#[deprecated]
 macro_rules! spawn {
     ($arg:expr) => {
         crate::futures::spawn($arg)

@@ -8,7 +8,7 @@ use core::any::TypeId;
 use core::fmt::{Debug, Formatter};
 use core::ops::DerefMut;
 use libkernel::flow::{AnyConsumer, Message, Provider, Sender, Subscription};
-use spin::{Lazy, Mutex};
+use spin::{Lazy, Mutex, RwLock};
 
 pub type ElementInfo = super::tree::ElementInfo;
 
@@ -35,8 +35,8 @@ struct FlowManagerInner {
     endpoints: FlowTree,
 }
 
-static INNER: Lazy<Mutex<FlowManagerInner>> = Lazy::new(|| {
-    Mutex::new(FlowManagerInner {
+static INNER: Lazy<RwLock<FlowManagerInner>> = Lazy::new(|| {
+    RwLock::new(FlowManagerInner {
         endpoints: FlowTree::new(),
     })
 });
@@ -48,7 +48,7 @@ impl FlowManager {
         path: &str,
         consumer: Box<dyn AnyConsumer>,
     ) -> Result<Box<dyn Subscription>, FlowManagerError> {
-        let inner = INNER.lock();
+        let inner = INNER.read();
         match inner.endpoints.get(path) {
             Some(inner) => {
                 if !consumer.check_type(&inner.message_type) {
@@ -75,7 +75,7 @@ impl FlowManager {
         path: &str,
         message: T,
     ) -> Result<(), FlowManagerError> {
-        let inner = INNER.lock();
+        let inner = INNER.read();
         match inner.endpoints.get(path) {
             Some(endpoint) => match &endpoint.sender {
                 Some(sender) => {
@@ -106,7 +106,7 @@ impl FlowManager {
                 endpoint.sender(core::mem::transmute(sender));
             }
         }
-        let mut inner = INNER.lock();
+        let mut inner = INNER.write();
         inner
             .endpoints
             .put::<T>(path, endpoint)
@@ -117,7 +117,7 @@ impl FlowManager {
     }
 
     pub fn list(path: &str) -> Vec<ElementInfo> {
-        let inner = INNER.lock();
+        let inner = INNER.read();
         inner.endpoints.list(path)
     }
 }
