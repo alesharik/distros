@@ -64,7 +64,7 @@ pub fn setup(runtime: ProcessRuntime) {
     }
 
     crate::interrupts::set_handler(INT_LAPIC_TIMER, switch_context);
-    crate::interrupts::start_lapic_timer();
+    // crate::interrupts::start_lapic_timer();
 }
 
 pub unsafe fn run() -> ! {
