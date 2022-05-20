@@ -9,6 +9,7 @@ use core::fmt::{Debug, Formatter};
 use core::ops::DerefMut;
 use libkernel::flow::{AnyConsumer, Message, Provider, Sender, Subscription};
 use spin::{Lazy, Mutex, RwLock};
+use crate::flow::getter::getter;
 
 pub type ElementInfo = super::tree::ElementInfo;
 
@@ -59,6 +60,14 @@ impl FlowManager {
             }
             None => Err(FlowManagerError::ProviderNotFound),
         }
+    }
+
+    pub async fn get<T: Message + Clone + 'static>(path: &str) -> Result<T, FlowManagerError> {
+        let (tx, rx) = getter::<T>();
+        let sub = FlowManager::subscribe(path, Box::new(tx))?;
+        let result = rx.receive().await.map_err(|e| FlowManagerError::WrongMessageType);
+        drop(sub);
+        result
     }
 
     pub fn send_async<T: 'static + Message>(path: &str, message: T) {
