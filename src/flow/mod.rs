@@ -15,6 +15,7 @@ mod manager;
 mod producer;
 mod serde;
 mod tree;
+mod getter;
 
 pub use self::serde::{register_serialized, FlowSerdeError};
 pub use content::ContentProvider;
