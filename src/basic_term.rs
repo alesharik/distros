@@ -1,4 +1,4 @@
-use crate::driver::TtyMessage;
+use crate::driver::{PciDeviceTypeMessage, TtyMessage};
 use crate::flow::{FlowManager, FlowManagerError};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
@@ -10,6 +10,8 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll};
 use futures::lock::BiLock;
+use pci_types::device_type::DeviceType;
+use serde::de;
 use libkernel::flow::{AnyConsumer, Consumer, Message, Subscription};
 
 struct Sub {
@@ -42,6 +44,10 @@ impl Sub {
 
     fn print(&self, s: &str) {
         FlowManager::send_async("/dev/tty/vga", TtyMessage::new(s));
+    }
+
+    async fn print_async(s: &str) {
+        FlowManager::send("/dev/tty/vga", TtyMessage::new(s)).await.unwrap();
     }
 
     fn new_line(&self) {
@@ -80,8 +86,26 @@ impl Sub {
                     self.print(&format!("\x1b[31mError is {:?}\x1B[37m>", e));
                 }
             },
+            "get" => {
+                spawn!(async {
+                    let msg: PciDeviceTypeMessage = FlowManager::get("/dev/pci/0/0/0/type").await.unwrap();
+                    Sub::print_async(&format!("{:?}", msg)).await;
+                });
+            }
             "load" => {
                 spawn!(Load {})
+            },
+            "lspci" => {
+                spawn!(async {
+                    for bus in FlowManager::list("/dev/pci/") {
+                        for device in FlowManager::list(&format!("/dev/pci/{}", &bus.name)) {
+                            for function in FlowManager::list(&format!("/dev/pci/{}/{}", &bus.name, &device.name)) {
+                                let typ: PciDeviceTypeMessage = FlowManager::get(&format!("/dev/pci/{}/{}/{}/type", &bus.name, &device.name, function.name)).await.unwrap();
+                                Sub::print_async(&format!("\x1b[32m{}:{}.{}\x1b[37m - {:?}\n", &bus.name, &device.name, &function.name, typ.get())).await;
+                            }
+                        }
+                    }
+                })
             },
             "" => {}
             _ => {
