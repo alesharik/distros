@@ -1,3 +1,5 @@
+use core::future::Future;
+
 pub fn spawn<F>(future: F)
 where
     F: Future<Output = ()> + 'static,
