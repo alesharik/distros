@@ -74,7 +74,6 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
     let acpi = acpi::init_acpi();
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
-    futures::init();
     memory::init_kheap_info();
     interrupts::syscall_init();
 

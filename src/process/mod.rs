@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use core::future::Future;
 
 mod task;
+pub mod sleep;
 
 pub use task::{setup, run};
 use crate::process::task::ProcessTaskInfo;

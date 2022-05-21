@@ -35,7 +35,7 @@ int_handler!(pub noint rtc_handler |_frame: InterruptStackFrame| {
         let time = crate::cmos::read_time_unsafe();
         TIME.store((time.timestamp_millis() as u64 + ms_part) as u64, Ordering::Relaxed)
     };
-    crate::futures::tick_1ms();
+    crate::process::sleep::tick_1ms();
     unsafe {
         let mut data = DATA.lock();
         let mut address = ADDRESS.lock();
