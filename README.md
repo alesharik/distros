@@ -8,7 +8,7 @@
 - basic future runtime
 - data flow manager
 - PS/2 device support
-- PCI support
+- PCI and PCIe (only `0` segment) support
 - very basic terminal
 - SMBios support
 

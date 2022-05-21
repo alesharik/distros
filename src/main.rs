@@ -82,7 +82,7 @@ pub fn main(boot_info: &'static BootInfo) -> ! {
 
     process::setup();
 
-    driver::init();
+    driver::init(&acpi);
     basic_term::init().unwrap();
 
     unsafe { process::run() }

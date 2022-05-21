@@ -9,8 +9,9 @@ mod tty;
 pub use pci::{PciDeviceBarMessage, PciDeviceTypeMessage};
 pub use syslog::SyslogMessage;
 pub use tty::TtyMessage;
+use crate::acpi::AcpiInfo;
 
-pub fn init() {
+pub fn init(acpi: &AcpiInfo) {
     syslog::init();
 
     kblog!("Driver", "Starting device drivers");
@@ -18,6 +19,6 @@ pub fn init() {
     kblog!("Driver", "Device drivers started");
 
     smbios::init();
-    pci::init();
+    pci::init(acpi);
     tty::init().unwrap();
 }
