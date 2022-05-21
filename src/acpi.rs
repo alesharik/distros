@@ -1,6 +1,6 @@
 use crate::kblog;
 use acpi::platform::interrupt::Apic;
-use acpi::AcpiError;
+use acpi::{AcpiError, PciConfigRegions};
 use acpi::InterruptModel;
 use acpi::{AcpiHandler, AcpiTables, HpetInfo, PhysicalMapping};
 use core::ptr::NonNull;
@@ -38,6 +38,7 @@ impl AcpiHandler for AcpiMemHandler {
 pub struct AcpiInfo {
     pub apic: Apic,
     pub hpet: Option<HpetInfo>,
+    pub pci_config_regions: Option<PciConfigRegions>
 }
 
 pub fn init_acpi() -> AcpiInfo {
@@ -46,6 +47,7 @@ pub fn init_acpi() -> AcpiInfo {
             .expect("Failed to get ACPI tables");
         kblog!("ACPI", "Got ACPi tables");
         let platform_info = tables.platform_info().expect("Failed to get platform info");
+        let pci_config_regions = PciConfigRegions::new(&tables).ok();
         let hpet = match HpetInfo::new(&tables) {
             Ok(r) => Some(r),
             Err(e) => match e {
@@ -55,7 +57,7 @@ pub fn init_acpi() -> AcpiInfo {
         };
         match platform_info.interrupt_model {
             InterruptModel::Unknown => panic!("This kernel requires APIC to run"),
-            InterruptModel::Apic(apic) => AcpiInfo { apic, hpet },
+            InterruptModel::Apic(apic) => AcpiInfo { apic, hpet, pci_config_regions },
             _ => panic!("ACPI does not have interrupt model info"),
         }
     }
