@@ -29,7 +29,7 @@ hashbrown = "0.11.2"
 
 ps2 = "0.1.2" # PS2 keyboard and mouse support
 pc-keyboard = "0.5.1" # keyboard parser
-pci_types = { git = "https://github.com/alesharik/pci_types.git" } # PCI types
+pci_types = { git = "https://github.com/alesharik/pci_types.git", branch = "control" } # PCI types
 vte = { git = "https://github.com/alesharik/vte.git", branch = "move-ansi", features = ["ansi"] } # ANSI terminal parser
 smbios-lib = { git = "https://github.com/alesharik/smbios-lib.git", features = ["no_std", "x86_64"], default-features = false, branch = "struct_clone" } # SMBIOS
 serde = { version = "1.0.127", features = ["derive", "alloc"], default-features = false }

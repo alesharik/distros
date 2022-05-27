@@ -1,3 +1,5 @@
+mod command;
+
 use crate::flow::FlowManagerError;
 use pci_types::{Bar, ConfigRegionAccess, EndpointHeader, MAX_BARS, PciAddress, PciHeader, StatusRegister};
 use pci_types::device_type::DeviceType;
@@ -32,6 +34,7 @@ pub fn register<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddr
     register!(content format!("/dev/pci/{}/{}/{}/type", address.bus(), address.device(), address.function()) => PciDeviceTypeMessage (DeviceType::from((base, sub))));
 
     register_status(address, access)?;
+    command::register_command(address, access)?;
 
     if let Some(endpoint) = EndpointHeader::from_header(header, access) {
         for bar_id in 0..(MAX_BARS as u8) {
