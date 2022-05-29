@@ -59,7 +59,7 @@ impl<T: Message + 'static> Producer<T> {
     }
 
     pub fn send_async(&self, message: T) {
-        spawn!(Producer::send_async_inner(message, self.consumers.clone()));
+        spawn!("send" => Producer::send_async_inner(message, self.consumers.clone()));
     }
 
     async fn send_async_inner(message: T, consumers: Arc<RwLock<Vec<ConsumerHolder>>>) {

@@ -128,7 +128,7 @@ impl ProcessRuntime {
     }
 
     unsafe fn save_current_task(&mut self, stack_frame: &InterruptStackFrame, regs: &Regs) {
-        if let Some(mut task) = self.current_task_info.take() {
+        if let Some(task) = self.current_task_info.take() {
             self.queue.push(ProcessTask {
                 info: task,
                 state: ProcessTaskState::Paused(TaskContext::fill_from(&stack_frame, regs))
@@ -202,7 +202,7 @@ impl ProcessRuntime {
                 x86_64::instructions::hlt();
                 continue;
             }
-            let mut task = task.unwrap();
+            let task = task.unwrap();
 
             // interrupts::disable_interrupts();
 

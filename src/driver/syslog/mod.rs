@@ -104,7 +104,7 @@ impl SyslogProvider {
 impl Provider for SyslogProvider {
     fn add_consumer(&mut self, consumer: Box<dyn AnyConsumer>) -> Box<dyn Subscription> {
         let stop_flag = Arc::new(AtomicBool::new(false));
-        spawn!(SyslogProvider::spawn_consumer(consumer, stop_flag.clone()));
+        spawn!("syslog_provider" => SyslogProvider::spawn_consumer(consumer, stop_flag.clone()));
         Box::new(SyslogSubscription {
             stop_flag,
             id: self.id_counter.fetch_add(1, Ordering::SeqCst),

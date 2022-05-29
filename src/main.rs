@@ -1,4 +1,3 @@
-#![feature(asm)]
 #![feature(abi_x86_interrupt)]
 #![no_std]
 #![no_main]
@@ -34,9 +33,9 @@ mod vga;
 mod gdt;
 #[macro_use]
 mod interrupts;
-mod memory;
 #[macro_use]
-mod futures;
+mod process;
+mod memory;
 mod acpi;
 mod basic_term;
 mod cmos;
@@ -46,7 +45,6 @@ mod flow;
 mod driver;
 mod elf;
 mod fpu;
-mod process;
 mod random;
 
 /// This function is called on panic.

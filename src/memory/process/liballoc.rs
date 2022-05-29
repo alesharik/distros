@@ -70,7 +70,7 @@ unsafe fn liballoc_alloc(
     size: usize,
     page_alloc: *mut c_void,
 ) -> *mut c_void {
-    let mut inner = &mut *(page_alloc as *mut PageAllocator);
+    let inner = &mut *(page_alloc as *mut PageAllocator);
     let mut pages = size / 4096;
     if pages * 4096 != size {
         pages += 1;
@@ -89,7 +89,7 @@ unsafe fn liballoc_free(
     size: usize,
     page_alloc: *mut c_void,
 ) -> i32 {
-    let mut inner = &mut *(page_alloc as *mut PageAllocator);
+    let inner = &mut *(page_alloc as *mut PageAllocator);
     inner.deallocate(VirtAddr::from_ptr(ptr));
     core::mem::forget(inner);
     0

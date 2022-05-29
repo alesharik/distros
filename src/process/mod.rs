@@ -17,11 +17,18 @@ struct Process {
     threads: Vec<Thread>,
 }
 
-pub fn spawn_kernel<F>(future: F)
+pub fn spawn_kernel<F>(name: &str, future: F)
     where
         F: Future<Output = ()> + 'static,
 {
     task::add_task(ProcessTaskInfo {
-        name: "ktask".to_owned()
+        name: name.to_owned()
     }, future);
+}
+
+/// Schedules future on main kernel loop
+macro_rules! spawn {
+    ($name:expr => $arg:expr) => {
+        crate::process::spawn_kernel($name, $arg)
+    };
 }

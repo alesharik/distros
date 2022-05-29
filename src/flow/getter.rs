@@ -1,5 +1,4 @@
-use core::any::TypeId;
-use libkernel::flow::{AnyConsumer, Consumer, Message, Subscription};
+use libkernel::flow::{Consumer, Message, Subscription};
 use futures::channel::oneshot::{Sender, Receiver, channel, Canceled};
 use async_trait::async_trait;
 use alloc::boxed::Box;
@@ -26,7 +25,7 @@ impl<T: Message + Clone + 'static> Consumer for GetterConsumer<T> {
     async fn consume(&self, message: &Self::Msg) {
         let mut tx = self.tx.lock();
         if let Some(tx) = tx.take() {
-            tx.send(message.clone());
+            drop(tx.send(message.clone()));
         }
     }
 

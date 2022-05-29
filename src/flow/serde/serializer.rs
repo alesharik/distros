@@ -28,72 +28,72 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     type SerializeStructVariant = MapSerializer;
 
     fn serialize_bool(self, v: bool) -> Result<()> {
-        register!(content &self.path => BoolMessage (v));
+        register!(val &self.path => BoolMessage (v));
         Ok(())
     }
 
     fn serialize_i8(self, v: i8) -> Result<()> {
-        register!(content &self.path => I8Message (v));
+        register!(val &self.path => I8Message (v));
         Ok(())
     }
 
     fn serialize_i16(self, v: i16) -> Result<()> {
-        register!(content &self.path => I16Message (v));
+        register!(val &self.path => I16Message (v));
         Ok(())
     }
 
     fn serialize_i32(self, v: i32) -> Result<()> {
-        register!(content &self.path => I32Message (v));
+        register!(val &self.path => I32Message (v));
         Ok(())
     }
 
     fn serialize_i64(self, v: i64) -> Result<()> {
-        register!(content &self.path => I64Message (v));
+        register!(val &self.path => I64Message (v));
         Ok(())
     }
 
     fn serialize_u8(self, v: u8) -> Result<()> {
-        register!(content &self.path => U8Message (v));
+        register!(val &self.path => U8Message (v));
         Ok(())
     }
 
     fn serialize_u16(self, v: u16) -> Result<()> {
-        register!(content &self.path => U16Message (v));
+        register!(val &self.path => U16Message (v));
         Ok(())
     }
 
     fn serialize_u32(self, v: u32) -> Result<()> {
-        register!(content &self.path => U32Message (v));
+        register!(val &self.path => U32Message (v));
         Ok(())
     }
 
     fn serialize_u64(self, v: u64) -> Result<()> {
-        register!(content &self.path => U64Message (v));
+        register!(val &self.path => U64Message (v));
         Ok(())
     }
 
     fn serialize_f32(self, v: f32) -> Result<()> {
-        register!(content &self.path => F32Message (v));
+        register!(val &self.path => F32Message (v));
         Ok(())
     }
 
     fn serialize_f64(self, v: f64) -> Result<()> {
-        register!(content &self.path => F64Message (v));
+        register!(val &self.path => F64Message (v));
         Ok(())
     }
 
     fn serialize_char(self, v: char) -> Result<()> {
-        register!(content &self.path => CharMessage (v));
+        register!(val &self.path => CharMessage (v));
         Ok(())
     }
 
     fn serialize_str(self, v: &str) -> Result<()> {
-        register!(content &self.path => StringMessage (v));
+        register!(val &self.path => StringMessage (v));
         Ok(())
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<()> {
-        register!(content &self.path => ByteArrayMessage (v));
+        register!(val &self.path => ByteArrayMessage (v));
         Ok(())
     }
 

@@ -183,7 +183,7 @@ int_handler!(noint keyboard_handler |_: InterruptStackFrame| {
         let mut keyboard = KEYBOARD_PARSER.lock();
         if let Ok(Some(key)) = keyboard.add_byte(byte) {
             if let Some(decoded) = keyboard.process_keyevent(key.clone()) {
-                spawn!(send_decoded(decoded))
+                spawn!("driver/ps2/keyboard_send" => send_decoded(decoded))
             }
             let change_led = match key.code {
                 KeyCode::CapsLock => {
@@ -232,6 +232,6 @@ int_handler!(noint mouse_handler |_: InterruptStackFrame| {
     let mut controller = INT_CONTROLLER.lock();
     // ignore timeouts
     if let Ok(packet) = controller.mouse().read_data_packet() {
-        spawn!(send_mouse(packet));
+        spawn!("driver/ps2/mouse_send" => send_mouse(packet));
     }
 });

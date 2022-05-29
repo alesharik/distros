@@ -1,6 +1,5 @@
 use alloc::sync::Arc;
 use acpi::PciConfigRegions;
-use bit_field::BitField;
 use pci_types::{ConfigRegionAccess, PciAddress};
 use x86_64::PhysAddr;
 

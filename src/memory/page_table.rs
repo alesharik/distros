@@ -66,7 +66,7 @@ pub fn unmap<T: NotGiantPageSize>(page: Page<T>) -> Result<PhysFrame<T>, UnmapEr
 where
     for<'a> OffsetPageTable<'a>: Mapper<T>,
 {
-    match unsafe {
+    match {
         let mut table = PAGE_TABLE.lock();
         let x = table.as_mut().unwrap();
         x.unmap(page)
@@ -108,8 +108,8 @@ where
 /// # Return
 /// Physical address if have one, otherwise None
 pub fn translate(addr: VirtAddr) -> Option<PhysAddr> {
-    match unsafe {
-        let mut table = PAGE_TABLE.lock();
+    match {
+        let table = PAGE_TABLE.lock();
         table.as_ref().unwrap().translate(addr)
     } {
         TranslateResult::Mapped {
@@ -132,7 +132,7 @@ impl P3PageTable {
             panic!("Invalid P3 page table index - {}", index);
         }
         let mut table = PAGE_TABLE.lock();
-        let mut p4 = table.as_mut().unwrap().level_4_table();
+        let p4 = table.as_mut().unwrap().level_4_table();
         let table = p4[index].clone();
         p4[index].set_unused();
         P3PageTable {
@@ -143,7 +143,7 @@ impl P3PageTable {
 
     pub fn restore(self) {
         let mut table = PAGE_TABLE.lock();
-        let mut p4 = table.as_mut().unwrap().level_4_table();
+        let p4 = table.as_mut().unwrap().level_4_table();
         p4[self.index as usize] = self.entry
     }
 }

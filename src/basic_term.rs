@@ -10,8 +10,6 @@ use core::future::Future;
 use core::pin::Pin;
 use core::task::{Context, Poll};
 use futures::lock::BiLock;
-use pci_types::device_type::DeviceType;
-use serde::de;
 use libkernel::flow::{AnyConsumer, Consumer, Message, Subscription};
 
 struct Sub {
@@ -87,16 +85,16 @@ impl Sub {
                 }
             },
             "get" => {
-                spawn!(async {
+                spawn!("term_get" => async {
                     let msg: PciDeviceTypeMessage = FlowManager::get("/dev/pci/0/0/0/type").await.unwrap();
                     Sub::print_async(&format!("{:?}", msg)).await;
                 });
             }
             "load" => {
-                spawn!(Load {})
+                spawn!("term_load" => Load {})
             },
             "lspci" => {
-                spawn!(async {
+                spawn!("term_lspci" => async {
                     for bus in FlowManager::list("/dev/pci/") {
                         for device in FlowManager::list(&format!("/dev/pci/{}", &bus.name)) {
                             for function in FlowManager::list(&format!("/dev/pci/{}/{}", &bus.name, &device.name)) {

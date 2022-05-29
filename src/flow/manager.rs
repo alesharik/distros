@@ -65,13 +65,13 @@ impl FlowManager {
     pub async fn get<T: Message + Clone + 'static>(path: &str) -> Result<T, FlowManagerError> {
         let (tx, rx) = getter::<T>();
         let sub = FlowManager::subscribe(path, Box::new(tx))?;
-        let result = rx.receive().await.map_err(|e| FlowManagerError::WrongMessageType);
+        let result = rx.receive().await.map_err(|_| FlowManagerError::WrongMessageType);
         drop(sub);
         result
     }
 
     pub fn send_async<T: 'static + Message>(path: &str, message: T) {
-        spawn!(FlowManager::send_async_inner(path.to_owned(), message));
+        spawn!("send" => FlowManager::send_async_inner(path.to_owned(), message));
     }
 
     async fn send_async_inner<T: 'static + Message>(path: String, message: T) {

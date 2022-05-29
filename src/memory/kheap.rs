@@ -226,7 +226,7 @@ impl Provider for ProviderImpl {
                 used: locked.used(),
             }
         };
-        crate::futures::spawn(ProviderImpl::send(consumer, info));
+        crate::process::spawn_kernel("kheap_info_provider", ProviderImpl::send(consumer, info));
         let sub = SubscriptionImpl {};
         Box::new(sub)
     }

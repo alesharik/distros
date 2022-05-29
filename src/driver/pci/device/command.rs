@@ -1,5 +1,5 @@
-use pci_types::{ConfigRegionAccess, EndpointHeader, PciAddress, PciHeader};
-use crate::flow::{FlowManagerError, VarHandler, VarProvider};
+use pci_types::{ConfigRegionAccess, PciAddress, PciHeader};
+use crate::flow::{FlowManagerError, VarHandler};
 use libkernel::flow::BoolMessage;
 
 type Result<T> = core::result::Result<T, FlowManagerError>;

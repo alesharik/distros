@@ -1,5 +1,4 @@
 use alloc::sync::Arc;
-use core::borrow::BorrowMut;
 use bit_field::BitField;
 use pci_types::{ConfigRegionAccess, PciAddress};
 use spin::Mutex;

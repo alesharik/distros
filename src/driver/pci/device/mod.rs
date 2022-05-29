@@ -14,7 +14,7 @@ primitive_message!(PciDeviceStatusMessage StatusRegister);
 fn register_status<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddress, access: &T) -> Result<()> {
     let access = access.clone();
     let header = PciHeader::new(address);
-    register!(dynacontent format!("/dev/pci/{}/{}/{}/status", address.bus(), address.device(), address.function()) => PciDeviceStatusMessage move || {
+    register!(val format!("/dev/pci/{}/{}/{}/status", address.bus(), address.device(), address.function()) => PciDeviceStatusMessage fun move || {
         PciDeviceStatusMessage::new(header.status(&access))
     });
     Ok(())
@@ -24,14 +24,15 @@ pub fn register<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddr
     let header = PciHeader::new(address);
     let (vendor, device_id) = header.id(access);
     let (revision, base, sub, interface) = header.revision_and_class(access);
-    register!(content format!("/dev/pci/{}/{}/{}/header_type", address.bus(), address.device(), address.function()) => U8Message (header.header_type(access)));
-    register!(content format!("/dev/pci/{}/{}/{}/vendor", address.bus(), address.device(), address.function()) => U16Message (vendor));
-    register!(content format!("/dev/pci/{}/{}/{}/device", address.bus(), address.device(), address.function()) => U16Message (device_id));
-    register!(content format!("/dev/pci/{}/{}/{}/revision", address.bus(), address.device(), address.function()) => U8Message (revision));
-    register!(content format!("/dev/pci/{}/{}/{}/base_class", address.bus(), address.device(), address.function()) => U8Message (base));
-    register!(content format!("/dev/pci/{}/{}/{}/sub_class", address.bus(), address.device(), address.function()) => U8Message (sub));
-    register!(content format!("/dev/pci/{}/{}/{}/interface", address.bus(), address.device(), address.function()) => U8Message (interface));
-    register!(content format!("/dev/pci/{}/{}/{}/type", address.bus(), address.device(), address.function()) => PciDeviceTypeMessage (DeviceType::from((base, sub))));
+
+    register!(val format!("/dev/pci/{}/{}/{}/header_type", address.bus(), address.device(), address.function()) => U8Message (header.header_type(access)));
+    register!(val format!("/dev/pci/{}/{}/{}/vendor", address.bus(), address.device(), address.function()) => U16Message (vendor));
+    register!(val format!("/dev/pci/{}/{}/{}/device", address.bus(), address.device(), address.function()) => U16Message (device_id));
+    register!(val format!("/dev/pci/{}/{}/{}/revision", address.bus(), address.device(), address.function()) => U8Message (revision));
+    register!(val format!("/dev/pci/{}/{}/{}/base_class", address.bus(), address.device(), address.function()) => U8Message (base));
+    register!(val format!("/dev/pci/{}/{}/{}/sub_class", address.bus(), address.device(), address.function()) => U8Message (sub));
+    register!(val format!("/dev/pci/{}/{}/{}/interface", address.bus(), address.device(), address.function()) => U8Message (interface));
+    register!(val format!("/dev/pci/{}/{}/{}/type", address.bus(), address.device(), address.function()) => PciDeviceTypeMessage (DeviceType::from((base, sub))));
 
     register_status(address, access)?;
     command::register_command(address, access)?;
@@ -39,7 +40,7 @@ pub fn register<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddr
     if let Some(endpoint) = EndpointHeader::from_header(header, access) {
         for bar_id in 0..(MAX_BARS as u8) {
             if let Some(bar) = endpoint.bar(bar_id, access) {
-                register!(content format!("/dev/pci/{}/{}/{}/bar/{}", address.bus(), address.device(), address.function(), bar_id) => PciDeviceBarMessage(bar));
+                register!(val format!("/dev/pci/{}/{}/{}/bar/{}", address.bus(), address.device(), address.function(), bar_id) => PciDeviceBarMessage(bar));
             }
         }
 

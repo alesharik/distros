@@ -9,7 +9,7 @@ use x86_64::structures::idt::InterruptStackFrame;
 use x86_64::structures::paging::PageTableFlags;
 use x86_64::VirtAddr;
 
-int_handler!(noint syscall_handler | stack_frame: InterruptStackFrame | {
+int_handler!(noint syscall_handler | _stack_frame: InterruptStackFrame | {
     if let Some(cmd) = take_command() {
         match cmd {
             SyscallCommand::Test => {
