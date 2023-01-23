@@ -1,4 +1,3 @@
-use bootloader::bootinfo::MemoryMap;
 use x86_64::structures::paging::mapper::MapToError;
 use x86_64::structures::paging::page::NotGiantPageSize;
 use x86_64::structures::paging::Size4KiB;
@@ -13,6 +12,7 @@ mod process;
 pub mod util;
 
 use core::sync::atomic::{AtomicU64, Ordering};
+use bootloader_api::info::MemoryRegions;
 pub use kheap::{init_kheap, init_kheap_info};
 pub use process::{Liballoc, PageAllocator, PageAllocatorBackup};
 
@@ -22,7 +22,7 @@ pub trait AllocatePage<T: NotGiantPageSize = Size4KiB> {
 
 static PHYS_OFFSET: AtomicU64 = AtomicU64::new(0);
 
-pub fn init_memory(phys_offset: VirtAddr, memory_map: &'static MemoryMap) {
+pub fn init_memory(phys_offset: VirtAddr, memory_map: &'static MemoryRegions) {
     page_table::init(phys_offset);
     let kernel_heap_info = kheap::init_kheap(memory_map).unwrap();
     PHYS_OFFSET.store(phys_offset.as_u64(), Ordering::SeqCst);

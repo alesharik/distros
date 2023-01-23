@@ -2,8 +2,8 @@
 
 use crate::memory::frame::region::MemoryRegionProvider;
 use alloc::collections::LinkedList;
-use bootloader::bootinfo::MemoryMap;
 use core::ops::Not;
+use bootloader_api::info::MemoryRegions;
 use spin::Mutex;
 use x86_64::structures::paging::{FrameAllocator, FrameDeallocator, PhysFrame, Size2MiB, Size4KiB};
 use x86_64::PhysAddr;
@@ -70,7 +70,7 @@ pub struct FrameAlloc {
 }
 
 impl FrameAlloc {
-    fn new(memory_map: &'static MemoryMap, offsets: &[u64]) -> FrameAlloc {
+    fn new(memory_map: &'static MemoryRegions, offsets: &[u64]) -> FrameAlloc {
         FrameAlloc {
             region_provider: MemoryRegionProvider::new(memory_map, offsets),
             frames: LinkedList::new(),
@@ -159,7 +159,7 @@ lazy_static! {
     static ref MEMORY_FRAME_ALLOCATOR: Mutex<Option<FrameAlloc>> = Mutex::new(None);
 }
 
-pub fn init(memory_map: &'static MemoryMap, offsets: &[u64]) {
+pub fn init(memory_map: &'static MemoryRegions, offsets: &[u64]) {
     let mut alloc = MEMORY_FRAME_ALLOCATOR.lock();
     *alloc = Some(FrameAlloc::new(memory_map, offsets));
 }

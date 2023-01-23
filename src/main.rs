@@ -8,7 +8,6 @@
 #![feature(slice_group_by)]
 #![feature(naked_functions)]
 #![feature(linked_list_cursors)]
-#![feature(asm_sym)]
 #![feature(asm_const)]
 #![allow(dead_code)]
 
@@ -25,7 +24,8 @@ extern crate libkernel;
 
 use core::panic::PanicInfo;
 
-use bootloader::{entry_point, BootInfo};
+use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
+use bootloader_api::config::Mapping;
 use x86_64::VirtAddr;
 
 #[macro_use]
@@ -59,15 +59,23 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
     panic!("allocation error: {:?}", layout)
 }
 
-entry_point!(main);
 
-pub fn main(boot_info: &'static BootInfo) -> ! {
+pub static BOOTLOADER_CONFIG: BootloaderConfig = {
+    let mut config = BootloaderConfig::new_default();
+    config.mappings.physical_memory = Some(Mapping::Dynamic);
+    config.kernel_stack_size = 256;
+    config
+};
+
+entry_point!(main, config = &BOOTLOADER_CONFIG);
+
+pub fn main(boot_info: &'static mut BootInfo) -> ! {
     cpuid::init_cpuid();
     gdt::init_gdt();
     interrupts::init_idt();
     memory::init_memory(
-        VirtAddr::new(boot_info.physical_memory_offset),
-        &boot_info.memory_map,
+        VirtAddr::new(boot_info.physical_memory_offset.into_option().unwrap()),
+        &boot_info.memory_regions,
     );
     let acpi = acpi::init_acpi();
     interrupts::init_pic(&acpi);

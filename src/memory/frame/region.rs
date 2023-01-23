@@ -1,6 +1,6 @@
 //! Memory region manager
 use arrayvec::ArrayVec;
-use bootloader::bootinfo::{MemoryMap, MemoryRegion, MemoryRegionType};
+use bootloader_api::info::{MemoryRegion, MemoryRegionKind, MemoryRegions};
 use x86_64::structures::paging::{PageSize, Size4KiB};
 use x86_64::PhysAddr;
 
@@ -14,8 +14,8 @@ impl MemoryRegionContainer {
     /// Create new container
     fn new(region: &MemoryRegion) -> Self {
         MemoryRegionContainer {
-            end: region.range.end_frame_number,
-            pointer: region.range.start_frame_number,
+            end: region.end,
+            pointer: region.start,
         }
     }
 
@@ -45,11 +45,11 @@ impl MemoryRegionProvider {
     /// # Arguments
     /// - `map` - global memory map
     /// - `offsets` - how much memory is used from every usable memory region
-    pub fn new(map: &'static MemoryMap, offsets: &[u64]) -> MemoryRegionProvider {
+    pub fn new(map: &'static MemoryRegions, offsets: &[u64]) -> MemoryRegionProvider {
         let mut regions = ArrayVec::<MemoryRegionContainer, 16>::new();
         for region in map
             .iter()
-            .filter(|m| m.region_type == MemoryRegionType::Usable)
+            .filter(|m| m.kind == MemoryRegionKind::Usable)
         {
             regions.push(MemoryRegionContainer::new(region));
         }

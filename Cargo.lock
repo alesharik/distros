@@ -75,10 +75,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
-name = "bootloader"
-version = "0.9.22"
+name = "bootloader_api"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de78decc37247c7cfac5dbf3495c7298c6ac97cb355161caa7e15969c6648e6c"
+checksum = "babfb07dea4565842980315ad530a023aa348db43d03dfa104a70fdaca97d48e"
 
 [[package]]
 name = "cc"
@@ -161,7 +161,7 @@ dependencies = [
  "async-trait",
  "bit_field",
  "bitflags",
- "bootloader",
+ "bootloader_api",
  "cc",
  "chrono",
  "crossbeam-queue",
@@ -408,9 +408,9 @@ dependencies = [
 
 [[package]]
 name = "num-integer"
-version = "0.1.44"
+version = "0.1.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2cc698a63b549a70bc047073d2949cce27cd1c7b0a4a862d08a8031bc2801db"
+checksum = "225d3389fb3509a24c93f5c29eb6bde2586b98d9f016636dff58d7c6f7569cd9"
 dependencies = [
  "autocfg",
  "num-traits",
