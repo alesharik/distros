@@ -41,11 +41,13 @@ pub struct AcpiInfo {
     pub pci_config_regions: Option<PciConfigRegions>
 }
 
-pub fn init_acpi() -> AcpiInfo {
+pub fn init_acpi(rdsp_addr: Option<u64>) -> AcpiInfo {
     unsafe {
-        let tables = AcpiTables::search_for_rsdp_bios(AcpiMemHandler::new())
+        let tables = rdsp_addr
+            .map(|addr| AcpiTables::from_rsdp(AcpiMemHandler::new(), addr as usize))
+            .unwrap_or_else(|| AcpiTables::search_for_rsdp_bios(AcpiMemHandler::new()))
             .expect("Failed to get ACPI tables");
-        kblog!("ACPI", "Got ACPi tables");
+        kblog!("ACPI", "Got ACPI tables");
         let platform_info = tables.platform_info().expect("Failed to get platform info");
         let pci_config_regions = PciConfigRegions::new(&tables).ok();
         let hpet = match HpetInfo::new(&tables) {
