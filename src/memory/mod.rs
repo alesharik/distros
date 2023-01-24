@@ -7,7 +7,7 @@ use crate::kblog;
 
 mod frame;
 mod kheap;
-mod page_table;
+pub mod page_table;
 mod process;
 pub mod util;
 

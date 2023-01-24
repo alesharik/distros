@@ -4,6 +4,7 @@ use acpi::HpetInfo;
 use bit_field::BitField;
 use core::ops::Not;
 use x86_64::{PhysAddr, VirtAddr};
+use x86_64::structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB};
 
 const RTC_COMP: u8 = 0;
 
@@ -73,7 +74,13 @@ fn find_hpet_periodic_timer(info: &HpetInfo, addr: &VirtAddr, off: u8) -> u8 {
 }
 
 pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
-    let addr: VirtAddr = memory::map_physical_address(PhysAddr::new(info.base_address as u64));
+    let phys = PhysAddr::new(info.base_address as u64);
+    let addr: VirtAddr = memory::map_physical_address(phys);
+    memory::page_table::map(
+        PhysFrame::<Size4KiB>::containing_address(phys),
+        Page::containing_address(addr),
+        PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE | PageTableFlags::NO_EXECUTE
+    ).unwrap();
     let comparator = find_hpet_periodic_timer(info, &addr, RTC_COMP);
     let period = unsafe { *(addr.as_ptr::<u32>()) };
     let frequency = (10_u64).pow(15) / period as u64;

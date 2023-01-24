@@ -4,6 +4,8 @@ use alloc::vec::Vec;
 use spin::Mutex;
 use x2apic::ioapic::{IoApic, IrqFlags, IrqMode};
 use x86_64::PhysAddr;
+use x86_64::structures::paging::Page;
+use x86_64::structures::paging::{PageTableFlags, PhysFrame, Size4KiB};
 
 struct IoApicHolder {
     id: u8,
@@ -29,6 +31,11 @@ impl IoApicManager {
             for io_apic in &apic.io_apics {
                 let addr = PhysAddr::new(apic.io_apics[0].address as u64);
                 let virt_addr = crate::memory::map_physical_address(addr);
+                crate::memory::page_table::map(
+                    PhysFrame::<Size4KiB>::containing_address(addr),
+                    Page::containing_address(virt_addr),
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE | PageTableFlags::NO_EXECUTE
+                ).unwrap();
                 apics.push(IoApicHolder {
                     id: io_apic.id,
                     global_system_interrupt_base: io_apic.global_system_interrupt_base,
@@ -94,7 +101,7 @@ pub fn init_ioapic(apic: &Apic) {
     let mut global_manager = IOAPIC_MANAGER.lock();
     let mut manager = IoApicManager::new(apic);
     manager.init();
-    *global_manager = Option::Some(manager);
+    *global_manager = Some(manager);
     kblog!("IOAPIC", "IOAPIC set up")
 }
 
