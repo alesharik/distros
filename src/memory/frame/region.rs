@@ -5,9 +5,10 @@ use x86_64::structures::paging::{PageSize, Size4KiB};
 use x86_64::PhysAddr;
 
 /// This container holds memory region information and allows to take frames from it
+#[derive(Debug)]
 struct MemoryRegionContainer {
-    end: u64,
     pointer: u64,
+    end: u64,
 }
 
 impl MemoryRegionContainer {
@@ -47,12 +48,30 @@ impl MemoryRegionProvider {
     /// - `offsets` - how much memory is used from every usable memory region
     pub fn new(map: &'static MemoryRegions, offsets: &[u64]) -> MemoryRegionProvider {
         let mut regions = ArrayVec::<MemoryRegionContainer, 16>::new();
+        let mut last: Option<MemoryRegionContainer> = None;
         for region in map
             .iter()
             .filter(|m| m.kind == MemoryRegionKind::Usable)
         {
-            regions.push(MemoryRegionContainer::new(region));
+            let current = MemoryRegionContainer::new(region);
+            if let Some(lst) = last.take() {
+                if lst.end == current.pointer { // can merge regions
+                    last = Some(MemoryRegionContainer {
+                        pointer: lst.pointer,
+                        end: current.end
+                    });
+                } else {
+                    regions.push(lst);
+                    last = Some(current);
+                }
+            } else {
+                last = Some(current);
+            }
         }
+        if let Some(last) = last.take() {
+            regions.push(last);
+        }
+
         for (i, x) in regions.iter_mut().enumerate() {
             if let Some(off) = offsets.get(i) {
                 let mut page_off = *off / Size4KiB::SIZE;
