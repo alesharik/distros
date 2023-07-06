@@ -3,6 +3,7 @@ use arrayvec::ArrayVec;
 use bootloader_api::info::{MemoryRegion, MemoryRegionKind, MemoryRegions};
 use x86_64::structures::paging::{PageSize, Size4KiB};
 use x86_64::PhysAddr;
+use crate::memory::util::MergeMemoryRegions;
 
 /// This container holds memory region information and allows to take frames from it
 #[derive(Debug)]
@@ -13,7 +14,7 @@ struct MemoryRegionContainer {
 
 impl MemoryRegionContainer {
     /// Create new container
-    fn new(region: &MemoryRegion) -> Self {
+    fn new(region: MemoryRegion) -> Self {
         MemoryRegionContainer {
             end: region.end,
             pointer: region.start,
@@ -47,30 +48,13 @@ impl MemoryRegionProvider {
     /// - `map` - global memory map
     /// - `offsets` - how much memory is used from every usable memory region
     pub fn new(map: &'static MemoryRegions, offsets: &[u64]) -> MemoryRegionProvider {
-        let mut regions = ArrayVec::<MemoryRegionContainer, 16>::new();
-        let mut last: Option<MemoryRegionContainer> = None;
-        for region in map
+        let mut regions: ArrayVec<_, 16> = map
             .iter()
             .filter(|m| m.kind == MemoryRegionKind::Usable)
-        {
-            let current = MemoryRegionContainer::new(region);
-            if let Some(lst) = last.take() {
-                if lst.end == current.pointer { // can merge regions
-                    last = Some(MemoryRegionContainer {
-                        pointer: lst.pointer,
-                        end: current.end
-                    });
-                } else {
-                    regions.push(lst);
-                    last = Some(current);
-                }
-            } else {
-                last = Some(current);
-            }
-        }
-        if let Some(last) = last.take() {
-            regions.push(last);
-        }
+            .copied()
+            .merge_regions()
+            .map(|e| MemoryRegionContainer::new(e))
+            .collect();
 
         for (i, x) in regions.iter_mut().enumerate() {
             if let Some(off) = offsets.get(i) {

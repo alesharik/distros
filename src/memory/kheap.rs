@@ -4,12 +4,12 @@ use crate::interrupts;
 use crate::kblog;
 use alloc::boxed::Box;
 use alloc::sync::Arc;
-use bootloader::bootinfo::{MemoryMap, MemoryRegionType};
 use core::alloc::{GlobalAlloc, Layout};
 use core::fmt::{Display, Formatter};
 use core::ops::Deref;
 use core::ptr::NonNull;
 use core::sync::atomic::{AtomicUsize, Ordering};
+use bootloader_api::info::{MemoryRegionKind, MemoryRegions};
 use libkernel::flow::{AnyConsumer, Message, Provider, Subscription};
 use linked_list_allocator::Heap;
 use spin::Mutex;
@@ -18,9 +18,10 @@ use x86_64::structures::paging::{
     FrameAllocator, Page, PageSize, PageTableFlags, PhysFrame, Size2MiB, Size4KiB,
 };
 use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::util::MergeMemoryRegions;
 
 pub const HEAP_START: usize = 0x_4444_4444_0000;
-pub const HEAP_SIZE: usize = 16 * 1024 * 1024; // 16 MiB
+pub const HEAP_SIZE: usize = 32 * 1024 * 1024; // 32 MiB
 
 pub struct LockedHeap(Mutex<Heap>);
 
@@ -104,7 +105,7 @@ pub struct KernelInitHeapInfo {
 
 struct KHeapFrameAllocator<'a> {
     alloc_map: &'a mut [u64],
-    map: &'static MemoryMap,
+    map: &'static MemoryRegions,
     allocated: usize,
 }
 
@@ -113,10 +114,10 @@ unsafe impl<'a> FrameAllocator<Size4KiB> for KHeapFrameAllocator<'a> {
         for (idx, region) in self
             .map
             .iter()
-            .filter(|m| m.region_type == MemoryRegionType::Usable)
+            .filter(|m| m.kind == MemoryRegionKind::Usable)
             .enumerate()
         {
-            if (region.range.end_frame_number - region.range.start_frame_number) * 4096
+            if (region.end - region.start) * 4096
                 - self.alloc_map[idx]
                 <= Size4KiB::SIZE
             {
@@ -125,14 +126,14 @@ unsafe impl<'a> FrameAllocator<Size4KiB> for KHeapFrameAllocator<'a> {
             self.alloc_map[idx] += Size4KiB::SIZE;
             self.allocated += Size4KiB::SIZE as usize;
             return Some(PhysFrame::containing_address(PhysAddr::new(
-                region.range.start_frame_number * 4096 + self.alloc_map[idx] + 1,
+                region.start * 4096 + self.alloc_map[idx] + 1,
             )));
         }
         None
     }
 }
 
-pub fn init_kheap(map: &'static MemoryMap) -> Result<KernelInitHeapInfo, MapToError<Size2MiB>> {
+pub fn init_kheap(map: &'static MemoryRegions) -> Result<KernelInitHeapInfo, MapToError<Size2MiB>> {
     kblog!("KHeap", "Starting kernel heap");
     let heap_start = VirtAddr::new(HEAP_START as u64);
     let heap_end = heap_start + HEAP_SIZE - 1u64;
@@ -143,18 +144,21 @@ pub fn init_kheap(map: &'static MemoryMap) -> Result<KernelInitHeapInfo, MapToEr
     for page in Page::<Size2MiB>::range_inclusive(heap_start_page, heap_end_page) {
         for (idx, region) in map
             .iter()
-            .filter(|m| m.region_type == MemoryRegionType::Usable)
+            .filter(|m| m.kind == MemoryRegionKind::Usable)
+            .copied()
+            .merge_regions()
             .enumerate()
         {
-            if (region.range.end_frame_number - region.range.start_frame_number) * 4096
+            if (region.end - region.start)
                 - alloc_map[idx]
                 <= page.size()
             {
                 continue;
             }
+            println!("TOOK {:?}", region);
             alloc_map[idx] += page.size();
             let phys_frame = PhysFrame::containing_address(PhysAddr::new(
-                region.range.start_frame_number * 4096 + alloc_map[idx] + 1,
+                region.start * 4096 + alloc_map[idx] + 1,
             ));
             let mut alloc = KHeapFrameAllocator {
                 allocated: 0,

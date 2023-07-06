@@ -37,6 +37,7 @@ itertools = { version = "0.10.1", default-features = false, features = ["use_all
 goblin = { version = "0.4.2", default-features = false, features = ["alloc", "endian_fd", "elf32", "elf64", "archive"] }
 arrayvec = { version = "0.7.1", default-features = false }
 thingbuf = { version = "0.1.2", default-features = false, features = ["alloc"] }
+noto-sans-mono-bitmap = "0.2.0" # primary font
 libkernel = { path = "libraries/libkernel" }
 
 [dependencies.lazy_static]

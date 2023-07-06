@@ -15,6 +15,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use bootloader_api::info::MemoryRegions;
 pub use kheap::{init_kheap, init_kheap_info};
 pub use process::{Liballoc, PageAllocator, PageAllocatorBackup};
+use crate::memory::util::MergeMemoryRegions;
 
 pub trait AllocatePage<T: NotGiantPageSize = Size4KiB> {
     fn allocate(page: Page<T>) -> Result<(), MapToError<T>>;

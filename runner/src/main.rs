@@ -19,7 +19,7 @@ fn main() {
 
     let mut child = Command::new("qemu-system-x86_64")
         .arg("-gdb").arg("tcp::9002")
-        .arg("-d").arg("int").arg("-no-reboot").arg("-no-shutdown")
+        .arg("-no-reboot").arg("-no-shutdown")
         // .arg("-machine").arg("q35")
         // .arg("-device").arg("nec-usb-xhci,id=xhci")
         // .arg("-monitor").arg("stdio")

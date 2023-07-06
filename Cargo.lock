@@ -174,6 +174,7 @@ dependencies = [
  "libkernel",
  "linked_list_allocator",
  "log",
+ "noto-sans-mono-bitmap",
  "pc-keyboard",
  "pci_types",
  "ps2",
@@ -405,6 +406,12 @@ checksum = "b823e83b2affd8f40a9ee8c29dbc56404c1e34cd2710921f2801e2cf29527afa"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "noto-sans-mono-bitmap"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a27daf9557165efe1d09b52f97393bf6283cadb0a76fbe64a1061e15553a994a"
 
 [[package]]
 name = "num-integer"
