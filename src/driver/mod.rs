@@ -5,6 +5,7 @@ mod pci;
 mod smbios;
 mod syslog;
 mod tty;
+pub mod gpu;
 
 pub use pci::{PciDeviceBarMessage, PciDeviceTypeMessage};
 pub use syslog::SyslogMessage;

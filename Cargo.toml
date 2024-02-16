@@ -5,7 +5,7 @@ authors = ["Aleksei Arsenev <alesharikReserv@yandex.ru>"]
 edition = "2018"
 
 [dependencies]
-bootloader_api = "0.11"
+bootloader_api = "0.11.5"
 log = "0.4.14"
 spin = "0.9.0"
 vga = { git = "https://github.com/rust-osdev/vga.git" }
@@ -46,3 +46,4 @@ features = ["spin_no_std"]
 
 [build-dependencies]
 cc = "1.0.68"
+
