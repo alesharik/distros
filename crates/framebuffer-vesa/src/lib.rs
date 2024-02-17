@@ -3,7 +3,7 @@
 use bootloader_api::info::{FrameBufferInfo, PixelFormat};
 use core::ptr;
 use spin::{Mutex, MutexGuard};
-use framebuffer::{FrameBuffer, FrameBufferWrite, Rgb};
+use distros_framebuffer::{FrameBuffer, FrameBufferWrite, Rgb};
 
 struct Inner {
     fb: &'static mut [u8],

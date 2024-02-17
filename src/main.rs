@@ -29,7 +29,7 @@ use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
 use bootloader_api::config::Mapping;
 use x86_64::instructions::hlt;
 use x86_64::VirtAddr;
-use framebuffer_vesa::VesaFrameBuffer;
+use distros_framebuffer_vesa::VesaFrameBuffer;
 use crate::gui::TextDisplay;
 
 #[macro_use]
@@ -73,8 +73,6 @@ pub static BOOTLOADER_CONFIG: BootloaderConfig = {
 entry_point!(main, config = &BOOTLOADER_CONFIG);
 
 pub fn main(boot_info: &'static mut BootInfo) -> ! {
-    let mut buffer = boot_info.framebuffer.as_mut().unwrap();
-    let info = buffer.info();
     let fb = VesaFrameBuffer::new(boot_info.framebuffer.take().unwrap());
     logging::init(fb);
     println!("0x{:08x}", &boot_info.physical_memory_offset.into_option().unwrap());

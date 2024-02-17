@@ -1,5 +1,5 @@
 [package]
-name = "framebuffer"
+name = "distros-framebuffer"
 version = "0.1.0"
 edition = "2021"
 

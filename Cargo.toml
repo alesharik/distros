@@ -40,8 +40,8 @@ thingbuf = { version = "0.1.2", default-features = false, features = ["alloc"] }
 noto-sans-mono-bitmap = "0.2.0" # primary font
 libkernel = { path = "libraries/libkernel" }
 
-framebuffer = { path = "crates/framebuffer" }
-framebuffer-vesa = { path = "crates/framebuffer-vesa" }
+distros-framebuffer = { path = "crates/framebuffer" }
+distros-framebuffer-vesa = { path = "crates/framebuffer-vesa" }
 
 [dependencies.lazy_static]
 version = "1.4.0"

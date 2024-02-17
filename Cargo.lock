@@ -169,9 +169,9 @@ dependencies = [
  "cc",
  "chrono",
  "crossbeam-queue",
+ "distros-framebuffer",
+ "distros-framebuffer-vesa",
  "fixedbitset",
- "framebuffer",
- "framebuffer-vesa",
  "futures",
  "goblin",
  "hashbrown",
@@ -200,6 +200,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "distros-framebuffer"
+version = "0.1.0"
+
+[[package]]
+name = "distros-framebuffer-vesa"
+version = "0.1.0"
+dependencies = [
+ "bootloader_api",
+ "distros-framebuffer",
+ "spin 0.9.8",
+]
+
+[[package]]
 name = "either"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -216,19 +229,6 @@ name = "font8x8"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "875488b8711a968268c7cf5d139578713097ca4635a76044e8fe8eedf831d07e"
-
-[[package]]
-name = "framebuffer"
-version = "0.1.0"
-
-[[package]]
-name = "framebuffer-vesa"
-version = "0.1.0"
-dependencies = [
- "bootloader_api",
- "framebuffer",
- "spin 0.9.8",
-]
 
 [[package]]
 name = "futures"

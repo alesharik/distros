@@ -1,7 +1,7 @@
 use core::fmt::Write;
 use lazy_static::lazy_static;
 use spin::Mutex;
-use framebuffer_vesa::VesaFrameBuffer;
+use distros_framebuffer_vesa::VesaFrameBuffer;
 use crate::gui::TextDisplay;
 
 lazy_static! {
