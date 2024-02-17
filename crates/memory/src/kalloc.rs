@@ -1,7 +1,7 @@
-use crate::arena::{arena_alloc, Arena, Error};
+use crate::arena::arena_alloc;
 use core::alloc::Layout;
-use log::{debug, error, warn};
-use talc::{OomHandler, Span, Talc, Talck};
+use log::error;
+use talc::{OomHandler, Talc, Talck};
 
 struct OomHandlerImpl;
 

@@ -6,13 +6,6 @@ use x86_64::{PhysAddr, VirtAddr};
 struct RawArena(Arena);
 
 impl RawArena {
-    pub fn empty() -> RawArena {
-        RawArena(Arena {
-            start: PhysAddr::zero(),
-            size: 0,
-        })
-    }
-
     pub fn is_empty(&self) -> bool {
         self.0.start.is_null()
     }
@@ -77,7 +70,7 @@ impl ArenaMap {
         }
         unsafe {
             let ptr = self.ptr + self.len * size_of::<RawArena>();
-            let mut ptr: *mut RawArena = ptr.as_mut_ptr();
+            let ptr: *mut RawArena = ptr.as_mut_ptr();
             *ptr = RawArena(arena);
             (&mut *ptr).set_taken(taken);
             self.len += 1;
@@ -91,7 +84,7 @@ impl ArenaMap {
         }
         unsafe {
             let ptr = self.ptr + pos * size_of::<RawArena>();
-            let mut ptr: *mut RawArena = ptr.as_mut_ptr();
+            let ptr: *mut RawArena = ptr.as_mut_ptr();
             if (&*ptr).is_empty() {
                 *ptr = RawArena(arena);
                 return true;
@@ -107,7 +100,7 @@ impl ArenaMap {
         for i in 0..self.len {
             unsafe {
                 let ptr = self.ptr + i * size_of::<RawArena>();
-                let mut ptr: *mut RawArena = ptr.as_mut_ptr();
+                let ptr: *mut RawArena = ptr.as_mut_ptr();
                 if (&*ptr).is_taken() || (&*ptr).is_empty() {
                     continue;
                 }
@@ -133,7 +126,7 @@ impl ArenaMap {
         for i in 0..self.len {
             unsafe {
                 let ptr = self.ptr + i * size_of::<RawArena>();
-                let mut ptr: *mut RawArena = ptr.as_mut_ptr();
+                let ptr: *mut RawArena = ptr.as_mut_ptr();
                 if (&*ptr).start() == start {
                     (&mut *ptr).set_taken(false);
                     break;

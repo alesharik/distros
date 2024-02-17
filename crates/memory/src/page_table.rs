@@ -4,8 +4,7 @@ use spin::{Mutex, MutexGuard};
 use x86_64::structures::paging::mapper::{MapToError, UnmapError};
 use x86_64::structures::paging::page::NotGiantPageSize;
 use x86_64::structures::paging::{
-    FrameAllocator, Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
-    Size1GiB, Size2MiB, Size4KiB,
+    Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame,
 };
 use x86_64::VirtAddr;
 

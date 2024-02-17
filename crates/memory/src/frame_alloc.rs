@@ -3,8 +3,6 @@ use x86_64::structures::paging::{
     FrameAllocator, PageSize, PhysFrame, Size1GiB, Size2MiB, Size4KiB,
 };
 
-pub static FRAME_ALLOC: FrameAlloc = FrameAlloc;
-
 pub struct FrameAlloc;
 
 unsafe impl FrameAllocator<Size4KiB> for FrameAlloc {
