@@ -2,14 +2,17 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 fn main() {
-    Command::new("cargo")
+    if !Command::new("cargo")
         .arg("+nightly-2024-01-16")
         .arg("build")
         .arg("--target")
         .arg("x86_64-unknown-none")
         .current_dir("..")
         .status()
-        .unwrap();
+        .unwrap()
+        .success() {
+        return;
+    }
 
     let kernel = PathBuf::from("../target/x86_64-unknown-none/debug/distros");
     let out_dir = PathBuf::from("target");

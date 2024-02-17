@@ -3,7 +3,7 @@ use font_constants::BACKUP_CHAR;
 use noto_sans_mono_bitmap::{
     get_raster, get_raster_width, FontWeight, RasterHeight, RasterizedChar,
 };
-use crate::driver::gpu::{FrameBuffer, Gpu, Rgb};
+use framebuffer::{FrameBuffer, FrameBufferWrite};
 
 /// Additional vertical space between lines
 const LINE_SPACING: usize = 2;
@@ -75,15 +75,16 @@ impl<F: FrameBuffer> TextDisplay<F> {
     pub fn clear(&mut self) {
         self.x_pos = BORDER_PADDING;
         self.y_pos = BORDER_PADDING;
-        self.fb.clear();
+        let mut write = self.fb.write();
+        write.clear();
     }
 
     fn width(&self) -> usize {
-        self.fb.width()
+        self.fb.width() as usize
     }
 
     fn height(&self) -> usize {
-        self.fb.height()
+        self.fb.height() as usize
     }
 
     /// Writes a single char to the framebuffer. Takes care of special control characters, such as
@@ -112,7 +113,8 @@ impl<F: FrameBuffer> TextDisplay<F> {
     /// Updates `self.x_pos`.
     fn write_rendered_char(&mut self, rendered_char: RasterizedChar) {
         let raster = rendered_char.raster();
-        self.fb.write_monochrome_pixels(self.x_pos, self.y_pos, raster);
+        let mut write = self.fb.write();
+        write.write_monochrome_pixels(self.x_pos as u16, self.y_pos as u16, raster);
         self.x_pos += rendered_char.width() + LETTER_SPACING;
     }
 }

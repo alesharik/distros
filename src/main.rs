@@ -29,7 +29,7 @@ use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
 use bootloader_api::config::Mapping;
 use x86_64::instructions::hlt;
 use x86_64::VirtAddr;
-use crate::driver::gpu::{Gpu, VesaGpu};
+use framebuffer_vesa::VesaFrameBuffer;
 use crate::gui::TextDisplay;
 
 #[macro_use]
@@ -75,8 +75,8 @@ entry_point!(main, config = &BOOTLOADER_CONFIG);
 pub fn main(boot_info: &'static mut BootInfo) -> ! {
     let mut buffer = boot_info.framebuffer.as_mut().unwrap();
     let info = buffer.info();
-    let gpu = VesaGpu::new(buffer.buffer_mut(), info);
-    logging::init(gpu.new_framebuffer());
+    let fb = VesaFrameBuffer::new(boot_info.framebuffer.take().unwrap());
+    logging::init(fb);
     println!("0x{:08x}", &boot_info.physical_memory_offset.into_option().unwrap());
 
     cpuid::init_cpuid();
@@ -94,7 +94,7 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     // //
     // // // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();
     //
-    process::setup();
+    // process::setup();
     //
     // driver::init(&acpi);
     // basic_term::init().unwrap();
