@@ -1,6 +1,5 @@
-use crate::cpuid;
-use crate::cpuid::FpuInfo;
 use core::arch::asm;
+use distros_cpuid::FpuInfo;
 use x86_64::registers::control::{Cr0, Cr0Flags, Cr4, Cr4Flags};
 use x86_64::registers::xcontrol::{XCr0, XCr0Flags};
 
@@ -79,7 +78,7 @@ fn check_fpu(info: &FpuInfo) -> bool {
 
 pub fn init_fpu() {
     info!("Starting FPU");
-    let info = cpuid::get_fpu_info();
+    let info = FpuInfo::load();
     debug!("CPU info: {:?}", &info);
     if init_sse(&info) && check_fpu(&info) {
         let state = if init_avx(&info) {

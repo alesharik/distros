@@ -17,7 +17,7 @@ static INT_ENABLED: AtomicBool = AtomicBool::new(false);
 
 pub fn init_pic(apic: &Apic) {
     pic8259::disable();
-    if !crate::cpuid::has_apic() {
+    if !distros_cpuid::get_feature_info().has_apic() {
         panic!("Hardware does not have APIC")
     }
     let addr = PhysAddr::new(apic.local_apic_address);

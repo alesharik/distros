@@ -42,7 +42,6 @@ mod process;
 mod acpi;
 mod basic_term;
 mod cmos;
-mod cpuid;
 #[macro_use]
 mod flow;
 mod driver;
@@ -77,7 +76,7 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
         .set_max_level(LevelFilter::Debug)
         .init();
 
-    cpuid::init_cpuid();
+    distros_cpuid::load();
     gdt::init_gdt();
     interrupts::init_idt();
     distros_memory::init(
