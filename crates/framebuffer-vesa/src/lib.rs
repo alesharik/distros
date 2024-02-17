@@ -55,7 +55,7 @@ impl VesaFrameBuffer {
         }
     }
 
-    pub fn force_write(&self) -> FbWrite<'_> {
+    pub fn force_write(&self) -> impl FrameBufferWrite + '_ {
         if self.inner.is_locked() {
             unsafe {
                 self.inner.force_unlock();
@@ -67,7 +67,7 @@ impl VesaFrameBuffer {
 }
 
 impl FrameBuffer for VesaFrameBuffer {
-    fn write(&self) -> FbWrite {
+    fn write(&self) -> impl FrameBufferWrite {
         let inner = self.inner.lock();
         FbWrite { inner }
     }
