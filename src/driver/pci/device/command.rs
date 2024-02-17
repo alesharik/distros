@@ -1,6 +1,6 @@
-use pci_types::{ConfigRegionAccess, PciAddress, PciHeader};
 use crate::flow::{FlowManagerError, VarHandler};
 use libkernel::flow::BoolMessage;
+use pci_types::{ConfigRegionAccess, PciAddress, PciHeader};
 
 type Result<T> = core::result::Result<T, FlowManagerError>;
 
@@ -48,7 +48,10 @@ command_var!("bus_mastering_enabled" => BusMasteringEnabled get bus_mastering_en
 command_var!("memory_space_access_enabled" => MemorySpaceAccessEnabled get memory_space_access_enabled set memory_space_access);
 command_var!("io_space_access_enabled" => IoSpaceAccessEnabled get io_space_access_enabled set io_space_access);
 
-pub fn register_command<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddress, access: &T) -> Result<()> {
+pub fn register_command<T: ConfigRegionAccess + Sync + Clone + 'static>(
+    address: PciAddress,
+    access: &T,
+) -> Result<()> {
     InterruptsDisabled::register(access, address)?;
     FastBackToBackEnabled::register(access, address)?;
     SerrEnabled::register(access, address)?;

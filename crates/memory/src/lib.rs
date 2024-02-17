@@ -5,9 +5,9 @@ use log::info;
 use x86_64::{PhysAddr, VirtAddr};
 
 pub mod arena;
+mod frame_alloc;
 mod kalloc;
 mod page_table;
-mod frame_alloc;
 
 pub use page_table::{map, unmap};
 
@@ -23,7 +23,5 @@ pub fn init(offset: Option<u64>, regions: &MemoryRegions) {
 }
 
 pub fn translate_kernel(phys: PhysAddr) -> VirtAddr {
-    unsafe {
-        VirtAddr::new_truncate((phys + PHYS_OFFSET).as_u64())
-    }
+    unsafe { VirtAddr::new_truncate((phys + PHYS_OFFSET).as_u64()) }
 }

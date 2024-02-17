@@ -2,8 +2,8 @@
 
 use bootloader_api::info::{FrameBufferInfo, PixelFormat};
 use core::ptr;
-use spin::{Mutex, MutexGuard};
 use distros_framebuffer::{FrameBuffer, FrameBufferWrite, Rgb};
+use spin::{Mutex, MutexGuard};
 
 struct Inner {
     fb: &'static mut [u8],
@@ -51,13 +51,15 @@ impl VesaFrameBuffer {
             inner: Mutex::new(Inner {
                 info,
                 fb: fb.into_buffer(),
-            })
+            }),
         }
     }
 
     pub fn force_write(&self) -> FbWrite<'_> {
         if self.inner.is_locked() {
-            unsafe { self.inner.force_unlock(); }
+            unsafe {
+                self.inner.force_unlock();
+            }
         }
         let inner = self.inner.lock();
         FbWrite { inner }

@@ -1,11 +1,11 @@
-use libkernel::flow::{Consumer, Message, Subscription};
-use futures::channel::oneshot::{Sender, Receiver, channel, Canceled};
-use async_trait::async_trait;
 use alloc::boxed::Box;
+use async_trait::async_trait;
+use futures::channel::oneshot::{channel, Canceled, Receiver, Sender};
+use libkernel::flow::{Consumer, Message, Subscription};
 use spin::Mutex;
 
 pub struct GetterReceiver<T: Message + 'static> {
-    rx: Receiver<T>
+    rx: Receiver<T>,
 }
 
 impl<T: Message + 'static> GetterReceiver<T> {
@@ -34,5 +34,10 @@ impl<T: Message + Clone + 'static> Consumer for GetterConsumer<T> {
 
 pub fn getter<T: Message + Clone + 'static>() -> (GetterConsumer<T>, GetterReceiver<T>) {
     let (tx, rx) = channel();
-    (GetterConsumer { tx: Mutex::new(Some(tx)) }, GetterReceiver { rx })
+    (
+        GetterConsumer {
+            tx: Mutex::new(Some(tx)),
+        },
+        GetterReceiver { rx },
+    )
 }

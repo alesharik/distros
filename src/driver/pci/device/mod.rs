@@ -1,9 +1,11 @@
 mod command;
 
 use crate::flow::FlowManagerError;
-use pci_types::{Bar, ConfigRegionAccess, EndpointHeader, MAX_BARS, PciAddress, PciHeader, StatusRegister};
-use pci_types::device_type::DeviceType;
 use libkernel::flow::{U16Message, U8Message};
+use pci_types::device_type::DeviceType;
+use pci_types::{
+    Bar, ConfigRegionAccess, EndpointHeader, PciAddress, PciHeader, StatusRegister, MAX_BARS,
+};
 
 type Result<T> = core::result::Result<T, FlowManagerError>;
 
@@ -11,7 +13,10 @@ primitive_message!(PciDeviceTypeMessage DeviceType);
 primitive_message!(PciDeviceBarMessage Bar);
 primitive_message!(PciDeviceStatusMessage StatusRegister);
 
-fn register_status<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddress, access: &T) -> Result<()> {
+fn register_status<T: ConfigRegionAccess + Sync + Clone + 'static>(
+    address: PciAddress,
+    access: &T,
+) -> Result<()> {
     let access = access.clone();
     let header = PciHeader::new(address);
     register!(val format!("/dev/pci/{}/{}/{}/status", address.bus(), address.device(), address.function()) => PciDeviceStatusMessage fun move || {
@@ -20,7 +25,10 @@ fn register_status<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciA
     Ok(())
 }
 
-pub fn register<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddress, access: &T) -> Result<()> {
+pub fn register<T: ConfigRegionAccess + Sync + Clone + 'static>(
+    address: PciAddress,
+    access: &T,
+) -> Result<()> {
     let header = PciHeader::new(address);
     let (vendor, device_id) = header.id(access);
     let (revision, base, sub, interface) = header.revision_and_class(access);

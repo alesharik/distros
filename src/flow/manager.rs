@@ -1,3 +1,4 @@
+use crate::flow::getter::getter;
 use crate::flow::tree::{FlowTree, FlowTreeEndpoint, FlowTreeError};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
@@ -9,7 +10,6 @@ use core::fmt::{Debug, Formatter};
 use core::ops::DerefMut;
 use libkernel::flow::{AnyConsumer, Message, Provider, Sender, Subscription};
 use spin::{Lazy, Mutex, RwLock};
-use crate::flow::getter::getter;
 
 pub type ElementInfo = super::tree::ElementInfo;
 
@@ -65,7 +65,10 @@ impl FlowManager {
     pub async fn get<T: Message + Clone + 'static>(path: &str) -> Result<T, FlowManagerError> {
         let (tx, rx) = getter::<T>();
         let sub = FlowManager::subscribe(path, Box::new(tx))?;
-        let result = rx.receive().await.map_err(|_| FlowManagerError::WrongMessageType);
+        let result = rx
+            .receive()
+            .await
+            .map_err(|_| FlowManagerError::WrongMessageType);
         drop(sub);
         result
     }

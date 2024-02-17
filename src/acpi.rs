@@ -1,10 +1,10 @@
 use acpi::platform::interrupt::Apic;
-use acpi::{AcpiError, PciConfigRegions};
 use acpi::InterruptModel;
+use acpi::{AcpiError, PciConfigRegions};
 use acpi::{AcpiHandler, AcpiTables, HpetInfo, PhysicalMapping};
 use core::ptr::NonNull;
-use x86_64::PhysAddr;
 use distros_memory::translate_kernel;
+use x86_64::PhysAddr;
 
 #[derive(Clone)]
 struct AcpiMemHandler {}
@@ -38,7 +38,7 @@ impl AcpiHandler for AcpiMemHandler {
 pub struct AcpiInfo {
     pub apic: Apic,
     pub hpet: Option<HpetInfo>,
-    pub pci_config_regions: Option<PciConfigRegions>
+    pub pci_config_regions: Option<PciConfigRegions>,
 }
 
 pub fn init_acpi(rdsp_addr: Option<u64>) -> AcpiInfo {
@@ -59,7 +59,11 @@ pub fn init_acpi(rdsp_addr: Option<u64>) -> AcpiInfo {
         };
         match platform_info.interrupt_model {
             InterruptModel::Unknown => panic!("This kernel requires APIC to run"),
-            InterruptModel::Apic(apic) => AcpiInfo { apic, hpet, pci_config_regions },
+            InterruptModel::Apic(apic) => AcpiInfo {
+                apic,
+                hpet,
+                pci_config_regions,
+            },
             _ => panic!("ACPI does not have interrupt model info"),
         }
     }

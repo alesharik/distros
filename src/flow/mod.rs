@@ -32,14 +32,14 @@ macro_rules! register {
     } };
 }
 
+mod getter;
 mod manager;
 mod producer;
 mod serde;
 mod tree;
-mod getter;
 mod var;
 
 pub use self::serde::{register_serialized, FlowSerdeError};
 pub use manager::{FlowManager, FlowManagerError};
 pub use producer::Producer;
-pub use var::{VarProvider, VarHandler, ValHandler};
+pub use var::{ValHandler, VarHandler, VarProvider};

@@ -1,9 +1,9 @@
 #![no_std]
 
-use log::{LevelFilter, Log, Metadata, Record};
 use core::fmt::Write;
 use core::mem;
 use core::panic::PanicInfo;
+use log::{LevelFilter, Log, Metadata, Record};
 use spin::Mutex;
 
 pub struct Logger<T> {
@@ -35,7 +35,9 @@ impl<T: Write + Send + Sync + 'static> Logger<T> {
     pub fn panic(info: &PanicInfo) {
         let logger: &Logger<T> = unsafe { &*(log::logger() as *const _ as *const Logger<T>) };
         if logger.writer.is_locked() {
-            unsafe { logger.writer.force_unlock(); }
+            unsafe {
+                logger.writer.force_unlock();
+            }
         }
         let mut w = logger.writer.lock();
         write!(w, "PANIC! {}", info).unwrap();
@@ -55,7 +57,14 @@ impl<T: Write + Send + Sync> Log for Logger<T> {
         };
 
         let mut writer = self.writer.lock();
-        write!(writer, "[{}] {} {}\n", record.level(),target, record.args()).unwrap();
+        write!(
+            writer,
+            "[{}] {} {}\n",
+            record.level(),
+            target,
+            record.args()
+        )
+        .unwrap();
     }
 
     fn flush(&self) {}

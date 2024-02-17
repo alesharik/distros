@@ -37,11 +37,17 @@ pub fn setup() {
     }
 }
 
-pub fn add_task<F>(info: ProcessTaskInfo, future: F) where F: Future<Output = ()> + 'static {
+pub fn add_task<F>(info: ProcessTaskInfo, future: F)
+where
+    F: Future<Output = ()> + 'static,
+{
     unsafe {
-        HANDLE.as_mut().expect("Process runtime not started").add(ProcessTask {
-            info,
-            state: ProcessTaskState::Ready(Box::pin(future))
-        })
+        HANDLE
+            .as_mut()
+            .expect("Process runtime not started")
+            .add(ProcessTask {
+                info,
+                state: ProcessTaskState::Ready(Box::pin(future)),
+            })
     }
 }

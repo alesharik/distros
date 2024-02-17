@@ -2,26 +2,28 @@ use alloc::borrow::ToOwned;
 use alloc::vec::Vec;
 use core::future::Future;
 
-mod task;
 pub mod sleep;
+mod task;
 
-pub use task::{setup, run};
 use crate::process::task::ProcessTaskInfo;
+pub use task::{run, setup};
 
-struct Thread {
-}
+struct Thread {}
 
 struct Process {
     threads: Vec<Thread>,
 }
 
 pub fn spawn_kernel<F>(name: &str, future: F)
-    where
-        F: Future<Output = ()> + 'static,
+where
+    F: Future<Output = ()> + 'static,
 {
-    task::add_task(ProcessTaskInfo {
-        name: name.to_owned()
-    }, future);
+    task::add_task(
+        ProcessTaskInfo {
+            name: name.to_owned(),
+        },
+        future,
+    );
 }
 
 /// Schedules future on main kernel loop

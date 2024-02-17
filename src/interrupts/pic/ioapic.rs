@@ -1,12 +1,12 @@
 use acpi::platform::interrupt::Apic;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
+use distros_memory::translate_kernel;
 use spin::Mutex;
 use x2apic::ioapic::{IoApic, IrqFlags, IrqMode};
-use x86_64::PhysAddr;
 use x86_64::structures::paging::Page;
 use x86_64::structures::paging::{PageTableFlags, PhysFrame, Size4KiB};
-use distros_memory::translate_kernel;
+use x86_64::PhysAddr;
 
 struct IoApicHolder {
     id: u8,
@@ -35,8 +35,12 @@ impl IoApicManager {
                 distros_memory::map(
                     PhysFrame::<Size4KiB>::containing_address(addr),
                     Page::containing_address(virt_addr),
-                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE | PageTableFlags::NO_EXECUTE
-                ).unwrap();
+                    PageTableFlags::PRESENT
+                        | PageTableFlags::WRITABLE
+                        | PageTableFlags::NO_CACHE
+                        | PageTableFlags::NO_EXECUTE,
+                )
+                .unwrap();
                 apics.push(IoApicHolder {
                     id: io_apic.id,
                     global_system_interrupt_base: io_apic.global_system_interrupt_base,

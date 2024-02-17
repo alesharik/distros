@@ -24,14 +24,11 @@ impl Future for Load {
     type Output = ();
 
     fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<()> {
-        loop {
-
-        }
+        loop {}
     }
 }
 
 impl Unpin for Load {}
-
 
 impl Sub {
     fn new() -> Sub {
@@ -45,7 +42,9 @@ impl Sub {
     }
 
     async fn print_async(s: &str) {
-        FlowManager::send("/dev/tty/vga", TtyMessage::new(s)).await.unwrap();
+        FlowManager::send("/dev/tty/vga", TtyMessage::new(s))
+            .await
+            .unwrap();
     }
 
     fn new_line(&self) {
@@ -92,7 +91,7 @@ impl Sub {
             }
             "load" => {
                 spawn!("term_load" => Load {})
-            },
+            }
             "lspci" => {
                 spawn!("term_lspci" => async {
                     for bus in FlowManager::list("/dev/pci/") {
@@ -104,7 +103,7 @@ impl Sub {
                         }
                     }
                 })
-            },
+            }
             "" => {}
             _ => {
                 self.print(&format!("Unknown command {}", line));

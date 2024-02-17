@@ -1,10 +1,13 @@
-use spin::{Mutex, MutexGuard};
-use x86_64::structures::paging::page::NotGiantPageSize;
-use x86_64::structures::paging::{FrameAllocator, Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame, Size1GiB, Size2MiB, Size4KiB};
-use x86_64::structures::paging::mapper::{MapToError, UnmapError};
-use x86_64::VirtAddr;
 use crate::frame_alloc::FrameAlloc;
 use crate::translate_kernel;
+use spin::{Mutex, MutexGuard};
+use x86_64::structures::paging::mapper::{MapToError, UnmapError};
+use x86_64::structures::paging::page::NotGiantPageSize;
+use x86_64::structures::paging::{
+    FrameAllocator, Mapper, OffsetPageTable, Page, PageSize, PageTable, PageTableFlags, PhysFrame,
+    Size1GiB, Size2MiB, Size4KiB,
+};
+use x86_64::VirtAddr;
 
 static mut PAGE_TABLE: Option<Mutex<OffsetPageTable<'static>>> = None;
 
@@ -30,7 +33,12 @@ pub fn init(phys_offset: VirtAddr) {
 }
 
 fn get_table<'a>() -> MutexGuard<'a, OffsetPageTable<'static>> {
-    unsafe { PAGE_TABLE.as_ref().expect("Page table not initialized").lock() }
+    unsafe {
+        PAGE_TABLE
+            .as_ref()
+            .expect("Page table not initialized")
+            .lock()
+    }
 }
 
 /// Map virtual page
@@ -39,25 +47,25 @@ pub fn map<T: NotGiantPageSize>(
     page: Page<T>,
     flags: PageTableFlags,
 ) -> Result<(), MapToError<T>>
-    where
-            for<'a> OffsetPageTable<'a>: Mapper<T>,
+where
+    for<'a> OffsetPageTable<'a>: Mapper<T>,
 {
     let mut table = get_table();
     unsafe {
-        table.map_to(page, frame, flags, &mut FrameAlloc)
+        table
+            .map_to(page, frame, flags, &mut FrameAlloc)
             .map(|f| f.flush())
     }
 }
 
 /// Unmap virtual page
 pub fn unmap<T: NotGiantPageSize>(page: Page<T>) -> Result<PhysFrame<T>, UnmapError>
-    where
-            for<'a> OffsetPageTable<'a>: Mapper<T>,
+where
+    for<'a> OffsetPageTable<'a>: Mapper<T>,
 {
     let mut table = get_table();
-    table.unmap(page)
-        .map(|(p, f)| {
-            f.flush();
-            p
-        })
+    table.unmap(page).map(|(p, f)| {
+        f.flush();
+        p
+    })
 }

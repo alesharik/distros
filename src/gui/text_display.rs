@@ -1,9 +1,9 @@
 use core::{fmt, ptr};
+use distros_framebuffer::{FrameBuffer, FrameBufferWrite};
 use font_constants::BACKUP_CHAR;
 use noto_sans_mono_bitmap::{
     get_raster, get_raster_width, FontWeight, RasterHeight, RasterizedChar,
 };
-use distros_framebuffer::{FrameBuffer, FrameBufferWrite};
 
 /// Additional vertical space between lines
 const LINE_SPACING: usize = 2;

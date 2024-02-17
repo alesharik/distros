@@ -1,6 +1,6 @@
+use crate::arena::{Arena, Error};
 use core::mem::size_of;
 use x86_64::{PhysAddr, VirtAddr};
-use crate::arena::{Arena, Error};
 
 #[derive(Eq, PartialEq, Copy, Clone)]
 struct RawArena(Arena);
@@ -67,13 +67,13 @@ impl ArenaMap {
         ArenaMap {
             ptr,
             len: 0,
-            size: virt_size / size_of::<RawArena>()
+            size: virt_size / size_of::<RawArena>(),
         }
     }
 
     pub fn push(&mut self, arena: Arena, taken: bool) -> Result<(), Error> {
         if self.len == self.size {
-            return Err(Error::ArenaMapSizeExhausted)
+            return Err(Error::ArenaMapSizeExhausted);
         }
         unsafe {
             let ptr = self.ptr + self.len * size_of::<RawArena>();
@@ -87,14 +87,14 @@ impl ArenaMap {
 
     fn try_push_at_pos(&mut self, pos: usize, arena: Arena) -> bool {
         if pos >= self.len {
-            return false
+            return false;
         }
         unsafe {
             let ptr = self.ptr + pos * size_of::<RawArena>();
             let mut ptr: *mut RawArena = ptr.as_mut_ptr();
             if (&*ptr).is_empty() {
                 *ptr = RawArena(arena);
-                return true
+                return true;
             }
         }
         false
@@ -102,14 +102,14 @@ impl ArenaMap {
 
     pub fn alloc(&mut self, size: usize) -> Result<Option<Arena>, Error> {
         if size == 0 {
-            return Err(Error::SizeInvalid)
+            return Err(Error::SizeInvalid);
         }
         for i in 0..self.len {
             unsafe {
                 let ptr = self.ptr + i * size_of::<RawArena>();
                 let mut ptr: *mut RawArena = ptr.as_mut_ptr();
                 if (&*ptr).is_taken() || (&*ptr).is_empty() {
-                    continue
+                    continue;
                 }
                 if (&*ptr).size() == size as u64 {
                     (&mut *ptr).set_taken(true);

@@ -25,14 +25,14 @@ extern crate libkernel;
 use core::fmt::Write;
 use core::panic::PanicInfo;
 
-use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
+use crate::gui::TextDisplay;
 use bootloader_api::config::Mapping;
+use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
+use distros_framebuffer_vesa::VesaFrameBuffer;
+use distros_logging::Logger;
 use log::LevelFilter;
 use x86_64::instructions::hlt;
 use x86_64::VirtAddr;
-use distros_framebuffer_vesa::VesaFrameBuffer;
-use distros_logging::Logger;
-use crate::gui::TextDisplay;
 
 mod gdt;
 #[macro_use]
@@ -48,8 +48,8 @@ mod flow;
 mod driver;
 mod elf;
 mod fpu;
-mod random;
 mod gui;
+mod random;
 
 /// This function is called on panic.
 #[panic_handler]
@@ -80,7 +80,10 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     cpuid::init_cpuid();
     gdt::init_gdt();
     interrupts::init_idt();
-    distros_memory::init(boot_info.physical_memory_offset.into_option(), &boot_info.memory_regions);
+    distros_memory::init(
+        boot_info.physical_memory_offset.into_option(),
+        &boot_info.memory_regions,
+    );
     // memory::init_memory(
     //     VirtAddr::new(boot_info.physical_memory_offset.into_option().unwrap()),
     //     &boot_info.memory_regions,
@@ -98,7 +101,5 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     // basic_term::init().unwrap();
     //
     // unsafe { process::run() }
-    loop {
-
-    }
+    loop {}
 }

@@ -1,8 +1,8 @@
+use crate::arena::util::MergeMemoryRegions;
 use arrayvec::ArrayVec;
 use bootloader_api::info::{MemoryRegion, MemoryRegionKind, MemoryRegions};
 use log::info;
 use x86_64::PhysAddr;
-use crate::arena::util::MergeMemoryRegions;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 struct Region {
@@ -28,7 +28,10 @@ impl Region {
 
     pub fn alloc(&mut self, size: usize) -> PhysAddr {
         if self.used + size > self.len {
-            panic!("Cannot allocate {} bytes ({} already used): len {} exceeded", size, self.used, self.len);
+            panic!(
+                "Cannot allocate {} bytes ({} already used): len {} exceeded",
+                size, self.used, self.len
+            );
         }
         let addr = self.ptr + self.used;
         self.used += size;
@@ -42,7 +45,8 @@ pub struct RegionAllocator {
 
 impl RegionAllocator {
     pub fn new(regions: &MemoryRegions) -> Self {
-        let regions: ArrayVec<Region, 32> = regions.iter()
+        let regions: ArrayVec<Region, 32> = regions
+            .iter()
             .filter(|r| r.kind == MemoryRegionKind::Usable)
             .copied()
             .merge_regions()
@@ -51,9 +55,7 @@ impl RegionAllocator {
         info!("Region allocator initialized with regions {:?}", &regions);
         let total: usize = regions.iter().map(|r| r.free()).sum();
         info!("Total available memory: {} MiB", total / 1024 / 1024);
-        RegionAllocator {
-            regions
-        }
+        RegionAllocator { regions }
     }
 
     pub fn allocate(&mut self, size: usize) -> Option<PhysAddr> {
@@ -62,7 +64,7 @@ impl RegionAllocator {
         }
         for reg in &mut self.regions {
             if reg.free() >= size {
-                return Some(reg.alloc(size))
+                return Some(reg.alloc(size));
             }
         }
         None

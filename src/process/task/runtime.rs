@@ -1,8 +1,8 @@
 //! Provides runtime to run tasks
-use alloc::borrow::ToOwned;
 use crate::interrupts;
 use crate::process::task::ctx::{Regs, TaskContext};
 use crate::process::task::{ProcessTask, ProcessTaskInfo, ProcessTaskState};
+use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use alloc::task::Wake;
@@ -13,7 +13,6 @@ use core::sync::atomic::{AtomicBool, Ordering};
 use core::task::{Context, Poll};
 use crossbeam_queue::SegQueue;
 use x86_64::structures::idt::InterruptStackFrame;
-
 
 const QUEUE_TASK_CAP: i32 = 1000;
 
@@ -91,9 +90,7 @@ pub struct ProcessRuntimeHandle {
 impl ProcessRuntimeHandle {
     /// Add new task to runtime
     pub fn add(&self, task: ProcessTask) {
-        interrupts::no_int(|| {
-            self.queue.push(task)
-        });
+        interrupts::no_int(|| self.queue.push(task));
     }
 }
 
@@ -101,7 +98,7 @@ pub struct ProcessRuntime {
     queue: Arc<SegQueue<ProcessTask>>,
     add_task_queue: Arc<SegQueue<ProcessTask>>,
     current_task_info: Option<ProcessTaskInfo>,
-    task_running: AtomicBool
+    task_running: AtomicBool,
 }
 
 impl ProcessRuntime {
@@ -109,14 +106,16 @@ impl ProcessRuntime {
     pub unsafe fn new() -> Self {
         let queue = SegQueue::new();
         queue.push(ProcessTask {
-            info: ProcessTaskInfo { name: "empty".to_owned() },
-            state: ProcessTaskState::Ready(Box::pin(futures::future::pending()))
+            info: ProcessTaskInfo {
+                name: "empty".to_owned(),
+            },
+            state: ProcessTaskState::Ready(Box::pin(futures::future::pending())),
         });
         ProcessRuntime {
             queue: Arc::new(queue),
             add_task_queue: Arc::new(SegQueue::new()),
             current_task_info: None,
-            task_running: AtomicBool::new(true) // to start main cycle
+            task_running: AtomicBool::new(true), // to start main cycle
         }
     }
 
@@ -130,7 +129,7 @@ impl ProcessRuntime {
         if let Some(task) = self.current_task_info.take() {
             self.queue.push(ProcessTask {
                 info: task,
-                state: ProcessTaskState::Paused(TaskContext::fill_from(&stack_frame, regs))
+                state: ProcessTaskState::Paused(TaskContext::fill_from(&stack_frame, regs)),
             });
         }
     }
@@ -241,7 +240,7 @@ impl ProcessRuntime {
                     // can't handle, give it to int
                     self.queue.push(ProcessTask {
                         info: task_info,
-                        state: ProcessTaskState::Paused(context)
+                        state: ProcessTaskState::Paused(context),
                     });
                 }
             }

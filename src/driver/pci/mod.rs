@@ -1,13 +1,19 @@
 use pci_types::{ConfigRegionAccess, PciAddress, PciHeader};
 
-mod device;
 mod access;
+mod device;
 
-pub use device::{PciDeviceStatusMessage, PciDeviceTypeMessage, PciDeviceBarMessage};
 use crate::acpi::AcpiInfo;
 use crate::driver::pci::access::{PciAccess, PcieAccess};
+pub use device::{PciDeviceBarMessage, PciDeviceStatusMessage, PciDeviceTypeMessage};
 
-fn check_function<T: ConfigRegionAccess + Sync + Clone + 'static>(access: &T, segment: u16, bus: u8, device: u8, function: u8) {
+fn check_function<T: ConfigRegionAccess + Sync + Clone + 'static>(
+    access: &T,
+    segment: u16,
+    bus: u8,
+    device: u8,
+    function: u8,
+) {
     let address = PciAddress::new(segment, bus, device, function);
     if let Err(error) = device::register(address, access) {
         error!(
@@ -17,7 +23,12 @@ fn check_function<T: ConfigRegionAccess + Sync + Clone + 'static>(access: &T, se
     }
 }
 
-fn check_device<T: ConfigRegionAccess + Sync + Clone + 'static>(access: &T, segment: u16, bus: u8, device: u8) {
+fn check_device<T: ConfigRegionAccess + Sync + Clone + 'static>(
+    access: &T,
+    segment: u16,
+    bus: u8,
+    device: u8,
+) {
     let pci_header = PciHeader::new(PciAddress::new(0, bus, device, 0));
     let (vendor_id, _) = pci_header.id(access);
     if vendor_id == 0xFFFF {

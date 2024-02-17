@@ -2,7 +2,7 @@
 pub struct Rgb {
     pub r: u8,
     pub g: u8,
-    pub b: u8
+    pub b: u8,
 }
 
 impl Rgb {
@@ -16,7 +16,7 @@ impl Rgb {
         Rgb {
             r: mono,
             g: mono,
-            b: mono / 2
+            b: mono / 2,
         }
     }
 

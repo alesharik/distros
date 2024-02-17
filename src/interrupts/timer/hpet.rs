@@ -2,9 +2,9 @@ use crate::interrupts::Irq;
 use acpi::HpetInfo;
 use bit_field::BitField;
 use core::ops::Not;
-use x86_64::{PhysAddr, VirtAddr};
-use x86_64::structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB};
 use distros_memory::translate_kernel;
+use x86_64::structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB};
+use x86_64::{PhysAddr, VirtAddr};
 
 const RTC_COMP: u8 = 0;
 
@@ -79,8 +79,12 @@ pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
     distros_memory::map(
         PhysFrame::<Size4KiB>::containing_address(phys),
         Page::containing_address(addr),
-        PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE | PageTableFlags::NO_EXECUTE
-    ).unwrap();
+        PageTableFlags::PRESENT
+            | PageTableFlags::WRITABLE
+            | PageTableFlags::NO_CACHE
+            | PageTableFlags::NO_EXECUTE,
+    )
+    .unwrap();
     let comparator = find_hpet_periodic_timer(info, &addr, RTC_COMP);
     let period = unsafe { *(addr.as_ptr::<u32>()) };
     let frequency = (10_u64).pow(15) / period as u64;
@@ -112,8 +116,7 @@ pub fn init_hpet_rtc(info: &HpetInfo) -> Irq {
 }
 
 pub fn start_hpet(info: &HpetInfo) {
-    let addr: VirtAddr =
-        translate_kernel(PhysAddr::new(info.base_address as u64)) + 0x010_usize;
+    let addr: VirtAddr = translate_kernel(PhysAddr::new(info.base_address as u64)) + 0x010_usize;
     let counter_addr: VirtAddr =
         translate_kernel(PhysAddr::new(info.base_address as u64)) + 0x0F0_usize;
     unsafe {

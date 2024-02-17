@@ -1,10 +1,10 @@
 use crate::flow::FlowSerdeError;
 use alloc::vec::IntoIter;
 use core::mem::discriminant;
+use distros_memory::translate_kernel;
 use itertools::Itertools;
 use smbioslib::*;
 use x86_64::{PhysAddr, VirtAddr};
-use distros_memory::translate_kernel;
 
 struct MemoryMapperImpl {}
 

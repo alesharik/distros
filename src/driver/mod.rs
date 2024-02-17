@@ -5,10 +5,10 @@ mod pci;
 mod smbios;
 mod syslog;
 mod tty;
+use crate::acpi::AcpiInfo;
 pub use pci::{PciDeviceBarMessage, PciDeviceTypeMessage};
 pub use syslog::SyslogMessage;
 pub use tty::TtyMessage;
-use crate::acpi::AcpiInfo;
 
 pub fn init(acpi: &AcpiInfo) {
     syslog::init();

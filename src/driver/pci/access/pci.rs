@@ -9,10 +9,9 @@ struct PciAccessInner {
     data_port: Port<u32>,
 }
 
-
 #[derive(Clone)]
 pub struct PciAccess {
-    inner: Arc<Mutex<PciAccessInner>>
+    inner: Arc<Mutex<PciAccessInner>>,
 }
 
 impl PciAccess {
@@ -21,7 +20,7 @@ impl PciAccess {
             inner: Arc::new(Mutex::new(PciAccessInner {
                 address_port: PortWriteOnly::new(0xCF8),
                 data_port: Port::new(0xCFC),
-            }))
+            })),
         }
     }
 }

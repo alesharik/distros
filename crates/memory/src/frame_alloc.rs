@@ -1,5 +1,7 @@
-use x86_64::structures::paging::{FrameAllocator, PageSize, PhysFrame, Size1GiB, Size2MiB, Size4KiB};
 use crate::arena::arena_alloc;
+use x86_64::structures::paging::{
+    FrameAllocator, PageSize, PhysFrame, Size1GiB, Size2MiB, Size4KiB,
+};
 
 pub static FRAME_ALLOC: FrameAlloc = FrameAlloc;
 

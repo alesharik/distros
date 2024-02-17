@@ -1,16 +1,16 @@
-mod region;
-mod arenamap;
 mod alloc;
+mod arenamap;
+mod region;
 mod util;
 
 pub use alloc::ArenaAllocator;
 
+use crate::translate_kernel;
 use bootloader_api::info::MemoryRegions;
 use spin::{Mutex, MutexGuard};
 use talc::Span;
-use x86_64::PhysAddr;
 use x86_64::structures::paging::{PageSize, PhysFrame};
-use crate::translate_kernel;
+use x86_64::PhysAddr;
 
 const TWO_MIBS: usize = 2 * 1024 * 1024;
 const ARENA_MAP_SIZE: usize = TWO_MIBS;
@@ -68,6 +68,9 @@ pub fn initialize(regions: &MemoryRegions) {
 
 pub fn arena_alloc<'a>() -> MutexGuard<'a, ArenaAllocator> {
     unsafe {
-        ARENA_ALLOC.as_ref().expect("Arena allocator not initialized").lock()
+        ARENA_ALLOC
+            .as_ref()
+            .expect("Arena allocator not initialized")
+            .lock()
     }
 }

@@ -1,11 +1,11 @@
+use crate::flow::{FlowManager, FlowManagerError};
 use alloc::boxed::Box;
 use alloc::sync::Arc;
+use async_trait::async_trait;
 use core::marker::PhantomData;
 use core::sync::atomic::{AtomicBool, Ordering};
 use libkernel::flow::{AnyConsumer, Message, Provider, Sender, Subscription};
-use async_trait::async_trait;
 use spin::Mutex;
-use crate::flow::{FlowManager, FlowManagerError};
 
 struct SubscriptionImpl {
     dropped: Arc<AtomicBool>,
@@ -41,7 +41,7 @@ pub trait VarHandler<T: Message + 'static>: Send + Sync {
 
 struct VarHandlerProxy<T: VarHandler<M>, M: Message + 'static> {
     handler: Arc<T>,
-    message_type: PhantomData<M>
+    message_type: PhantomData<M>,
 }
 
 impl<T: VarHandler<M>, M: Message + 'static> ValHandler<M> for VarHandlerProxy<T, M> {
@@ -73,18 +73,17 @@ impl<F: ValHandler<T> + 'static, T: Message + 'static> ValProviderImpl<F, T> {
 impl<F: ValHandler<T> + 'static, T: 'static + Message> Provider for ValProviderImpl<F, T> {
     fn add_consumer(&mut self, consumer: Box<dyn AnyConsumer>) -> Box<dyn Subscription> {
         let dropped = Arc::new(AtomicBool::new(false));
-        crate::process::spawn_kernel("val_handler", ValProviderImpl::send(
-            self.handler.clone(),
-            consumer,
-            dropped.clone(),
-        ));
+        crate::process::spawn_kernel(
+            "val_handler",
+            ValProviderImpl::send(self.handler.clone(), consumer, dropped.clone()),
+        );
         Box::new(SubscriptionImpl { dropped })
     }
 }
 
 pub struct VarProviderImpl<F: VarHandler<T> + 'static, T: Message + 'static> {
     handler: Arc<F>,
-    val_provider: ValProviderImpl<VarHandlerProxy<F, T>, T>
+    val_provider: ValProviderImpl<VarHandlerProxy<F, T>, T>,
 }
 
 impl<F: VarHandler<T> + 'static, T: Message + 'static> VarProviderImpl<F, T> {
@@ -112,25 +111,29 @@ impl<F: VarHandler<T> + 'static, T: 'static + Message> Sender for VarProviderImp
 pub struct VarProvider {}
 
 impl VarProvider {
-    pub fn new_var<F: VarHandler<T> + 'static, T: Message + 'static>(handler: F) -> VarProviderImpl<F, T> {
+    pub fn new_var<F: VarHandler<T> + 'static, T: Message + 'static>(
+        handler: F,
+    ) -> VarProviderImpl<F, T> {
         let handler = Arc::new(handler);
         VarProviderImpl {
             val_provider: ValProviderImpl {
                 handler: Arc::new(VarHandlerProxy {
                     handler: handler.clone(),
-                    message_type: PhantomData::default()
+                    message_type: PhantomData::default(),
                 }),
-                message_type: PhantomData::default()
+                message_type: PhantomData::default(),
             },
-            handler
+            handler,
         }
     }
 
-    pub fn new_val<F: ValHandler<T> + 'static, T: Message + 'static>(handler: F) -> ValProviderImpl<F, T> {
+    pub fn new_val<F: ValHandler<T> + 'static, T: Message + 'static>(
+        handler: F,
+    ) -> ValProviderImpl<F, T> {
         let handler = Arc::new(handler);
         ValProviderImpl {
             handler,
-            message_type: PhantomData::default()
+            message_type: PhantomData::default(),
         }
     }
 }

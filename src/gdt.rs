@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use x86_64::registers::segmentation::{CS, DS, Segment, SS};
+use x86_64::registers::segmentation::{Segment, CS, DS, SS};
 use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::{PrivilegeLevel, VirtAddr};
@@ -34,7 +34,7 @@ lazy_static! {
             Selectors {
                 code_selector,
                 tss_selector,
-                data_selector
+                data_selector,
             },
         )
     };

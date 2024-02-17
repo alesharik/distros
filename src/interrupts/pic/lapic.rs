@@ -23,13 +23,19 @@ pub fn init_lapic(address: VirtAddr) {
 
 pub fn eoi() {
     unsafe {
-        LAPIC.as_mut().expect("Local APIC is not initialized").end_of_interrupt();
+        LAPIC
+            .as_mut()
+            .expect("Local APIC is not initialized")
+            .end_of_interrupt();
     }
 }
 
 pub fn start_lapic_timer() {
     unsafe {
-        LAPIC.as_mut().expect("Local APIC is not initialized").enable_timer();
+        LAPIC
+            .as_mut()
+            .expect("Local APIC is not initialized")
+            .enable_timer();
     }
 }
 
