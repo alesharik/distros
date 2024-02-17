@@ -39,7 +39,6 @@ mod gdt;
 mod interrupts;
 #[macro_use]
 mod process;
-mod memory;
 mod acpi;
 mod basic_term;
 mod cmos;
@@ -77,19 +76,18 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     Logger::new(TextDisplay::new(fb))
         .set_max_level(LevelFilter::Debug)
         .init();
-    info!("0x{:08x}", &boot_info.physical_memory_offset.into_option().unwrap());
 
     cpuid::init_cpuid();
     gdt::init_gdt();
     interrupts::init_idt();
-    memory::init_memory(
-        VirtAddr::new(boot_info.physical_memory_offset.into_option().unwrap()),
-        &boot_info.memory_regions,
-    );
+    distros_memory::init(boot_info.physical_memory_offset.into_option(), &boot_info.memory_regions);
+    // memory::init_memory(
+    //     VirtAddr::new(boot_info.physical_memory_offset.into_option().unwrap()),
+    //     &boot_info.memory_regions,
+    // );
     let acpi = acpi::init_acpi(boot_info.rsdp_addr.into_option());
     interrupts::init_pic(&acpi);
     fpu::init_fpu();
-    memory::init_kheap_info();
     interrupts::syscall_init();
     // //
     // // // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();

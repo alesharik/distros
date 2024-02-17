@@ -1,7 +1,6 @@
 //! Provides runtime to run tasks
 use alloc::borrow::ToOwned;
 use crate::interrupts;
-use crate::memory::util::{MemoryError};
 use crate::process::task::ctx::{Regs, TaskContext};
 use crate::process::task::{ProcessTask, ProcessTaskInfo, ProcessTaskState};
 use alloc::boxed::Box;
@@ -107,18 +106,18 @@ pub struct ProcessRuntime {
 
 impl ProcessRuntime {
     /// Create new runtime and allocate task queue in current memory space
-    pub unsafe fn new() -> Result<Self, MemoryError> {
+    pub unsafe fn new() -> Self {
         let queue = SegQueue::new();
         queue.push(ProcessTask {
             info: ProcessTaskInfo { name: "empty".to_owned() },
             state: ProcessTaskState::Ready(Box::pin(futures::future::pending()))
         });
-        Ok(ProcessRuntime {
+        ProcessRuntime {
             queue: Arc::new(queue),
             add_task_queue: Arc::new(SegQueue::new()),
             current_task_info: None,
             task_running: AtomicBool::new(true) // to start main cycle
-        })
+        }
     }
 
     pub fn handle(&self) -> ProcessRuntimeHandle {

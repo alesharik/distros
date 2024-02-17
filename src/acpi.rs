@@ -4,6 +4,7 @@ use acpi::InterruptModel;
 use acpi::{AcpiHandler, AcpiTables, HpetInfo, PhysicalMapping};
 use core::ptr::NonNull;
 use x86_64::PhysAddr;
+use distros_memory::translate_kernel;
 
 #[derive(Clone)]
 struct AcpiMemHandler {}
@@ -23,7 +24,7 @@ impl AcpiHandler for AcpiMemHandler {
         let addr = PhysAddr::new(physical_address as u64);
         PhysicalMapping::new(
             physical_address,
-            NonNull::new_unchecked(crate::memory::map_physical_address(addr).as_mut_ptr()),
+            NonNull::new_unchecked(translate_kernel(addr).as_mut_ptr()),
             size,
             size,
             self.clone(),

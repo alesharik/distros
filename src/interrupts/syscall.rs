@@ -1,7 +1,5 @@
 use crate::interrupts;
 use crate::interrupts::InterruptId;
-use crate::memory;
-use crate::memory::util::{MemoryError, MemoryToken};
 use libkernel::syscall::{
     self, take_command, SyscallCommand, SyscallMessage, SYSCALL_IN_MEM, SYSCALL_SYNC_MEM,
 };
@@ -31,15 +29,15 @@ pub fn init() {
 }
 
 /// Setup syscall memory for program
-pub fn init_syscall_block() -> Result<MemoryToken, MemoryError> {
-    memory::util::static_map_memory(
-        VirtAddr::new_truncate(SYSCALL_IN_MEM),
-        4096,
-        PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
-    )?;
-    memory::util::static_map_memory(
-        VirtAddr::new_truncate(SYSCALL_SYNC_MEM),
-        4096,
-        PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
-    )
+pub fn init_syscall_block() -> () {
+    // memory::util::static_map_memory(
+    //     VirtAddr::new_truncate(SYSCALL_IN_MEM),
+    //     4096,
+    //     PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
+    // )?;
+    // memory::util::static_map_memory(
+    //     VirtAddr::new_truncate(SYSCALL_SYNC_MEM),
+    //     4096,
+    //     PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
+    // )
 }

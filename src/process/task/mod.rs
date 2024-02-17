@@ -31,7 +31,7 @@ static mut HANDLE: Option<ProcessRuntimeHandle> = None;
 
 pub fn setup() {
     unsafe {
-        let runtime = ProcessRuntime::new().expect("Failed to start process runtime");
+        let runtime = ProcessRuntime::new();
         HANDLE = Some(runtime.handle());
         int::setup(runtime);
     }

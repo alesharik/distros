@@ -1,17 +1,17 @@
 use crate::flow::FlowSerdeError;
-use crate::memory;
 use alloc::vec::IntoIter;
 use core::mem::discriminant;
 use itertools::Itertools;
 use smbioslib::*;
 use x86_64::{PhysAddr, VirtAddr};
+use distros_memory::translate_kernel;
 
 struct MemoryMapperImpl {}
 
 impl MemoryMapper for MemoryMapperImpl {
     #[inline]
     fn map_block(&mut self, addr: PhysAddr, _size: usize) -> VirtAddr {
-        memory::map_physical_address(addr)
+        translate_kernel(addr)
     }
 }
 

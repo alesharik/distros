@@ -6,6 +6,7 @@ use x2apic::ioapic::{IoApic, IrqFlags, IrqMode};
 use x86_64::PhysAddr;
 use x86_64::structures::paging::Page;
 use x86_64::structures::paging::{PageTableFlags, PhysFrame, Size4KiB};
+use distros_memory::translate_kernel;
 
 struct IoApicHolder {
     id: u8,
@@ -30,8 +31,8 @@ impl IoApicManager {
             let mut apics = Vec::<IoApicHolder>::new();
             for io_apic in &apic.io_apics {
                 let addr = PhysAddr::new(apic.io_apics[0].address as u64);
-                let virt_addr = crate::memory::map_physical_address(addr);
-                crate::memory::page_table::map(
+                let virt_addr = translate_kernel(addr);
+                distros_memory::map(
                     PhysFrame::<Size4KiB>::containing_address(addr),
                     Page::containing_address(virt_addr),
                     PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE | PageTableFlags::NO_EXECUTE

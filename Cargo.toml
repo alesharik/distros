@@ -43,6 +43,7 @@ libkernel = { path = "libraries/libkernel" }
 distros-framebuffer = { path = "crates/framebuffer" }
 distros-framebuffer-vesa = { path = "crates/framebuffer-vesa" }
 distros-logging = { path = "crates/logging" }
+distros-memory = { path = "crates/memory" }
 
 [dependencies.lazy_static]
 version = "1.4.0"
@@ -52,5 +53,5 @@ features = ["spin_no_std"]
 cc = "1.0.68"
 
 [workspace]
-members = ["crates/framebuffer", "crates/framebuffer-vesa", "crates/logging"]
+members = ["crates/framebuffer", "crates/framebuffer-vesa", "crates/logging", "crates/memory"]
 exclude = ["runner"]

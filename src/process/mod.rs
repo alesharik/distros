@@ -1,5 +1,4 @@
 use alloc::borrow::ToOwned;
-use crate::memory::Liballoc;
 use alloc::vec::Vec;
 use core::future::Future;
 
@@ -13,7 +12,6 @@ struct Thread {
 }
 
 struct Process {
-    liballoc: Liballoc,
     threads: Vec<Thread>,
 }
 
