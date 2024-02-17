@@ -25,7 +25,7 @@ pub fn start_rtc() {
         // address.write(0x0C);
         // data.read(); // Ignore. Resets IRQ
     }
-    kblog!("RTC", "RTC started");
+    info!("RTC started");
 }
 
 int_handler!(pub noint rtc_handler |_frame: InterruptStackFrame| {

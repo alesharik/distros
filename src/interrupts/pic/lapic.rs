@@ -17,7 +17,7 @@ pub fn init_lapic(address: VirtAddr) {
             .expect("Failed to get Local APIC");
         apic.enable();
         LAPIC = Some(apic);
-        kblog!("LAPIC", "LAPIC enabled");
+        info!("LAPIC enabled");
     }
 }
 

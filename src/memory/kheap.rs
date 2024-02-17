@@ -1,7 +1,6 @@
 use super::page_table;
 use crate::flow::FlowManager;
 use crate::interrupts;
-use crate::kblog;
 use alloc::boxed::Box;
 use alloc::sync::Arc;
 use core::alloc::{GlobalAlloc, Layout};
@@ -134,7 +133,7 @@ unsafe impl<'a> FrameAllocator<Size4KiB> for KHeapFrameAllocator<'a> {
 }
 
 pub fn init_kheap(map: &'static MemoryRegions) -> Result<KernelInitHeapInfo, MapToError<Size2MiB>> {
-    kblog!("KHeap", "Starting kernel heap");
+    info!("Starting kernel heap");
     let heap_start = VirtAddr::new(HEAP_START as u64);
     let heap_end = heap_start + HEAP_SIZE - 1u64;
     let heap_start_page = Page::<Size2MiB>::containing_address(heap_start);
@@ -155,7 +154,7 @@ pub fn init_kheap(map: &'static MemoryRegions) -> Result<KernelInitHeapInfo, Map
             {
                 continue;
             }
-            println!("TOOK {:?}", region);
+            debug!("TOOK {:?}", region);
             alloc_map[idx] += page.size();
             let phys_frame = PhysFrame::containing_address(PhysAddr::new(
                 region.start * 4096 + alloc_map[idx] + 1,
@@ -181,8 +180,7 @@ pub fn init_kheap(map: &'static MemoryRegions) -> Result<KernelInitHeapInfo, Map
         ALLOCATOR.lock().init(HEAP_START, HEAP_SIZE);
     }
 
-    kblog!(
-        "KHeap",
+    info!(
         "Kernel heap started at pos {:#x} with size {} MiB",
         HEAP_START,
         HEAP_SIZE / 1024 / 1024

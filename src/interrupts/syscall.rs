@@ -13,13 +13,13 @@ int_handler!(noint syscall_handler | _stack_frame: InterruptStackFrame | {
     if let Some(cmd) = take_command() {
         match cmd {
             SyscallCommand::Test => {
-                kblog!("SYSCALL", "TEST");
+                debug!("SYSCALL: TEST");
                 unsafe {
                     syscall::call_handler(SyscallMessage::Test);
                 }
             }
             SyscallCommand::Test1 => {
-                kblog!("SYSCALL", "TEST1");
+                debug!("SYSCALL: TEST1");
             }
         }
     }

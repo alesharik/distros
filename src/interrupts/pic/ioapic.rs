@@ -102,7 +102,7 @@ pub fn init_ioapic(apic: &Apic) {
     let mut manager = IoApicManager::new(apic);
     manager.init();
     *global_manager = Some(manager);
-    kblog!("IOAPIC", "IOAPIC set up")
+    info!("IOAPIC set up")
 }
 
 pub fn map_irc_irq(isr: u8, dest: u32) -> usize {

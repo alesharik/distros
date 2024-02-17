@@ -1,4 +1,3 @@
-use crate::kblog;
 use acpi::platform::interrupt::Apic;
 use acpi::{AcpiError, PciConfigRegions};
 use acpi::InterruptModel;
@@ -47,7 +46,7 @@ pub fn init_acpi(rdsp_addr: Option<u64>) -> AcpiInfo {
             .map(|addr| AcpiTables::from_rsdp(AcpiMemHandler::new(), addr as usize))
             .unwrap_or_else(|| AcpiTables::search_for_rsdp_bios(AcpiMemHandler::new()))
             .expect("Failed to get ACPI tables");
-        kblog!("ACPI", "Got ACPI tables");
+        info!("Got ACPI tables");
         let platform_info = tables.platform_info().expect("Failed to get platform info");
         let pci_config_regions = PciConfigRegions::new(&tables).ok();
         let hpet = match HpetInfo::new(&tables) {

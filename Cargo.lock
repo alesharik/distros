@@ -171,6 +171,7 @@ dependencies = [
  "crossbeam-queue",
  "distros-framebuffer",
  "distros-framebuffer-vesa",
+ "distros-logging",
  "fixedbitset",
  "futures",
  "goblin",
@@ -209,6 +210,14 @@ version = "0.1.0"
 dependencies = [
  "bootloader_api",
  "distros-framebuffer",
+ "spin 0.9.8",
+]
+
+[[package]]
+name = "distros-logging"
+version = "0.1.0"
+dependencies = [
+ "log",
  "spin 0.9.8",
 ]
 

@@ -42,6 +42,6 @@ pub fn init_pit() -> Irq {
         counter0.write(divisor as u8);
         counter0.write((divisor >> 8) as u8)
     }
-    kblog!("PIT", "PIT started");
+    info!("PIT started");
     PIT_IRQ
 }

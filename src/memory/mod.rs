@@ -3,8 +3,6 @@ use x86_64::structures::paging::page::NotGiantPageSize;
 use x86_64::structures::paging::Size4KiB;
 use x86_64::{structures::paging::Page, PhysAddr, VirtAddr};
 
-use crate::kblog;
-
 mod frame;
 mod kheap;
 pub mod page_table;
@@ -28,7 +26,7 @@ pub fn init_memory(phys_offset: VirtAddr, memory_map: &'static MemoryRegions) {
     let kernel_heap_info = kheap::init_kheap(memory_map).unwrap();
     PHYS_OFFSET.store(phys_offset.as_u64(), Ordering::SeqCst);
     frame::init(memory_map, &kernel_heap_info.offsets);
-    kblog!("MemoryManager", "Memory manager ready");
+    info!("Memory manager ready");
 }
 
 pub fn map_physical_address(address: PhysAddr) -> VirtAddr {

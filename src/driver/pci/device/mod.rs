@@ -46,7 +46,7 @@ pub fn register<T: ConfigRegionAccess + Sync + Clone + 'static>(address: PciAddr
 
         for capability in endpoint.capabilities(access) {
             // register!(content format!("/dev/pci/{}/{}/{}/capability/{}", bus, device, function, capability) => PciDeviceBarMessage(bar));
-            println!("{:?}", capability);
+            debug!("{:?}", capability);
         }
     }
     Ok(())

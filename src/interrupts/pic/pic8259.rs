@@ -1,4 +1,3 @@
-use crate::kblog;
 use spin::Mutex;
 use x86_64::instructions::port::Port;
 
@@ -37,7 +36,7 @@ pub fn disable() {
     for irq in 0..16 {
         set_mask(irq);
     }
-    kblog!("PIC8259", "IRQs masked");
+    info!("IRQs masked");
     disable_pic();
-    kblog!("PIC8259", "PIC disabled");
+    info!("PIC disabled");
 }

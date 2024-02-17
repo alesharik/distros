@@ -123,5 +123,5 @@ pub fn start_hpet(info: &HpetInfo) {
         *(addr.as_mut_ptr::<u64>()) = val;
         *(counter_addr.as_mut_ptr::<u64>()) = 0;
     }
-    kblog!("HPET", "HPET started");
+    info!("HPET started");
 }

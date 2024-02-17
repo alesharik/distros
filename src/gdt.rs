@@ -1,4 +1,3 @@
-use crate::kblog;
 use lazy_static::lazy_static;
 use x86_64::registers::segmentation::{CS, DS, Segment, SS};
 use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
@@ -51,5 +50,5 @@ pub fn init_gdt() {
         DS::set_reg(GDT.1.data_selector);
         load_tss(GDT.1.tss_selector);
     }
-    kblog!("GDT", "GDT and TSS table loaded, double fault IST ready");
+    info!("GDT and TSS table loaded, double fault IST ready");
 }

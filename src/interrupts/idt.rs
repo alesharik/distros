@@ -1,8 +1,6 @@
 use crate::gdt;
 use crate::interrupts::pic::nmi_status;
 use crate::interrupts::InterruptId;
-use crate::kblog;
-use crate::{eprintln, println};
 use fixedbitset::FixedBitSet;
 use lazy_static::lazy_static;
 use spin::mutex::Mutex;
@@ -44,7 +42,7 @@ pub fn init_idt() {
     unsafe {
         guard.load_unsafe();
     }
-    kblog!("IDT", "IDT table loaded");
+    info!("IDT table loaded");
     // unsafe {
     // use x86_64::registers::control::{Cr4Flags, Cr4}; fixme enable, but it not works on my laptop
     // Cr4::update(|flags| {
@@ -77,43 +75,43 @@ pub fn has_int_handler(int: InterruptId) -> bool {
 
 int_handler!(
     fpa_handler | stack_frame: InterruptStackFrame | {
-        println!("EXCEPTION: SIMD FPA\n{:#?}", stack_frame);
+        error!("EXCEPTION: SIMD FPA\n{:#?}", stack_frame);
     }
 );
 
 int_handler!(
     breakpoint_handler | stack_frame: InterruptStackFrame | {
-        println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
+        error!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
     }
 );
 
 int_handler!(
     divide_error_handler | stack_frame: InterruptStackFrame | {
-        println!("EXCEPTION: DIVIDE ERROR\n{:#?}", stack_frame);
+        error!("EXCEPTION: DIVIDE ERROR\n{:#?}", stack_frame);
     }
 );
 
 int_handler!(
     overflow_handler | stack_frame: InterruptStackFrame | {
-        println!("EXCEPTION: OVERFLOW\n{:#?}", stack_frame);
+        error!("EXCEPTION: OVERFLOW\n{:#?}", stack_frame);
     }
 );
 
 int_handler!(
     bound_handler | stack_frame: InterruptStackFrame | {
-        println!("EXCEPTION: BOUND RANGE EXCEEDED\n{:#?}", stack_frame);
+        error!("EXCEPTION: BOUND RANGE EXCEEDED\n{:#?}", stack_frame);
     }
 );
 
 int_handler!(
     invalid_opcode | stack_frame: InterruptStackFrame | {
-        println!("EXCEPTION: INVALID OPCODE\n{:#?}", stack_frame);
+        error!("EXCEPTION: INVALID OPCODE\n{:#?}", stack_frame);
     }
 );
 
 int_handler!(
     device_not_available | stack_frame: InterruptStackFrame | {
-        println!("EXCEPTION: FPU NOT AVAILABLE\n{:#?}", stack_frame);
+        error!("EXCEPTION: FPU NOT AVAILABLE\n{:#?}", stack_frame);
     }
 );
 
@@ -129,13 +127,13 @@ int_handler!(
 
 int_handler!(
     lapic_error | stack_frame: InterruptStackFrame | {
-        eprintln!("EXCEPTION: LAPIC ERROR\n{:#?}", stack_frame);
+        error!("EXCEPTION: LAPIC ERROR\n{:#?}", stack_frame);
     }
 );
 
 int_handler!(
     lapic_suprous | stack_frame: InterruptStackFrame | {
-        eprintln!("EXCEPTION: LAPIC SUPROUS\n{:#?}", stack_frame);
+        error!("EXCEPTION: LAPIC SUPROUS\n{:#?}", stack_frame);
     }
 );
 
@@ -159,7 +157,7 @@ extern "x86-interrupt" fn general_protection_fault(
     stack_frame: InterruptStackFrame,
     error_code: u64,
 ) {
-    println!(
+    error!(
         "EXCEPTION: GENERAL PROTECTION FAULT[{:?}]\n{:#?}",
         error_code, stack_frame
     );
@@ -172,10 +170,10 @@ extern "x86-interrupt" fn page_fault_handler(
     use x86_64::instructions::hlt;
     use x86_64::registers::control::Cr2;
 
-    println!("EXCEPTION: PAGE FAULT");
-    println!("Accessed Address: {:?}", Cr2::read());
-    println!("Error Code: {:?}", error_code);
-    println!("{:#?}", stack_frame);
+    error!("EXCEPTION: PAGE FAULT");
+    error!("Accessed Address: {:?}", Cr2::read());
+    error!("Error Code: {:?}", error_code);
+    error!("{:#?}", stack_frame);
     loop {
         hlt();
     }

@@ -58,7 +58,7 @@ impl From<MouseError> for Ps2Error {
 }
 
 pub fn init() -> Result<(), ControllerError> {
-    kblog!("PS/2", "Starting PS/2 devices");
+    info!("Starting PS/2 devices");
     let mut controller = unsafe { Controller::new() };
 
     // Step 3: Disable devices
@@ -107,7 +107,7 @@ pub fn init() -> Result<(), ControllerError> {
         config.set(ControllerConfigFlags::DISABLE_KEYBOARD, false);
         config.set(ControllerConfigFlags::ENABLE_KEYBOARD_INTERRUPT, true);
         if controller.keyboard().reset_and_self_test().is_err() {
-            kblog!("PS/2", "Failed to reset keyboard, IT MAY NOT WORK")
+            warn!("Failed to reset keyboard, IT MAY NOT WORK")
         }
 
         let sender = KEYBOARD_SENDER.deref();
@@ -119,18 +119,18 @@ pub fn init() -> Result<(), ControllerError> {
         .unwrap();
         let int = Irq::from_raw(1).map_to_int(0);
         interrupts::set_handler(int, keyboard_handler);
-        kblog!("PS/2", "PS/2 keyboard started");
+        info!("PS/2 keyboard started");
     }
     if mouse_works {
         controller.enable_mouse()?;
         config.set(ControllerConfigFlags::DISABLE_MOUSE, false);
         config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, true);
         if controller.mouse().reset_and_self_test().is_err() {
-            kblog!("PS/2", "Failed to reset mouse, IT MAY NOT WORK")
+            warn!("Failed to reset mouse, IT MAY NOT WORK")
         }
         // This will start streaming events from the mouse
         if controller.mouse().enable_data_reporting().is_err() {
-            kblog!("PS/2", "Failed to enable mouse stream");
+            warn!("Failed to enable mouse stream");
             config.set(ControllerConfigFlags::DISABLE_MOUSE, true);
             config.set(ControllerConfigFlags::ENABLE_MOUSE_INTERRUPT, false);
         } else {
@@ -139,7 +139,7 @@ pub fn init() -> Result<(), ControllerError> {
                 .unwrap();
             let int = Irq::from_raw(12).map_to_int(0);
             interrupts::set_handler(int, mouse_handler);
-            kblog!("PS/2", "PS/2 mouse started");
+            info!("PS/2 mouse started");
         }
     }
 

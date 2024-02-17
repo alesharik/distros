@@ -15,11 +15,11 @@ static mut SAVE_STATE: SaveState = SaveState::None;
 
 fn init_sse(info: &FpuInfo) -> bool {
     if !info.sse {
-        kblog!("SSE", "CPU does not have SSE support");
+        warn!("CPU does not have SSE support");
         return false;
     }
     if !info.fxsave_fxstor {
-        kblog!("SSE", "CPU does not have fxsave/fxstor support");
+        warn!("CPU does not have fxsave/fxstor support");
         return false;
     }
     unsafe {
@@ -28,17 +28,17 @@ fn init_sse(info: &FpuInfo) -> bool {
         Cr4::update(|flags| flags.set(Cr4Flags::OSFXSR, true));
         Cr4::update(|flags| flags.set(Cr4Flags::OSXMMEXCPT_ENABLE, true));
     }
-    kblog!("SSE", "SSE enabled");
+    info!("SSE enabled");
     true
 }
 
 fn init_avx(info: &FpuInfo) -> bool {
     if !info.avx {
-        kblog!("AVX", "CPU does not have AVX support");
+        warn!("CPU does not have AVX support");
         return false;
     }
     if !info.xsave {
-        kblog!("AVX", "CPU does not hve xsave support");
+        warn!("CPU does not hve xsave support");
         return false;
     }
 
@@ -49,13 +49,13 @@ fn init_avx(info: &FpuInfo) -> bool {
         flags.set(XCr0Flags::X87, true);
         XCr0::write(flags);
     }
-    kblog!("AVX", "AVX enabled");
+    info!("AVX enabled");
     true
 }
 
 fn check_fpu(info: &FpuInfo) -> bool {
     if !info.fpu {
-        kblog!("FPU", "CPU does not have FPU");
+        info!("CPU does not have FPU");
         return false;
     }
     unsafe {
@@ -68,19 +68,19 @@ fn check_fpu(info: &FpuInfo) -> bool {
             out("ax") status
         );
         return if status == 0 {
-            kblog!("FPU", "FPU ready");
+            info!("FPU ready");
             true
         } else {
-            kblog!("FPU", "FPU failed to set status");
+            warn!("FPU failed to set status");
             false
         };
     }
 }
 
 pub fn init_fpu() {
-    kblog!("FPU", "Starting FPU");
+    info!("Starting FPU");
     let info = cpuid::get_fpu_info();
-    kblog!("FPU", "CPU info: {:?}", &info);
+    debug!("CPU info: {:?}", &info);
     if init_sse(&info) && check_fpu(&info) {
         let state = if init_avx(&info) {
             SaveState::Xsave

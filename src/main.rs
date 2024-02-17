@@ -27,13 +27,13 @@ use core::panic::PanicInfo;
 
 use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
 use bootloader_api::config::Mapping;
+use log::LevelFilter;
 use x86_64::instructions::hlt;
 use x86_64::VirtAddr;
 use distros_framebuffer_vesa::VesaFrameBuffer;
+use distros_logging::Logger;
 use crate::gui::TextDisplay;
 
-#[macro_use]
-mod logging;
 mod gdt;
 #[macro_use]
 mod interrupts;
@@ -55,7 +55,7 @@ mod gui;
 /// This function is called on panic.
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    eprintln!("{}", info);
+    Logger::<TextDisplay<VesaFrameBuffer>>::panic(info);
     loop {}
 }
 
@@ -74,8 +74,10 @@ entry_point!(main, config = &BOOTLOADER_CONFIG);
 
 pub fn main(boot_info: &'static mut BootInfo) -> ! {
     let fb = VesaFrameBuffer::new(boot_info.framebuffer.take().unwrap());
-    logging::init(fb);
-    println!("0x{:08x}", &boot_info.physical_memory_offset.into_option().unwrap());
+    Logger::new(TextDisplay::new(fb))
+        .set_max_level(LevelFilter::Debug)
+        .init();
+    info!("0x{:08x}", &boot_info.physical_memory_offset.into_option().unwrap());
 
     cpuid::init_cpuid();
     gdt::init_gdt();

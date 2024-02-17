@@ -1,4 +1,3 @@
-use crate::kblog;
 use raw_cpuid::{CpuId, FeatureInfo};
 use spin::Mutex;
 
@@ -42,7 +41,7 @@ impl FpuInfo {
 pub fn init_cpuid() {
     let mut cpuid = CPUID.lock();
     *cpuid = Option::Some(CpuId::new());
-    kblog!("CPUID", "CPUID set");
+    info!("CPUID set");
 }
 
 pub fn has_apic() -> bool {

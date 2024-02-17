@@ -13,9 +13,9 @@ use crate::acpi::AcpiInfo;
 pub fn init(acpi: &AcpiInfo) {
     syslog::init();
 
-    kblog!("Driver", "Starting device drivers");
+    info!("Starting device drivers");
     device::init();
-    kblog!("Driver", "Device drivers started");
+    info!("Device drivers started");
 
     smbios::init();
     pci::init(acpi);
