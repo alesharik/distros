@@ -1,0 +1,11 @@
+[package]
+name = "distros-acpi"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+acpi = "5.0.0"
+x86_64 = "0.14.12"
+
+distros-memory = { path = "../memory" }
+log = "0.4.20"
