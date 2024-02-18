@@ -14,6 +14,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "acpi"
+version = "5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e248409195304021f61b39ba2628f62a45a3abf6119669d44b3399d60eabe4c3"
+dependencies = [
+ "bit_field",
+ "log",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -160,7 +170,7 @@ checksum = "248e3bacc7dc6baa3b21e405ee045c3047101a49145e7e9eca583ab4c2ca5345"
 name = "distros"
 version = "0.1.0"
 dependencies = [
- "acpi",
+ "acpi 4.1.1",
  "arrayvec",
  "async-trait",
  "bit_field",
@@ -172,6 +182,7 @@ dependencies = [
  "distros-cpuid",
  "distros-framebuffer",
  "distros-framebuffer-vesa",
+ "distros-interrupt",
  "distros-logging",
  "distros-memory",
  "fixedbitset",
@@ -198,7 +209,7 @@ dependencies = [
  "vga",
  "volatile",
  "vte",
- "x2apic",
+ "x2apic 0.3.0",
  "x86_64",
 ]
 
@@ -227,9 +238,28 @@ dependencies = [
 name = "distros-interrupt"
 version = "0.1.0"
 dependencies = [
+ "bitflags 2.4.2",
+ "distros-memory",
+ "fixedbitset",
  "lazy_static",
  "log",
- "x2apic",
+ "spin 0.9.8",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-interrupt-pic"
+version = "0.1.0"
+dependencies = [
+ "acpi 5.0.0",
+ "bitflags 2.4.2",
+ "distros-cpuid",
+ "distros-memory",
+ "fixedbitset",
+ "lazy_static",
+ "log",
+ "spin 0.9.8",
+ "x2apic 0.4.3",
  "x86_64",
 ]
 
@@ -602,6 +632,15 @@ dependencies = [
 
 [[package]]
 name = "raw-cpuid"
+version = "10.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c297679cb867470fa8c9f67dbba74a78d78e3e98d7cf2b08d6d71540f797332"
+dependencies = [
+ "bitflags 1.3.2",
+]
+
+[[package]]
+name = "raw-cpuid"
 version = "11.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d86a7c4638d42c44551f4791a20e687dbb4c3de1f33c43dd71e355cd429def1"
@@ -834,6 +873,19 @@ dependencies = [
  "bitflags 1.3.2",
  "paste",
  "raw-cpuid 9.1.1",
+ "x86_64",
+]
+
+[[package]]
+name = "x2apic"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbcd582541cbb8ef1dfc24a3c849a64ff074b1b512af723ad90056558d424602"
+dependencies = [
+ "bit",
+ "bitflags 1.3.2",
+ "paste",
+ "raw-cpuid 10.7.0",
  "x86_64",
 ]
 

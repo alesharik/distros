@@ -1,8 +1,8 @@
-use crate::gdt;
-use crate::interrupts::pic::nmi_status;
-use crate::interrupts::InterruptId;
+use crate::nmi::nmi_status;
+use crate::{gdt, InterruptId};
 use fixedbitset::FixedBitSet;
 use lazy_static::lazy_static;
+use log::{error, info};
 use spin::mutex::Mutex;
 use x86_64::structures::idt::{
     HandlerFunc, InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode,
@@ -29,9 +29,6 @@ lazy_static! {
                 .set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
-        idt[super::INT_LAPIC_ERROR.0].set_handler_fn(lapic_error);
-        idt[super::INT_LAPIC_SUPROUS.0].set_handler_fn(lapic_suprous);
-        idt[super::INT_LAPIC_TIMER.0].set_handler_fn(lapic_timer);
         idt
     });
     static ref SET_INTS: Mutex<FixedBitSet> = Mutex::new(FixedBitSet::with_capacity(256));
@@ -43,34 +40,31 @@ pub fn init_idt() {
         guard.load_unsafe();
     }
     info!("IDT table loaded");
-    // unsafe {
-    // use x86_64::registers::control::{Cr4Flags, Cr4}; fixme enable, but it not works on my laptop
-    // Cr4::update(|flags| {
-    //     flags.set(Cr4Flags::MACHINE_CHECK_EXCEPTION, true);
-    //     flags.set(Cr4Flags::USER_MODE_INSTRUCTION_PREVENTION, true);
-    //     flags.set(Cr4Flags::TIMESTAMP_DISABLE, true);
-    //     flags.set(Cr4Flags::SUPERVISOR_MODE_EXECUTION_PROTECTION, true);
-    //     flags.set(Cr4Flags::SUPERVISOR_MODE_ACCESS_PREVENTION, true);
-    // })
-    // }
 }
 
-pub fn set_handler(int: InterruptId, func: HandlerFunc) {
+pub enum OverrideMode {
+    Override,
+    Panic,
+}
+
+pub fn set_handler(int: InterruptId, func: HandlerFunc, override_mode: OverrideMode) {
     let mut idt = IDT.lock();
     let mut set_ints = SET_INTS.lock();
-    if set_ints.contains(int.0) {
-        panic!("Interrupt {} already registered", int.0);
+    if set_ints.contains(int.int()) {
+        match override_mode {
+            OverrideMode::Override => {}
+            OverrideMode::Panic => panic!("Interrupt {:?} already registered", int),
+        }
     }
-    set_ints.insert(int.0);
+    set_ints.insert(int.int());
     unsafe {
-        idt[int.0].set_handler_fn(func);
+        idt[int.int()].set_handler_fn(func);
         idt.load_unsafe();
     }
 }
-
-pub fn has_int_handler(int: InterruptId) -> bool {
+pub fn has_handler(int: InterruptId) -> bool {
     let set_ints = SET_INTS.lock();
-    set_ints.contains(int.0)
+    set_ints.contains(int.int())
 }
 
 int_handler!(
@@ -124,20 +118,6 @@ int_handler!(
         );
     }
 );
-
-int_handler!(
-    lapic_error | stack_frame: InterruptStackFrame | {
-        error!("EXCEPTION: LAPIC ERROR\n{:#?}", stack_frame);
-    }
-);
-
-int_handler!(
-    lapic_suprous | stack_frame: InterruptStackFrame | {
-        error!("EXCEPTION: LAPIC SUPROUS\n{:#?}", stack_frame);
-    }
-);
-
-int_handler!(noint lapic_timer |_stack_frame: InterruptStackFrame| {});
 
 extern "x86-interrupt" fn double_fault_handler(
     stack_frame: InterruptStackFrame,

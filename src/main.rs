@@ -34,7 +34,6 @@ use log::LevelFilter;
 use x86_64::instructions::hlt;
 use x86_64::VirtAddr;
 
-mod gdt;
 #[macro_use]
 mod interrupts;
 #[macro_use]
@@ -77,20 +76,15 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
         .init();
 
     distros_cpuid::load();
-    gdt::init_gdt();
-    interrupts::init_idt();
+    distros_interrupt::init();
     distros_memory::init(
         boot_info.physical_memory_offset.into_option(),
         &boot_info.memory_regions,
     );
-    // memory::init_memory(
-    //     VirtAddr::new(boot_info.physical_memory_offset.into_option().unwrap()),
-    //     &boot_info.memory_regions,
-    // );
-    let acpi = acpi::init_acpi(boot_info.rsdp_addr.into_option());
-    interrupts::init_pic(&acpi);
-    fpu::init_fpu();
-    interrupts::syscall_init();
+    // let acpi = acpi::init_acpi(boot_info.rsdp_addr.into_option());
+    // interrupts::init_pic(&acpi);
+    // fpu::init_fpu();
+    // interrupts::syscall_init();
     // //
     // // // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();
     //

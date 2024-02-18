@@ -1,0 +1,17 @@
+[package]
+name = "distros-interrupt-pic"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+x86_64 = "0.14.12"
+x2apic = "0.4.3"
+lazy_static = "1.4.0"
+log = "0.4.20"
+fixedbitset = "0.4.2"
+spin = "0.9.8"
+bitflags = "2.4.2"
+acpi = "5.0.0"
+
+distros-memory = { path = "../memory" }
+distros-cpuid = { path = "../cpuid" }

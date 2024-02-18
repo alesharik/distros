@@ -7,9 +7,9 @@ static mut LAPIC: Option<LocalApic> = None;
 pub fn init_lapic(address: VirtAddr) {
     unsafe {
         let mut apic = LocalApicBuilder::new()
-            .timer_vector(INT_LAPIC_TIMER.0)
-            .error_vector(INT_LAPIC_ERROR.0)
-            .spurious_vector(INT_LAPIC_SUPROUS.0)
+            .timer_vector(INT_LAPIC_TIMER.int())
+            .error_vector(INT_LAPIC_ERROR.int())
+            .spurious_vector(INT_LAPIC_SUPROUS.int())
             .set_xapic_base(address.as_u64())
             .timer_divide(TimerDivide::Div4)
             .timer_initial(5_000_000)
@@ -41,5 +41,5 @@ pub fn start_lapic_timer() {
 
 pub unsafe fn invoke_lapic_timer_interrupt() {
     use core::arch::asm;
-    software_interrupt!(INT_LAPIC_TIMER.0);
+    software_interrupt!(INT_LAPIC_TIMER.int());
 }

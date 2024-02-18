@@ -45,6 +45,7 @@ distros-framebuffer-vesa = { path = "crates/framebuffer-vesa" }
 distros-logging = { path = "crates/logging" }
 distros-memory = { path = "crates/memory" }
 distros-cpuid = { path = "crates/cpuid" }
+distros-interrupt = { path = "crates/interrupt" }
 
 [dependencies.lazy_static]
 version = "1.4.0"
@@ -54,5 +55,5 @@ features = ["spin_no_std"]
 cc = "1.0.68"
 
 [workspace]
-members = [ "crates/cpuid","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/logging", "crates/memory"]
+members = [ "crates/cpuid","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory"]
 exclude = ["runner"]

@@ -1,8 +1,12 @@
+use bitflags::{bitflags, Flags};
 use core::sync::atomic::{AtomicBool, Ordering};
+use lazy_static::lazy_static;
+use log::info;
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortReadOnly};
 
 bitflags! {
+    #[derive(Debug)]
     pub struct StatusA: u8 {
         const ALTERNATE_HOST_RESET = 0b00000001;
         const ALTERNATE_GATE_A20 = 0b00000010;
@@ -14,6 +18,7 @@ bitflags! {
 }
 
 bitflags! {
+    #[derive(Debug)]
     pub struct StatusB: u8 {
         const TIMER_2_TIED_TO_SPEAKER = 0b00000001;
         const SPEAKER_DATA_ENABLE = 0b00000010;
@@ -46,6 +51,7 @@ pub fn nmi_enable() {
         let val = ctl.read();
         ctl.write(val & 0x7F);
     }
+    info!("NMI mask reset");
 }
 
 pub fn nmi_disable() {

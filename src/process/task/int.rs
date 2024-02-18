@@ -2,6 +2,7 @@ use crate::interrupts::INT_LAPIC_TIMER;
 use crate::process::task::ctx::Regs;
 use crate::process::task::ProcessRuntime;
 use core::arch::asm;
+use distros_interrupt::OverrideMode;
 use x86_64::structures::idt::InterruptStackFrame;
 
 static mut RUNTIME: Option<ProcessRuntime> = Option::None;
@@ -63,7 +64,7 @@ pub fn setup(runtime: ProcessRuntime) {
         RUNTIME = Some(runtime);
     }
 
-    crate::interrupts::set_handler(INT_LAPIC_TIMER, switch_context);
+    distros_interrupt::set_handler(INT_LAPIC_TIMER, switch_context, OverrideMode::Override);
     // crate::interrupts::start_lapic_timer();
 }
 

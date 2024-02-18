@@ -1,10 +1,11 @@
 use lazy_static::lazy_static;
+use log::{debug, info};
 use x86_64::registers::segmentation::{Segment, CS, DS, SS};
 use x86_64::structures::gdt::{Descriptor, GlobalDescriptorTable, SegmentSelector};
 use x86_64::structures::tss::TaskStateSegment;
 use x86_64::{PrivilegeLevel, VirtAddr};
 
-pub const DOUBLE_FAULT_IST_INDEX: u16 = 1;
+pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
 struct Selectors {
     code_selector: SegmentSelector,
@@ -49,6 +50,7 @@ pub fn init_gdt() {
         SS::set_reg(GDT.1.data_selector);
         DS::set_reg(GDT.1.data_selector);
         load_tss(GDT.1.tss_selector);
+        debug!("TSS loaded");
     }
     info!("GDT and TSS table loaded, double fault IST ready");
 }

@@ -6,6 +6,7 @@ use crate::interrupts::Irq;
 use alloc::sync::Arc;
 use core::ops::Deref;
 use core::sync::atomic::{AtomicBool, Ordering};
+use distros_interrupt::OverrideMode;
 use fixedbitset::FixedBitSet;
 use libkernel::flow::Sender;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, KeyState, Keyboard, ScancodeSet2};
@@ -118,7 +119,7 @@ pub fn init() -> Result<(), ControllerError> {
         )
         .unwrap();
         let int = Irq::from_raw(1).map_to_int(0);
-        interrupts::set_handler(int, keyboard_handler);
+        distros_interrupt::set_handler(int, keyboard_handler, OverrideMode::Panic);
         info!("PS/2 keyboard started");
     }
     if mouse_works {
@@ -138,7 +139,7 @@ pub fn init() -> Result<(), ControllerError> {
             FlowManager::register_endpoint::<MouseMessage>("/dev/ps2/mouse", sender.clone(), None)
                 .unwrap();
             let int = Irq::from_raw(12).map_to_int(0);
-            interrupts::set_handler(int, mouse_handler);
+            distros_interrupt::set_handler(int, mouse_handler, OverrideMode::Panic);
             info!("PS/2 mouse started");
         }
     }

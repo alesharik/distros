@@ -22,37 +22,21 @@ macro_rules! int_handler {
     };
 }
 
-mod idt;
 mod pic;
 mod syscall;
 mod timer;
 
 use crate::acpi::AcpiInfo;
-
-pub use idt::{init_idt, set_handler};
-pub use pic::{
-    disable_interrupts, enable_interrupts, eoi, invoke_lapic_timer_interrupt, no_int,
-    start_lapic_timer,
-};
+use distros_interrupt::InterruptId;
+pub use pic::{eoi, no_int};
 pub use syscall::init as syscall_init;
-pub use syscall::init_syscall_block;
-pub use timer::{now, sleep};
+pub use timer::now;
 
-pub const INT_LAPIC_TIMER: InterruptId = InterruptId::from_raw(33);
-pub const INT_LAPIC_ERROR: InterruptId = InterruptId::from_raw(34);
-pub const INT_LAPIC_SUPROUS: InterruptId = InterruptId::from_raw(35);
+pub const INT_LAPIC_TIMER: InterruptId = InterruptId::new(33);
+pub const INT_LAPIC_ERROR: InterruptId = InterruptId::new(34);
+pub const INT_LAPIC_SUPROUS: InterruptId = InterruptId::new(35);
 pub const INT_IOAPIC_OFFSET: usize = 45;
 pub const RTC_IRQ: Irq = Irq::from_raw(8);
-
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[repr(transparent)]
-pub struct InterruptId(usize);
-
-impl InterruptId {
-    const fn from_raw(int: usize) -> Self {
-        InterruptId(int)
-    }
-}
 
 /// Representation of APIC IRQ with transparent ISR support
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -69,13 +53,13 @@ impl Irq {
     /// # Arguments
     /// * `dest` - Destination CPU
     pub fn map_to_int(&self, dest: u32) -> InterruptId {
-        InterruptId::from_raw(pic::map_irc_irq(self.0, dest))
+        InterruptId::new(pic::map_irc_irq(self.0, dest))
     }
 
     /// Is this IRQ already bound to handler?
     pub fn has_handler(&self) -> bool {
         if let Some(int) = pic::convert_isr_irq(self.0) {
-            idt::has_int_handler(InterruptId::from_raw(int))
+            distros_interrupt::has_handler(InterruptId::new(int))
         } else {
             false
         }
