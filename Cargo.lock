@@ -176,6 +176,7 @@ dependencies = [
  "distros-interrupt-pic",
  "distros-logging",
  "distros-memory",
+ "distros-timer-rtc",
  "fixedbitset",
  "futures",
  "goblin",
@@ -281,6 +282,20 @@ dependencies = [
  "log",
  "spin 0.9.8",
  "talc",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-timer-rtc"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.4.2",
+ "chrono",
+ "distros-interrupt",
+ "distros-interrupt-pic",
+ "lazy_static",
+ "log",
+ "spin 0.9.8",
  "x86_64",
 ]
 

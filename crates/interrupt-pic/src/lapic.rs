@@ -5,7 +5,7 @@ use x2apic::lapic::{LocalApic, LocalApicBuilder, TimerDivide, TimerMode};
 use x86_64::structures::idt::InterruptStackFrame;
 use x86_64::{software_interrupt, VirtAddr};
 
-pub const INT_LAPIC_TIMER: InterruptId = InterruptId::new(33);
+pub const INT_LAPIC_TIMER: InterruptId = InterruptId::new(32);
 const INT_LAPIC_ERROR: InterruptId = InterruptId::new(0xFF - 1);
 const INT_LAPIC_SPURIOUS: InterruptId = InterruptId::new(0xFF);
 
@@ -23,6 +23,7 @@ pub fn init_lapic(address: VirtAddr) {
             .build()
             .expect("Failed to get Local APIC");
         apic.enable();
+        apic.disable_timer();
         info!("LAPIC {} at 0x{:08x} enabled", apic.id(), address);
         LAPIC = Some(apic);
     }

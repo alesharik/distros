@@ -8,7 +8,8 @@ mod gdt;
 mod idt;
 mod nmi;
 
-pub use idt::{has_handler, set_handler, OverrideMode};
+pub use idt::{alloc_handler, has_handler, set_handler, OverrideMode};
+pub use nmi::without_nmi;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Ord, PartialOrd)]
 #[repr(transparent)]

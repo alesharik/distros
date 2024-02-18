@@ -25,10 +25,12 @@ extern crate libkernel;
 
 use core::fmt::Write;
 use core::panic::PanicInfo;
+use core::time::Duration;
 
 use crate::gui::TextDisplay;
 use bootloader_api::config::Mapping;
 use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
+use chrono::NaiveDateTime;
 use distros_framebuffer_vesa::VesaFrameBuffer;
 use distros_logging::Logger;
 use log::LevelFilter;
@@ -83,7 +85,16 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     );
     distros_acpi::init_acpi(boot_info.rsdp_addr.into_option());
     distros_interrupt_pic::init();
-    // interrupts::init_pic(&acpi);
+    // interrupts::init_pic();
+    distros_timer_rtc::init(true);
+    x86_64::instructions::interrupts::enable();
+    loop {
+        warn!(
+            "TIME {}",
+            NaiveDateTime::from_timestamp_millis(distros_timer_rtc::now() as i64).unwrap()
+        );
+        interrupts::timer::sleep(Duration::from_secs(1));
+    }
     // fpu::init_fpu();
     // interrupts::syscall_init();
     // //

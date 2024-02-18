@@ -74,7 +74,8 @@ pub fn has_handler(int: InterruptId) -> bool {
 pub fn alloc_handler(func: HandlerFunc) -> Option<InterruptId> {
     let mut idt = IDT.lock();
     let mut set_ints = SET_INTS.lock();
-    for i in 32..=255 {
+    for i in 33..=253 {
+        // 32, 254, 255 reserved for LAPIC
         if set_ints.contains(i) {
             continue;
         }

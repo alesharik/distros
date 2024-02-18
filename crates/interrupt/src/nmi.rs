@@ -39,6 +39,7 @@ lazy_static! {
 
 static ENABLED: AtomicBool = AtomicBool::new(false);
 
+#[inline]
 pub fn nmi_enable() {
     if ENABLED
         .compare_exchange(false, true, Ordering::SeqCst, Ordering::Acquire)
@@ -51,9 +52,9 @@ pub fn nmi_enable() {
         let val = ctl.read();
         ctl.write(val & 0x7F);
     }
-    info!("NMI mask reset");
 }
 
+#[inline]
 pub fn nmi_disable() {
     if ENABLED
         .compare_exchange(true, false, Ordering::SeqCst, Ordering::Acquire)
@@ -84,4 +85,29 @@ pub fn nmi_status() -> (StatusA, StatusB) {
             StatusB::from_bits(status_b.read()).unwrap_or_else(StatusB::empty),
         )
     }
+}
+
+#[inline]
+pub fn without_nmi<F, R>(f: F) -> R
+where
+    F: FnOnce() -> R,
+{
+    // true if the interrupt flag is set (i.e. interrupts are enabled)
+    let saved_intpt_flag = nmi_enabled();
+
+    // if interrupts are enabled, disable them for now
+    if saved_intpt_flag {
+        nmi_disable();
+    }
+
+    // do `f` while interrupts are disabled
+    let ret = f();
+
+    // re-enable interrupts if they were previously enabled
+    if saved_intpt_flag {
+        nmi_enable();
+    }
+
+    // return the result of `f` to the caller
+    ret
 }

@@ -23,17 +23,15 @@ macro_rules! int_handler {
 }
 
 mod syscall;
-mod timer;
+pub mod timer;
 
 use distros_interrupt::InterruptId;
-pub use timer::now;
 use x86_64::instructions::interrupts;
 
 pub const INT_LAPIC_TIMER: InterruptId = InterruptId::new(33);
 pub const INT_LAPIC_ERROR: InterruptId = InterruptId::new(34);
 pub const INT_LAPIC_SUPROUS: InterruptId = InterruptId::new(35);
 pub const INT_IOAPIC_OFFSET: usize = 45;
-pub const RTC_IRQ: Irq = Irq::from_raw(8);
 
 /// Representation of APIC IRQ with transparent ISR support
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -66,9 +64,5 @@ impl Irq {
 }
 
 pub fn init_pic() {
-    interrupts::disable();
-
     timer::init_timer();
-
-    interrupts::enable();
 }

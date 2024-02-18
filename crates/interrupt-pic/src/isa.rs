@@ -1,6 +1,6 @@
 use crate::{Irq, IrqId};
 use acpi::platform::interrupt::InterruptSourceOverride;
-use log::warn;
+use log::{debug, warn};
 
 static mut OVERRIDES: [Option<Irq>; 16] = [None; 16];
 
@@ -57,6 +57,10 @@ pub fn setup_overrides(overrides: &[InterruptSourceOverride]) {
             warn!("Skipping override {:?}: isa source > 16", x);
             continue;
         }
+        debug!(
+            "Registering override {} -> {} (polarity = {:?}, trigger mode = {:?})",
+            x.isa_source, x.global_system_interrupt, &x.polarity, &x.trigger_mode
+        );
         unsafe {
             OVERRIDES[x.isa_source as usize] = Some(
                 Irq::new(IrqId::new(x.global_system_interrupt))

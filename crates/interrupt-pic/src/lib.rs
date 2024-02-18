@@ -79,6 +79,7 @@ impl Irq {
     }
 }
 
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum IrqDestination {
     Local,
 }

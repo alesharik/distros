@@ -2,25 +2,27 @@ use core::time::Duration;
 
 mod hpet;
 mod pit;
-mod rtc;
 
-use crate::interrupts::RTC_IRQ;
 use distros_interrupt::OverrideMode;
-pub use rtc::now;
 use x86_64::structures::idt::InterruptStackFrame;
 
 pub fn sleep(duration: Duration) {
     let delta = duration.as_millis();
-    let now = rtc::now();
-    while rtc::now() - now < delta as u64 {
+    let now = distros_timer_rtc::now();
+    while distros_timer_rtc::now().max(now) - now < delta as u64 {
         x86_64::instructions::hlt();
     }
 }
 
 pub fn init_timer() {
     if let Some(hpet) = distros_acpi::hpet() {
+        distros_timer_rtc::init(false);
         let irq = hpet::init_hpet_rtc(hpet);
-        distros_interrupt::set_handler(irq.map_to_int(0), rtc::rtc_handler, OverrideMode::Panic);
+        distros_interrupt::set_handler(
+            irq.map_to_int(0),
+            distros_timer_rtc::rtc_handler,
+            OverrideMode::Panic,
+        );
         info!("Handler mapped to irq {} via HPET", irq.0);
         hpet::start_hpet(hpet);
 
@@ -32,9 +34,7 @@ pub fn init_timer() {
         // let pit_irq = pit::init_pit();
         // crate::pic::map_irc_irq(pit_irq, 0);
 
-        let rtc_mapped_irq = RTC_IRQ.map_to_int(0);
-        distros_interrupt::set_handler(rtc_mapped_irq, rtc::rtc_handler, OverrideMode::Panic);
-        rtc::start_rtc();
+        distros_timer_rtc::init(true);
     }
 }
 

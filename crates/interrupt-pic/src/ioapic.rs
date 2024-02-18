@@ -3,7 +3,7 @@ use acpi::platform::interrupt::{IoApic, Polarity, TriggerMode};
 use alloc::vec::Vec;
 use distros_interrupt::InterruptId;
 use distros_memory::translate_kernel;
-use log::info;
+use log::{debug, info};
 use spin::Mutex;
 use x2apic::ioapic::IrqFlags;
 use x86_64::structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB};
@@ -105,6 +105,10 @@ pub fn set_entry(
                 entry.set_flags(flags);
                 apic.set_table_entry(i, entry);
             }
+            debug!(
+                "Mapped IRQ {:?} to {:?}:{:?} (mode {:?})",
+                &irq, &dest, &vector, &mode
+            );
         })
 }
 
