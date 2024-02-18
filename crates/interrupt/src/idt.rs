@@ -24,6 +24,8 @@ lazy_static! {
         idt.machine_check.set_handler_fn(machine_check_handler);
         idt.general_protection_fault
             .set_handler_fn(general_protection_fault);
+        idt.segment_not_present
+            .set_handler_fn(segment_not_present_handler);
         unsafe {
             idt.double_fault
                 .set_handler_fn(double_fault_handler)
@@ -62,9 +64,28 @@ pub fn set_handler(int: InterruptId, func: HandlerFunc, override_mode: OverrideM
         idt.load_unsafe();
     }
 }
+
 pub fn has_handler(int: InterruptId) -> bool {
     let set_ints = SET_INTS.lock();
     set_ints.contains(int.int())
+}
+
+/// Allocates handler somewhere in table. Return allocated interrupt
+pub fn alloc_handler(func: HandlerFunc) -> Option<InterruptId> {
+    let mut idt = IDT.lock();
+    let mut set_ints = SET_INTS.lock();
+    for i in 32..=255 {
+        if set_ints.contains(i) {
+            continue;
+        }
+        set_ints.insert(i);
+        idt[i].set_handler_fn(func);
+        unsafe {
+            idt.load_unsafe();
+        }
+        return Some(InterruptId::new(i));
+    }
+    None
 }
 
 int_handler!(
@@ -131,6 +152,13 @@ extern "x86-interrupt" fn double_fault_handler(
 
 extern "x86-interrupt" fn machine_check_handler(stack_frame: InterruptStackFrame) -> ! {
     panic!("HARDWARE FAULT\n{:#?}", stack_frame);
+}
+
+extern "x86-interrupt" fn segment_not_present_handler(
+    stack_frame: InterruptStackFrame,
+    error_code: u64,
+) {
+    error!("SEGMENT_NOT_PRESENT: {}\n{:#?}", error_code, stack_frame);
 }
 
 extern "x86-interrupt" fn general_protection_fault(
