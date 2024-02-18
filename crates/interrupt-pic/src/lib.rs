@@ -14,6 +14,9 @@ mod isa;
 mod lapic;
 mod pic8259;
 
+pub use ioapic::{
+    disable as ioapic_disable, enable as ioapic_enable, set_entry as ioapic_set_entry,
+};
 pub use isa::IsaIrq;
 pub use lapic::{
     eoi as lapic_eoi, timer_disable as lapic_timer_disable, timer_enable as lapic_timer_enable,
