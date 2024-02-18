@@ -46,7 +46,6 @@ mod basic_term;
 mod flow;
 mod driver;
 mod elf;
-mod fpu;
 mod gui;
 mod random;
 
@@ -85,6 +84,8 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     distros_acpi::init_acpi(boot_info.rsdp_addr.into_option());
     distros_interrupt_pic::init();
     distros_timer_rtc::init(None);
+    distros_fpu::init();
+
     x86_64::instructions::interrupts::enable();
     loop {
         warn!(
@@ -93,7 +94,6 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
         );
         distros_timer_tsc::sleep(Duration::from_secs(1));
     }
-    // fpu::init_fpu();
     // interrupts::syscall_init();
     // //
     // // // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();

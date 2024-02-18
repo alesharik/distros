@@ -170,6 +170,7 @@ dependencies = [
  "crossbeam-queue",
  "distros-acpi",
  "distros-cpuid",
+ "distros-fpu",
  "distros-framebuffer",
  "distros-framebuffer-vesa",
  "distros-interrupt",
@@ -222,6 +223,15 @@ version = "0.1.0"
 dependencies = [
  "log",
  "raw-cpuid 11.0.1",
+]
+
+[[package]]
+name = "distros-fpu"
+version = "0.1.0"
+dependencies = [
+ "distros-cpuid",
+ "log",
+ "x86_64",
 ]
 
 [[package]]

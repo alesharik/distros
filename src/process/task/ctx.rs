@@ -1,4 +1,4 @@
-use crate::fpu::FpuState;
+use distros_fpu::FpuState;
 use x86_64::structures::idt::{InterruptStackFrame, InterruptStackFrameValue};
 use x86_64::VirtAddr;
 

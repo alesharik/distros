@@ -50,6 +50,7 @@ distros-interrupt-pic = { path = "crates/interrupt-pic" }
 distros-acpi = { path = "crates/acpi" }
 distros-timer-rtc = { path = "crates/timer-rtc" }
 distros-timer-tsc = { path = "crates/timer-tsc" }
+distros-fpu = { path = "crates/fpu" }
 
 [dependencies.lazy_static]
 version = "1.4.0"
@@ -59,5 +60,5 @@ features = ["spin_no_std"]
 cc = "1.0.68"
 
 [workspace]
-members = [ "crates/acpi", "crates/cpuid","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/timer-rtc", "crates/timer-tsc"]
+members = [ "crates/acpi", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/timer-rtc", "crates/timer-tsc"]
 exclude = ["runner"]
