@@ -12,20 +12,25 @@ mod rtc;
 static TIME: AtomicU64 = AtomicU64::new(0);
 static MILLISECOND_HANDLER: RwLock<Option<fn()>> = RwLock::new(None);
 
-pub fn init(load_rtc: bool) {
+pub fn init(external_timer_freq: Option<usize>) {
     let time = loop {
         if let Some(time) = cmos::read_time() {
             break time;
         }
     };
     TIME.store(time.timestamp_millis() as u64, Ordering::SeqCst);
-    if load_rtc {
-        rtc::init_rtc();
+    match external_timer_freq {
+        None => {
+            distros_timer_tsc::tsc_calibration_frequency(1024);
+            rtc::init_rtc();
+        }
+        Some(freq) => distros_timer_tsc::tsc_calibration_frequency(freq),
     }
 }
 
 /// Should invoke every 1ms
 int_handler!(pub noint rtc_handler |_frame: InterruptStackFrame| {
+    distros_timer_tsc::tsc_calibration_sample();
     let ms = TIME.fetch_add(1, Ordering::AcqRel);
     if ms % 100 == 0 { // Every 100 ms
         let ms_part = ms % 1000;

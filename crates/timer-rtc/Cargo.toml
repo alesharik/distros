@@ -9,7 +9,8 @@ chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 spin = "0.9.8"
 lazy_static = "1.4.0"
 bitflags = "2.4.2"
+log = "0.4.20"
 
 distros-interrupt = { path = "../interrupt" }
 distros-interrupt-pic = { path = "../interrupt-pic" }
-log = "0.4.20"
+distros-timer-tsc = { path = "../timer-tsc" }

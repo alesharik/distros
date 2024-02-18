@@ -6,17 +6,9 @@ mod pit;
 use distros_interrupt::OverrideMode;
 use x86_64::structures::idt::InterruptStackFrame;
 
-pub fn sleep(duration: Duration) {
-    let delta = duration.as_millis();
-    let now = distros_timer_rtc::now();
-    while distros_timer_rtc::now().max(now) - now < delta as u64 {
-        x86_64::instructions::hlt();
-    }
-}
-
 pub fn init_timer() {
     if let Some(hpet) = distros_acpi::hpet() {
-        distros_timer_rtc::init(false);
+        distros_timer_rtc::init(Some(1000));
         let irq = hpet::init_hpet_rtc(hpet);
         distros_interrupt::set_handler(
             irq.map_to_int(0),
@@ -34,7 +26,7 @@ pub fn init_timer() {
         // let pit_irq = pit::init_pit();
         // crate::pic::map_irc_irq(pit_irq, 0);
 
-        distros_timer_rtc::init(true);
+        distros_timer_rtc::init(None);
     }
 }
 

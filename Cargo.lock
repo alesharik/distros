@@ -177,6 +177,7 @@ dependencies = [
  "distros-logging",
  "distros-memory",
  "distros-timer-rtc",
+ "distros-timer-tsc",
  "fixedbitset",
  "futures",
  "goblin",
@@ -293,9 +294,18 @@ dependencies = [
  "chrono",
  "distros-interrupt",
  "distros-interrupt-pic",
+ "distros-timer-tsc",
  "lazy_static",
  "log",
  "spin 0.9.8",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-timer-tsc"
+version = "0.1.0"
+dependencies = [
+ "log",
  "x86_64",
 ]
 
