@@ -1,7 +1,7 @@
 macro_rules! int_handler {
     (pub noint $name:ident $body:expr) => {
         pub extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame) {
-            crate::interrupts::no_int(|| {
+            x86_64::instructions::interrupts::without_interrupts(|| {
                 $body(stack_frame);
                 crate::interrupts::eoi();
             })
@@ -9,7 +9,7 @@ macro_rules! int_handler {
     };
     (noint $name:ident $body:expr) => {
         extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame) {
-            crate::interrupts::no_int(|| {
+            x86_64::instructions::interrupts::without_interrupts(|| {
                 $body(stack_frame);
                 crate::interrupts::eoi();
             })
@@ -28,9 +28,9 @@ mod timer;
 
 use crate::acpi::AcpiInfo;
 use distros_interrupt::InterruptId;
-pub use pic::{eoi, no_int};
-pub use syscall::init as syscall_init;
+pub use pic::eoi;
 pub use timer::now;
+use x86_64::instructions::interrupts;
 
 pub const INT_LAPIC_TIMER: InterruptId = InterruptId::new(33);
 pub const INT_LAPIC_ERROR: InterruptId = InterruptId::new(34);
@@ -67,10 +67,10 @@ impl Irq {
 }
 
 pub fn init_pic(acpi: &AcpiInfo) {
-    pic::disable_interrupts();
+    interrupts::disable();
 
     pic::init_pic(&acpi.apic);
     timer::init_timer(&acpi);
 
-    pic::enable_interrupts();
+    interrupts::enable();
 }

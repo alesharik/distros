@@ -90,7 +90,7 @@ pub struct ProcessRuntimeHandle {
 impl ProcessRuntimeHandle {
     /// Add new task to runtime
     pub fn add(&self, task: ProcessTask) {
-        interrupts::no_int(|| self.queue.push(task));
+        x86_64::instructions::interrupts::without_interrupts(|| self.queue.push(task));
     }
 }
 
@@ -160,7 +160,7 @@ impl ProcessRuntime {
                 let mut context = Context::from_waker(waker_cloned);
                 interrupts::eoi();
                 let result = future.as_mut().poll(&mut context);
-                interrupts::no_int(|| {
+                x86_64::instructions::interrupts::without_interrupts(|| {
                     self.current_task_info = last; // task finished execution, so we remove it from current
                     match result {
                         Poll::Ready(()) => {
@@ -214,7 +214,7 @@ impl ProcessRuntime {
                     self.task_running.store(true, Ordering::SeqCst);
                     let result = future.as_mut().poll(&mut context);
                     self.task_running.store(false, Ordering::SeqCst);
-                    interrupts::no_int(|| {
+                    x86_64::instructions::interrupts::without_interrupts(|| {
                         self.current_task_info = None; // task finished execution, so we remove it from current
                         match result {
                             Poll::Ready(()) => {

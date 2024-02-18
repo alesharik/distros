@@ -32,28 +32,3 @@ pub fn init_pic(apic: &Apic) {
     lapic::init_lapic(virt);
     ioapic::init_ioapic(&apic);
 }
-
-pub fn enable_interrupts() {
-    INT_ENABLED.store(true, Ordering::SeqCst);
-    x86_64::instructions::interrupts::enable();
-}
-
-pub fn disable_interrupts() {
-    x86_64::instructions::interrupts::disable();
-    INT_ENABLED.store(false, Ordering::SeqCst);
-}
-
-pub fn no_int<F, R>(f: F) -> R
-where
-    F: FnOnce() -> R,
-{
-    if !INT_ENABLED.load(Ordering::SeqCst) {
-        return f();
-    }
-    INT_ENABLED.store(false, Ordering::SeqCst);
-    x86_64::instructions::interrupts::disable();
-    let v = f();
-    INT_ENABLED.store(true, Ordering::SeqCst);
-    x86_64::instructions::interrupts::enable();
-    v
-}

@@ -1,5 +1,6 @@
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use spin::Mutex;
+use x86_64::instructions::interrupts;
 use x86_64::instructions::port::{PortReadOnly, PortWriteOnly};
 
 const SENTURY: u16 = 2000;
@@ -89,5 +90,5 @@ pub fn read_time_unsafe() -> NaiveDateTime {
 }
 
 pub fn read_time() -> NaiveDateTime {
-    crate::interrupts::no_int(read_time_unsafe)
+    interrupts::without_interrupts(read_time_unsafe)
 }
