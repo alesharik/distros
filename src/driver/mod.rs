@@ -5,12 +5,11 @@ mod pci;
 mod smbios;
 mod syslog;
 mod tty;
-use crate::acpi::AcpiInfo;
 pub use pci::{PciDeviceBarMessage, PciDeviceTypeMessage};
 pub use syslog::SyslogMessage;
 pub use tty::TtyMessage;
 
-pub fn init(acpi: &AcpiInfo) {
+pub fn init() {
     syslog::init();
 
     info!("Starting device drivers");
@@ -18,6 +17,6 @@ pub fn init(acpi: &AcpiInfo) {
     info!("Device drivers started");
 
     smbios::init();
-    pci::init(acpi);
+    pci::init();
     tty::init().unwrap();
 }

@@ -4,17 +4,6 @@ version = 3
 
 [[package]]
 name = "acpi"
-version = "4.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "654f48ab3178632ea535be1765073b990895cb62f70a7e5671975d7150c26d15"
-dependencies = [
- "bit_field",
- "log",
- "rsdp",
-]
-
-[[package]]
-name = "acpi"
 version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e248409195304021f61b39ba2628f62a45a3abf6119669d44b3399d60eabe4c3"
@@ -170,7 +159,7 @@ checksum = "248e3bacc7dc6baa3b21e405ee045c3047101a49145e7e9eca583ab4c2ca5345"
 name = "distros"
 version = "0.1.0"
 dependencies = [
- "acpi 4.1.1",
+ "acpi",
  "arrayvec",
  "async-trait",
  "bit_field",
@@ -179,10 +168,12 @@ dependencies = [
  "cc",
  "chrono",
  "crossbeam-queue",
+ "distros-acpi",
  "distros-cpuid",
  "distros-framebuffer",
  "distros-framebuffer-vesa",
  "distros-interrupt",
+ "distros-interrupt-pic",
  "distros-logging",
  "distros-memory",
  "fixedbitset",
@@ -210,6 +201,16 @@ dependencies = [
  "volatile",
  "vte",
  "x2apic 0.3.0",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-acpi"
+version = "0.1.0"
+dependencies = [
+ "acpi",
+ "distros-memory",
+ "log",
  "x86_64",
 ]
 
@@ -251,11 +252,11 @@ dependencies = [
 name = "distros-interrupt-pic"
 version = "0.1.0"
 dependencies = [
- "acpi 5.0.0",
- "bitflags 2.4.2",
+ "acpi",
+ "distros-acpi",
  "distros-cpuid",
+ "distros-interrupt",
  "distros-memory",
- "fixedbitset",
  "lazy_static",
  "log",
  "spin 0.9.8",
@@ -655,15 +656,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "387f58b714cda2b5042ef9e91819445f60189900b618475186b11d7876f6adb4"
 dependencies = [
  "archery",
-]
-
-[[package]]
-name = "rsdp"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ed5f33bb98eace335c13cdd159fbfc73ce203b597981a76832dfbb9cbd8101b"
-dependencies = [
- "log",
 ]
 
 [[package]]

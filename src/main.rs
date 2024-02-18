@@ -9,6 +9,7 @@
 #![feature(naked_functions)]
 #![feature(linked_list_cursors)]
 #![feature(asm_const)]
+#![feature(allocator_api)]
 #![allow(dead_code)]
 
 #[macro_use]
@@ -38,7 +39,6 @@ use x86_64::VirtAddr;
 mod interrupts;
 #[macro_use]
 mod process;
-mod acpi;
 mod basic_term;
 mod cmos;
 #[macro_use]
@@ -81,7 +81,8 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
         boot_info.physical_memory_offset.into_option(),
         &boot_info.memory_regions,
     );
-    // let acpi = acpi::init_acpi(boot_info.rsdp_addr.into_option());
+    distros_acpi::init_acpi(boot_info.rsdp_addr.into_option());
+    distros_interrupt_pic::init();
     // interrupts::init_pic(&acpi);
     // fpu::init_fpu();
     // interrupts::syscall_init();

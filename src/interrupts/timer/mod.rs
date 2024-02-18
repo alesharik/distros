@@ -4,7 +4,6 @@ mod hpet;
 mod pit;
 mod rtc;
 
-use crate::acpi::AcpiInfo;
 use crate::interrupts::RTC_IRQ;
 use distros_interrupt::OverrideMode;
 pub use rtc::now;
@@ -18,8 +17,8 @@ pub fn sleep(duration: Duration) {
     }
 }
 
-pub fn init_timer(acpi: &AcpiInfo) {
-    if let Some(hpet) = acpi.hpet.as_ref() {
+pub fn init_timer() {
+    if let Some(hpet) = distros_acpi::hpet() {
         let irq = hpet::init_hpet_rtc(hpet);
         distros_interrupt::set_handler(irq.map_to_int(0), rtc::rtc_handler, OverrideMode::Panic);
         info!("Handler mapped to irq {} via HPET", irq.0);
@@ -41,6 +40,6 @@ pub fn init_timer(acpi: &AcpiInfo) {
 
 int_handler!(
     pit_stub | _: InterruptStackFrame | {
-        crate::interrupts::eoi();
+        distros_interrupt_pic::lapic_eoi();
     }
 );

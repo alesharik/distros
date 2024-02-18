@@ -1,5 +1,5 @@
-use distros_interrupt::idt::OverrideMode;
-use distros_interrupt::InterruptId;
+use distros_interrupt::OverrideMode;
+use distros_interrupt::{int_handler, InterruptId};
 use log::{error, info};
 use x2apic::lapic::{LocalApic, LocalApicBuilder, TimerDivide, TimerMode};
 use x86_64::structures::idt::InterruptStackFrame;
@@ -13,18 +13,18 @@ static mut LAPIC: Option<LocalApic> = None;
 
 pub fn init_lapic(address: VirtAddr) {
     unsafe {
+        distros_interrupt::set_handler(INT_LAPIC_ERROR, lapic_error, OverrideMode::Panic);
+        distros_interrupt::set_handler(INT_LAPIC_SPURIOUS, lapic_suprous, OverrideMode::Panic);
         let mut apic = LocalApicBuilder::new()
-            .timer_vector(INT_LAPIC_TIMER.0)
-            .error_vector(INT_LAPIC_ERROR.0)
-            .spurious_vector(INT_LAPIC_SPURIOUS.0)
+            .timer_vector(INT_LAPIC_TIMER.int())
+            .error_vector(INT_LAPIC_ERROR.int())
+            .spurious_vector(INT_LAPIC_SPURIOUS.int())
             .set_xapic_base(address.as_u64())
             .build()
             .expect("Failed to get Local APIC");
         apic.enable();
+        info!("LAPIC {} at 0x{:08x} enabled", apic.id(), address);
         LAPIC = Some(apic);
-        distros_interrupt::idt::set_handler(INT_LAPIC_ERROR, lapic_error, OverrideMode::Panic);
-        distros_interrupt::idt::set_handler(INT_LAPIC_SPURIOUS, lapic_suprous, OverrideMode::Panic);
-        info!("LAPIC enabled");
     }
 }
 
@@ -33,7 +33,6 @@ pub fn eoi() {
         LAPIC
             .as_mut()
             .expect("Local APIC is not initialized")
-            .error_flags()
             .end_of_interrupt();
     }
 }
@@ -64,7 +63,7 @@ int_handler!(
                 .as_mut()
                 .expect("Local APIC is not initialized")
                 .error_flags()
-        }
+        };
         error!("EXCEPTION: LAPIC ERROR {:?}\n{:#?}", flags, stack_frame);
     }
 );

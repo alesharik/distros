@@ -136,7 +136,7 @@ impl ProcessRuntime {
 
     pub unsafe fn int(&mut self, mut stack_frame: InterruptStackFrame, regs: &mut Regs) {
         if !self.task_running.load(Ordering::SeqCst) {
-            interrupts::eoi();
+            distros_interrupt_pic::lapic_eoi();
             return; // ok, we continue main loop
         }
         // while let Some(task) = self.add_task_queue.pop() {
@@ -144,7 +144,7 @@ impl ProcessRuntime {
         // }
         let task = self.queue.pop();
         if let None = task {
-            interrupts::eoi();
+            distros_interrupt_pic::lapic_eoi();
             return; // nothing to schedule, returning to main loop
         }
         self.save_current_task(&stack_frame, regs);
@@ -158,7 +158,7 @@ impl ProcessRuntime {
                 let (task_waker, wake_called) = TaskWaker::new(self.queue.clone());
                 let waker_cloned = &task_waker.clone().into();
                 let mut context = Context::from_waker(waker_cloned);
-                interrupts::eoi();
+                distros_interrupt_pic::lapic_eoi();
                 let result = future.as_mut().poll(&mut context);
                 x86_64::instructions::interrupts::without_interrupts(|| {
                     self.current_task_info = last; // task finished execution, so we remove it from current
@@ -187,7 +187,7 @@ impl ProcessRuntime {
                 // continue paused task execution
             }
         }
-        interrupts::eoi();
+        distros_interrupt_pic::lapic_eoi();
     }
 
     pub unsafe fn run(&mut self) -> ! {

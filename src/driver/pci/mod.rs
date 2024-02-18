@@ -3,7 +3,6 @@ use pci_types::{ConfigRegionAccess, PciAddress, PciHeader};
 mod access;
 mod device;
 
-use crate::acpi::AcpiInfo;
 use crate::driver::pci::access::{PciAccess, PcieAccess};
 pub use device::{PciDeviceBarMessage, PciDeviceStatusMessage, PciDeviceTypeMessage};
 
@@ -54,8 +53,8 @@ fn check_bus<T: ConfigRegionAccess + Sync + Clone + 'static>(access: &T, segment
     }
 }
 
-pub fn init(acpi: &AcpiInfo) {
-    if let Some(regions) = &acpi.pci_config_regions {
+pub fn init() {
+    if let Some(regions) = distros_acpi::pci_config_regions() {
         debug!("[PCI] Using PCIe interface");
         let access = PcieAccess::new(regions);
         for bus in 0..32 {

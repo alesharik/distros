@@ -3,7 +3,7 @@ macro_rules! int_handler {
         pub extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame) {
             x86_64::instructions::interrupts::without_interrupts(|| {
                 $body(stack_frame);
-                crate::interrupts::eoi();
+                distros_interrupt_pic::lapic_eoi();
             })
         }
     };
@@ -11,7 +11,7 @@ macro_rules! int_handler {
         extern "x86-interrupt" fn $name(stack_frame: InterruptStackFrame) {
             x86_64::instructions::interrupts::without_interrupts(|| {
                 $body(stack_frame);
-                crate::interrupts::eoi();
+                distros_interrupt_pic::lapic_eoi();
             })
         }
     };
@@ -22,13 +22,10 @@ macro_rules! int_handler {
     };
 }
 
-mod pic;
 mod syscall;
 mod timer;
 
-use crate::acpi::AcpiInfo;
 use distros_interrupt::InterruptId;
-pub use pic::eoi;
 pub use timer::now;
 use x86_64::instructions::interrupts;
 
@@ -53,24 +50,25 @@ impl Irq {
     /// # Arguments
     /// * `dest` - Destination CPU
     pub fn map_to_int(&self, dest: u32) -> InterruptId {
-        InterruptId::new(pic::map_irc_irq(self.0, dest))
+        unimplemented!();
+        // InterruptId::new(pic::map_irc_irq(self.0, dest))
     }
 
     /// Is this IRQ already bound to handler?
     pub fn has_handler(&self) -> bool {
-        if let Some(int) = pic::convert_isr_irq(self.0) {
-            distros_interrupt::has_handler(InterruptId::new(int))
-        } else {
-            false
-        }
+        unimplemented!();
+        // if let Some(int) = pic::convert_isr_irq(self.0) {
+        //     distros_interrupt::has_handler(InterruptId::new(int))
+        // } else {
+        //     false
+        // }
     }
 }
 
-pub fn init_pic(acpi: &AcpiInfo) {
+pub fn init_pic() {
     interrupts::disable();
 
-    pic::init_pic(&acpi.apic);
-    timer::init_timer(&acpi);
+    timer::init_timer();
 
     interrupts::enable();
 }
