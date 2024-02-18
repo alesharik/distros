@@ -42,7 +42,6 @@ mod interrupts;
 #[macro_use]
 mod process;
 mod basic_term;
-mod cmos;
 #[macro_use]
 mod flow;
 mod driver;
