@@ -1,0 +1,11 @@
+[package]
+name = "distros-random"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = { version = "0.8.3", default-features = false, features = ["alloc"] }
+rand_pcg = "0.3.0"
+x86_64 = "0.14.12"
+
+distros-timer = { path = "../timer" }

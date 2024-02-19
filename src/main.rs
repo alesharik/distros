@@ -47,7 +47,6 @@ mod flow;
 mod driver;
 mod elf;
 mod gui;
-mod random;
 
 /// This function is called on panic.
 #[panic_handler]

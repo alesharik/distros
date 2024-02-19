@@ -1,20 +1,14 @@
-use crate::interrupts;
-use alloc::boxed::Box;
 use rand::{Error, RngCore};
-use rand_pcg::Pcg64Mcg;
 use x86_64::instructions::random::RdRand;
 
-struct HwRng {
-    rdrand: RdRand,
-    fallback: Pcg64Mcg,
+pub struct HwRng<F: RngCore + Send + Sync + 'static> {
+    rdrand: Option<RdRand>,
+    fallback: F,
 }
 
-impl HwRng {
-    fn new(rdrand: RdRand) -> Self {
-        HwRng {
-            rdrand,
-            fallback: Pcg64Mcg::new((distros_timer::now() as u128) * 2000 / 3 * 13),
-        }
+impl<F: RngCore + Send + Sync + 'static> HwRng<F> {
+    pub fn new(rdrand: Option<RdRand>, fallback: F) -> Self {
+        HwRng { rdrand, fallback }
     }
 
     #[inline(always)]
@@ -34,16 +28,16 @@ impl HwRng {
     }
 }
 
-impl RngCore for HwRng {
+impl<F: RngCore + Send + Sync + 'static> RngCore for HwRng<F> {
     fn next_u32(&mut self) -> u32 {
         self.rdrand
-            .get_u32()
+            .and_then(|s| s.get_u32())
             .unwrap_or_else(|| self.fallback.next_u32())
     }
 
     fn next_u64(&mut self) -> u64 {
         self.rdrand
-            .get_u64()
+            .and_then(|s| s.get_u64())
             .unwrap_or_else(|| self.fallback.next_u64())
     }
 
@@ -55,14 +49,4 @@ impl RngCore for HwRng {
         self.fill_bytes(dest);
         Ok(())
     }
-}
-
-pub fn rng() -> Box<dyn RngCore> {
-    RdRand::new()
-        .map(|rdrand| Box::new(HwRng::new(rdrand)) as Box<dyn RngCore>)
-        .unwrap_or_else(|| {
-            Box::new(Pcg64Mcg::new(
-                (distros_timer::now() as u128) * 2000 / 3 * 13,
-            ))
-        })
 }
