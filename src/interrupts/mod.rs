@@ -23,10 +23,8 @@ macro_rules! int_handler {
 }
 
 mod syscall;
-pub mod timer;
 
 use distros_interrupt::InterruptId;
-use x86_64::instructions::interrupts;
 
 pub const INT_LAPIC_TIMER: InterruptId = InterruptId::new(33);
 pub const INT_LAPIC_ERROR: InterruptId = InterruptId::new(34);
