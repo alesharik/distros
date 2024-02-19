@@ -83,10 +83,18 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     );
     distros_acpi::init_acpi(boot_info.rsdp_addr.into_option());
     distros_interrupt_pic::init();
-    distros_timer_rtc::init(None);
-    distros_fpu::init();
+    if let Some(hpet) = distros_acpi::hpet() {
+        distros_timer_hpet::init(hpet);
+    } else {
+        distros_timer_rtc::init(None);
+    }
+    // distros_fpu::init();
 
     x86_64::instructions::interrupts::enable();
+
+    if distros_acpi::hpet().is_some() {
+        distros_timer_hpet::enable();
+    }
     loop {
         warn!(
             "TIME {}",
@@ -104,5 +112,7 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     // basic_term::init().unwrap();
     //
     // unsafe { process::run() }
-    loop {}
+    loop {
+        hlt();
+    }
 }

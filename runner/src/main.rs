@@ -22,13 +22,22 @@ fn main() {
         .create_disk_image(&uefi_path)
         .unwrap();
     let uefi_path = uefi_path.to_string_lossy();
+    let bios_path = out_dir.join("bios.img");
+    bootloader::BiosBoot::new(&kernel)
+        .create_disk_image(&bios_path)
+        .unwrap();
 
     let mut child = Command::new("qemu-system-x86_64")
         .arg("-gdb")
         .arg("tcp::9002")
         .arg("-no-reboot")
         .arg("-no-shutdown")
-        // .arg("-machine").arg("q35")
+        .arg("-machine")
+        .arg("q35")
+        .arg("-accel")
+        .arg("kvm")
+        .arg("-cpu")
+        .arg("host")
         // .arg("-device").arg("nec-usb-xhci,id=xhci")
         // .arg("-monitor").arg("stdio")
         // .arg("-device").arg("pcie-root-port,id=rp1,slot=1")

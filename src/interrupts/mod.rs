@@ -62,7 +62,3 @@ impl Irq {
         // }
     }
 }
-
-pub fn init_pic() {
-    timer::init_timer();
-}

@@ -177,6 +177,7 @@ dependencies = [
  "distros-interrupt-pic",
  "distros-logging",
  "distros-memory",
+ "distros-timer-hpet",
  "distros-timer-rtc",
  "distros-timer-tsc",
  "fixedbitset",
@@ -293,6 +294,21 @@ dependencies = [
  "log",
  "spin 0.9.8",
  "talc",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-timer-hpet"
+version = "0.1.0"
+dependencies = [
+ "acpi",
+ "bit_field",
+ "distros-interrupt",
+ "distros-interrupt-pic",
+ "distros-memory",
+ "distros-timer-rtc",
+ "log",
+ "spin 0.9.8",
  "x86_64",
 ]
 
