@@ -36,8 +36,6 @@ fn main() {
         .arg("q35")
         .arg("-accel")
         .arg("kvm")
-        .arg("-cpu")
-        .arg("host")
         // .arg("-device").arg("nec-usb-xhci,id=xhci")
         // .arg("-monitor").arg("stdio")
         // .arg("-device").arg("pcie-root-port,id=rp1,slot=1")

@@ -84,17 +84,10 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     distros_acpi::init_acpi(boot_info.rsdp_addr.into_option());
     distros_interrupt_pic::init();
     distros_timer::init();
-    // distros_fpu::init();
+    distros_fpu::init();
     x86_64::instructions::interrupts::enable();
     distros_timer::after_interrupt_enabled();
 
-    loop {
-        warn!(
-            "TIME {}",
-            NaiveDateTime::from_timestamp_millis(distros_timer::now() as i64).unwrap()
-        );
-        distros_timer::sleep(Duration::from_secs(1));
-    }
     // interrupts::syscall_init();
     // //
     // // // ElfProgram::load(include_bytes!("../example_elf/target/config/release/example_elf")).unwrap().start_tmp();
