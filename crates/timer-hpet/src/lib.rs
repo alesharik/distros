@@ -8,7 +8,7 @@ use distros_interrupt_pic::{Irq, IrqDestination, IrqId, IrqMode};
 use distros_memory::translate_kernel;
 use distros_timer_rtc::{rtc_handler, ExternalTimerInfo};
 use log::{debug, info, warn};
-use spin::Mutex;
+use spin::RwLock;
 use x86_64::structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB};
 use x86_64::{PhysAddr, VirtAddr};
 
@@ -16,7 +16,7 @@ mod capabilities;
 mod hpet;
 mod timer;
 
-static mut HPET: Option<Mutex<Hpet>> = None;
+static mut HPET: Option<RwLock<Hpet>> = None;
 
 pub fn init(info: &acpi::hpet::HpetInfo) {
     let phys = PhysAddr::new(info.base_address as u64);
@@ -74,14 +74,26 @@ pub fn init(info: &acpi::hpet::HpetInfo) {
     }
 
     unsafe {
-        HPET = Some(Mutex::new(hpet));
+        HPET = Some(RwLock::new(hpet));
     }
 }
 
 pub fn enable() {
     unsafe {
-        let mut hpet = HPET.as_ref().expect("HPET not initialized").lock();
+        let mut hpet = HPET.as_ref().expect("HPET not initialized").write();
         hpet.enable();
     }
     debug!("HPET enabled");
+}
+
+pub fn sleep(duration: Duration) {
+    unsafe {
+        let hpet = HPET.as_ref().expect("HPET not initialized").read();
+        let now = hpet.get_main_counter();
+        while hpet.get_main_counter().max(now) - now
+            < duration.as_nanos() as u64 * 10u64.pow(6) / hpet.period() as u64
+        {
+            x86_64::instructions::hlt();
+        }
+    }
 }

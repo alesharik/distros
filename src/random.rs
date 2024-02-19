@@ -13,7 +13,7 @@ impl HwRng {
     fn new(rdrand: RdRand) -> Self {
         HwRng {
             rdrand,
-            fallback: Pcg64Mcg::new((distros_timer_rtc::now() as u128) * 2000 / 3 * 13),
+            fallback: Pcg64Mcg::new((distros_timer::now() as u128) * 2000 / 3 * 13),
         }
     }
 
@@ -62,7 +62,7 @@ pub fn rng() -> Box<dyn RngCore> {
         .map(|rdrand| Box::new(HwRng::new(rdrand)) as Box<dyn RngCore>)
         .unwrap_or_else(|| {
             Box::new(Pcg64Mcg::new(
-                (distros_timer_rtc::now() as u128) * 2000 / 3 * 13,
+                (distros_timer::now() as u128) * 2000 / 3 * 13,
             ))
         })
 }

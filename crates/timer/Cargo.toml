@@ -1,0 +1,13 @@
+[package]
+name = "distros-timer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+acpi = "5.0.0"
+
+distros-acpi = { path = "../acpi" }
+distros-timer-hpet = { path = "../timer-hpet" }
+distros-timer-rtc = { path = "../timer-rtc" }
+distros-timer-tsc = { path = "../timer-tsc" }
+log = "0.4.20"

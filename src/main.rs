@@ -83,24 +83,17 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     );
     distros_acpi::init_acpi(boot_info.rsdp_addr.into_option());
     distros_interrupt_pic::init();
-    if let Some(hpet) = distros_acpi::hpet() {
-        distros_timer_hpet::init(hpet);
-    } else {
-        distros_timer_rtc::init(None);
-    }
+    distros_timer::init();
     // distros_fpu::init();
-
     x86_64::instructions::interrupts::enable();
+    distros_timer::after_interrupt_enabled();
 
-    if distros_acpi::hpet().is_some() {
-        distros_timer_hpet::enable();
-    }
     loop {
         warn!(
             "TIME {}",
-            NaiveDateTime::from_timestamp_millis(distros_timer_rtc::now() as i64).unwrap()
+            NaiveDateTime::from_timestamp_millis(distros_timer::now() as i64).unwrap()
         );
-        distros_timer_tsc::sleep(Duration::from_secs(1));
+        distros_timer::sleep(Duration::from_secs(1));
     }
     // interrupts::syscall_init();
     // //
