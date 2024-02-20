@@ -46,6 +46,7 @@ distros-interrupt = { path = "crates/interrupt" }
 distros-interrupt-pic = { path = "crates/interrupt-pic" }
 distros-acpi = { path = "crates/acpi" }
 distros-timer = { path = "crates/timer" }
+distros-timer-pit = { path = "crates/timer-pit" }
 distros-fpu = { path = "crates/fpu" }
 distros-random = { path = "crates/random" }
 
@@ -57,5 +58,5 @@ features = ["spin_no_std"]
 cc = "1.0.68"
 
 [workspace]
-members = [ "crates/acpi", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/random", "crates/timer", "crates/timer-hpet", "crates/timer-rtc", "crates/timer-tsc"]
+members = [ "crates/acpi", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/random", "crates/timer", "crates/timer-hpet", "crates/timer-pit", "crates/timer-rtc", "crates/timer-tsc"]
 exclude = ["runner"]

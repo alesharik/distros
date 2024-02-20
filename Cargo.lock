@@ -179,6 +179,7 @@ dependencies = [
  "distros-memory",
  "distros-random",
  "distros-timer",
+ "distros-timer-pit",
  "fixedbitset",
  "futures",
  "goblin",
@@ -326,6 +327,14 @@ dependencies = [
  "distros-memory",
  "distros-timer-rtc",
  "log",
+ "spin 0.9.8",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-timer-pit"
+version = "0.1.0"
+dependencies = [
  "spin 0.9.8",
  "x86_64",
 ]

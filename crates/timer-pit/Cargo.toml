@@ -1,0 +1,8 @@
+[package]
+name = "distros-timer-pit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+x86_64 = "0.14.12"
+spin = "0.9.8"
