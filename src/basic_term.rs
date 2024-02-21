@@ -1,4 +1,4 @@
-use crate::driver::{PciDeviceTypeMessage, TtyMessage};
+use crate::driver::TtyMessage;
 use crate::flow::{FlowManager, FlowManagerError};
 use alloc::borrow::ToOwned;
 use alloc::boxed::Box;
@@ -85,8 +85,8 @@ impl Sub {
             },
             "get" => {
                 spawn!("term_get" => async {
-                    let msg: PciDeviceTypeMessage = FlowManager::get("/dev/pci/0/0/0/type").await.unwrap();
-                    Sub::print_async(&format!("{:?}", msg)).await;
+                    // let msg: PciDeviceTypeMessage = FlowManager::get("/dev/pci/0/0/0/type").await.unwrap();
+                    // Sub::print_async(&format!("{:?}", msg)).await;
                 });
             }
             "load" => {
@@ -97,8 +97,8 @@ impl Sub {
                     for bus in FlowManager::list("/dev/pci/") {
                         for device in FlowManager::list(&format!("/dev/pci/{}", &bus.name)) {
                             for function in FlowManager::list(&format!("/dev/pci/{}/{}", &bus.name, &device.name)) {
-                                let typ: PciDeviceTypeMessage = FlowManager::get(&format!("/dev/pci/{}/{}/{}/type", &bus.name, &device.name, function.name)).await.unwrap();
-                                Sub::print_async(&format!("\x1b[32m{}:{}.{}\x1b[37m - {:?}\n", &bus.name, &device.name, &function.name, typ.get())).await;
+                                // let typ: PciDeviceTypeMessage = FlowManager::get(&format!("/dev/pci/{}/{}/{}/type", &bus.name, &device.name, function.name)).await.unwrap();
+                                // Sub::print_async(&format!("\x1b[32m{}:{}.{}\x1b[37m - {:?}\n", &bus.name, &device.name, &function.name, typ.get())).await;
                             }
                         }
                     }

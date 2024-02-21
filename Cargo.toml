@@ -26,7 +26,7 @@ hashbrown = "0.11.2"
 
 ps2 = "0.1.2" # PS2 keyboard and mouse support
 pc-keyboard = "0.5.1" # keyboard parser
-pci_types = { git = "https://github.com/alesharik/pci_types.git", branch = "control" } # PCI types
+pci_types = "0.6.1"  # PCI types
 vte = { git = "https://github.com/alesharik/vte.git", branch = "move-ansi", features = ["ansi"] } # ANSI terminal parser
 smbios-lib = { git = "https://github.com/alesharik/smbios-lib.git", features = ["no_std", "x86_64"], default-features = false, branch = "struct_clone" } # SMBIOS
 serde = { version = "1.0.127", features = ["derive", "alloc"], default-features = false }
@@ -49,6 +49,7 @@ distros-timer = { path = "crates/timer" }
 distros-timer-pit = { path = "crates/timer-pit" }
 distros-fpu = { path = "crates/fpu" }
 distros-random = { path = "crates/random" }
+distros-pci-access = { path = "crates/pci-access" }
 
 [dependencies.lazy_static]
 version = "1.4.0"
@@ -58,5 +59,5 @@ features = ["spin_no_std"]
 cc = "1.0.68"
 
 [workspace]
-members = [ "crates/acpi", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/random", "crates/timer", "crates/timer-hpet", "crates/timer-pit", "crates/timer-rtc", "crates/timer-tsc"]
+members = [ "crates/acpi", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/pci-access", "crates/random", "crates/timer", "crates/timer-hpet", "crates/timer-pit", "crates/timer-rtc", "crates/timer-tsc"]
 exclude = ["runner"]

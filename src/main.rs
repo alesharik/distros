@@ -84,8 +84,11 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     distros_interrupt_pic::init();
     distros_timer::init();
     distros_fpu::init();
+    distros_pci_access::init();
     x86_64::instructions::interrupts::enable();
     distros_timer::after_interrupt_enabled();
+
+    // driver::pci::init();
 
     // interrupts::syscall_init();
     // //

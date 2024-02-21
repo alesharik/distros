@@ -37,30 +37,30 @@ macro_rules! command_var {
     };
 }
 
-command_var!("interrupts_disabled" => InterruptsDisabled get interrupts_disabled set interrupt_disable);
-command_var!("fast_back_to_back_enabled" => FastBackToBackEnabled get fast_back_to_back_enabled set fast_back_to_back_enable);
-command_var!("serr_enabled" => SerrEnabled get serr_enabled set serr_enable);
-command_var!("parity_error_response" => ParityErrorResponse get parity_error_response set parity_error_response);
-command_var!("vga_palette_snoop" => VgaPaletteSnoop get vga_palette_snoop set vga_palette_snoop);
-command_var!("memory_write_and_invalidate_enabled" => MemoryWriteAndInvalidateEnabled get memory_write_and_invalidate_enabled set memory_write_and_invalidate_enable);
-command_var!("monitor_special_cycles" => MonitorSpecialCycles get monitor_special_cycles set monitor_special_cycles);
-command_var!("bus_mastering_enabled" => BusMasteringEnabled get bus_mastering_enabled set bus_mastering);
-command_var!("memory_space_access_enabled" => MemorySpaceAccessEnabled get memory_space_access_enabled set memory_space_access);
-command_var!("io_space_access_enabled" => IoSpaceAccessEnabled get io_space_access_enabled set io_space_access);
+// command_var!("interrupts_disabled" => InterruptsDisabled get interrupts_disabled set interrupt_disable);
+// command_var!("fast_back_to_back_enabled" => FastBackToBackEnabled get fast_back_to_back_enabled set fast_back_to_back_enable);
+// command_var!("serr_enabled" => SerrEnabled get serr_enabled set serr_enable);
+// command_var!("parity_error_response" => ParityErrorResponse get parity_error_response set parity_error_response);
+// command_var!("vga_palette_snoop" => VgaPaletteSnoop get vga_palette_snoop set vga_palette_snoop);
+// command_var!("memory_write_and_invalidate_enabled" => MemoryWriteAndInvalidateEnabled get memory_write_and_invalidate_enabled set memory_write_and_invalidate_enable);
+// command_var!("monitor_special_cycles" => MonitorSpecialCycles get monitor_special_cycles set monitor_special_cycles);
+// command_var!("bus_mastering_enabled" => BusMasteringEnabled get bus_mastering_enabled set bus_mastering);
+// command_var!("memory_space_access_enabled" => MemorySpaceAccessEnabled get memory_space_access_enabled set memory_space_access);
+// command_var!("io_space_access_enabled" => IoSpaceAccessEnabled get io_space_access_enabled set io_space_access);
 
-pub fn register_command<T: ConfigRegionAccess + Sync + Clone + 'static>(
-    address: PciAddress,
-    access: &T,
-) -> Result<()> {
-    InterruptsDisabled::register(access, address)?;
-    FastBackToBackEnabled::register(access, address)?;
-    SerrEnabled::register(access, address)?;
-    ParityErrorResponse::register(access, address)?;
-    VgaPaletteSnoop::register(access, address)?;
-    MemoryWriteAndInvalidateEnabled::register(access, address)?;
-    MonitorSpecialCycles::register(access, address)?;
-    BusMasteringEnabled::register(access, address)?;
-    MemorySpaceAccessEnabled::register(access, address)?;
-    IoSpaceAccessEnabled::register(access, address)?;
-    Ok(())
-}
+// pub fn register_command<T: ConfigRegionAccess + Sync + Clone + 'static>(
+//     address: PciAddress,
+//     access: &T,
+// ) -> Result<()> {
+//     InterruptsDisabled::register(access, address)?;
+//     FastBackToBackEnabled::register(access, address)?;
+//     SerrEnabled::register(access, address)?;
+//     ParityErrorResponse::register(access, address)?;
+//     VgaPaletteSnoop::register(access, address)?;
+//     MemoryWriteAndInvalidateEnabled::register(access, address)?;
+//     MonitorSpecialCycles::register(access, address)?;
+//     BusMasteringEnabled::register(access, address)?;
+//     MemorySpaceAccessEnabled::register(access, address)?;
+//     IoSpaceAccessEnabled::register(access, address)?;
+//     Ok(())
+// }

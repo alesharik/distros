@@ -177,6 +177,7 @@ dependencies = [
  "distros-interrupt-pic",
  "distros-logging",
  "distros-memory",
+ "distros-pci-access",
  "distros-random",
  "distros-timer",
  "distros-timer-pit",
@@ -291,6 +292,20 @@ dependencies = [
  "log",
  "spin 0.9.8",
  "talc",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-pci-access"
+version = "0.1.0"
+dependencies = [
+ "acpi",
+ "bit_field",
+ "distros-acpi",
+ "distros-memory",
+ "log",
+ "pci_types",
+ "spin 0.9.8",
  "x86_64",
 ]
 
@@ -604,10 +619,12 @@ checksum = "5c6f2d937e3b8d63449b01401e2bae4041bc9dd1129c2e3e0d239407cf6635ac"
 
 [[package]]
 name = "pci_types"
-version = "0.2.0"
-source = "git+https://github.com/alesharik/pci_types.git?branch=control#02ae07fb6cc8f60e4d677da9ac0a2189129e4d44"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "831e5bebf010674bc2e8070b892948120d4c453c71f37387e1ffea5636620dbe"
 dependencies = [
  "bit_field",
+ "bitflags 2.4.2",
 ]
 
 [[package]]

@@ -38,3 +38,6 @@
 - `/dev/pci/{bus}/{device}/{function}/bar/{id}` - PCI device BAR information
 - `/dev/smbios` - SMBios information
 - `/dev/kernel_heap/info` - Kernel heap info
+
+## Hardcoded memory regions
+- 512 GiB - PCIe
