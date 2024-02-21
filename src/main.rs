@@ -34,6 +34,7 @@ use chrono::NaiveDateTime;
 use distros_framebuffer_vesa::VesaFrameBuffer;
 use distros_logging::Logger;
 use log::LevelFilter;
+use pci_types::device_type::DeviceType;
 use x86_64::instructions::hlt;
 use x86_64::VirtAddr;
 
@@ -87,6 +88,11 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     distros_pci_access::init();
     x86_64::instructions::interrupts::enable();
     distros_timer::after_interrupt_enabled();
+
+    for x in distros_pci_enumerate::vec() {
+        let (a, b, c, d) = x.revision_and_class(&distros_pci_access::access());
+        debug!("{:?}", DeviceType::from((b, c)));
+    }
 
     // driver::pci::init();
 

@@ -50,6 +50,7 @@ distros-timer-pit = { path = "crates/timer-pit" }
 distros-fpu = { path = "crates/fpu" }
 distros-random = { path = "crates/random" }
 distros-pci-access = { path = "crates/pci-access" }
+distros-pci-enumerate = { path = "crates/pci-enumerate" }
 
 [dependencies.lazy_static]
 version = "1.4.0"
@@ -59,5 +60,5 @@ features = ["spin_no_std"]
 cc = "1.0.68"
 
 [workspace]
-members = [ "crates/acpi", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/pci-access", "crates/random", "crates/timer", "crates/timer-hpet", "crates/timer-pit", "crates/timer-rtc", "crates/timer-tsc"]
+members = [ "crates/acpi", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/pci-access", "crates/pci-enumerate", "crates/random", "crates/timer", "crates/timer-hpet", "crates/timer-pit", "crates/timer-rtc", "crates/timer-tsc"]
 exclude = ["runner"]

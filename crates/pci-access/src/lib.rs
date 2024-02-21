@@ -60,6 +60,12 @@ pub fn init() {
     }
 }
 
+#[inline]
 pub fn access() -> AccessImpl {
     AccessImpl
+}
+
+#[inline]
+pub fn is_pcie() -> bool {
+    unsafe { PCIE_ACCESS.is_some() }
 }

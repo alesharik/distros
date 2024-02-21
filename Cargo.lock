@@ -178,6 +178,7 @@ dependencies = [
  "distros-logging",
  "distros-memory",
  "distros-pci-access",
+ "distros-pci-enumerate",
  "distros-random",
  "distros-timer",
  "distros-timer-pit",
@@ -307,6 +308,14 @@ dependencies = [
  "pci_types",
  "spin 0.9.8",
  "x86_64",
+]
+
+[[package]]
+name = "distros-pci-enumerate"
+version = "0.1.0"
+dependencies = [
+ "distros-pci-access",
+ "pci_types",
 ]
 
 [[package]]
