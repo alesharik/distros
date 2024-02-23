@@ -55,3 +55,12 @@ pub fn sleep(duration: Duration) {
         x86_64::instructions::hlt();
     }
 }
+
+#[inline]
+pub fn tsc() -> u64 {
+    unsafe { _rdtsc() }
+}
+
+pub fn tsc_cycles(duration: Duration) -> u64 {
+    unsafe { duration.as_nanos() as u64 / CALIB_FREQ.as_nanos() as u64 * CALIB_MEAN }
+}
