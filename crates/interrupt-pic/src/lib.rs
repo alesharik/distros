@@ -19,7 +19,9 @@ pub use ioapic::{
 };
 pub use isa::IsaIrq;
 pub use lapic::{
-    eoi as lapic_eoi, timer_disable as lapic_timer_disable, timer_enable as lapic_timer_enable,
+    eoi as lapic_eoi, timer_add_initial as lapic_timer_add_initial,
+    timer_disable as lapic_timer_disable, timer_enable as lapic_timer_enable,
+    timer_set_mode as lapic_timer_set_mode, timer_set_tsc_deadline as lapic_timer_set_tsc_deadline,
     INT_LAPIC_TIMER,
 };
 

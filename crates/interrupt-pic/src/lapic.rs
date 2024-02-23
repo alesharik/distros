@@ -2,6 +2,7 @@ use distros_interrupt::OverrideMode;
 use distros_interrupt::{int_handler, InterruptId};
 use log::{error, info};
 use x2apic::lapic::{LocalApic, LocalApicBuilder, TimerDivide, TimerMode};
+use x86_64::registers::model_specific::Msr;
 use x86_64::structures::idt::InterruptStackFrame;
 use x86_64::{software_interrupt, VirtAddr};
 
@@ -10,6 +11,7 @@ const INT_LAPIC_ERROR: InterruptId = InterruptId::new(0xFF - 1);
 const INT_LAPIC_SPURIOUS: InterruptId = InterruptId::new(0xFF);
 
 static mut LAPIC: Option<LocalApic> = None;
+const IA32_TSC_DEADLINE_MSR: Msr = Msr::new(0x6E0);
 
 pub fn init_lapic(address: VirtAddr) {
     unsafe {
@@ -38,12 +40,34 @@ pub fn eoi() {
     }
 }
 
-pub fn timer_enable(mode: TimerMode, divide: TimerDivide, initial: u32) {
+pub fn timer_set_mode(mode: TimerMode, timer_divide: TimerDivide) {
     unsafe {
         let lapic = LAPIC.as_mut().expect("Local APIC is not initialized");
         lapic.set_timer_mode(mode);
-        lapic.set_timer_divide(divide);
-        lapic.set_timer_initial(initial);
+        lapic.set_timer_divide(timer_divide);
+    }
+}
+
+pub fn timer_add_initial(initial: u32) {
+    unsafe {
+        let lapic = LAPIC.as_mut().expect("Local APIC is not initialized");
+        lapic.set_timer_initial(
+            initial
+                .checked_add(lapic.timer_current())
+                .unwrap_or_else(|| lapic.timer_current() - initial),
+        );
+    }
+}
+
+pub fn timer_set_tsc_deadline(deadline: u64) {
+    unsafe {
+        IA32_TSC_DEADLINE_MSR.write(deadline);
+    }
+}
+
+pub fn timer_enable() {
+    unsafe {
+        let lapic = LAPIC.as_mut().expect("Local APIC is not initialized");
         lapic.enable_timer();
     }
 }
