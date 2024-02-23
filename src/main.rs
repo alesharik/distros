@@ -86,6 +86,7 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     distros_timer::init();
     distros_fpu::init();
     distros_pci_access::init();
+    // distros_acpi_aml::init();
     x86_64::instructions::interrupts::enable();
     distros_timer::after_interrupt_enabled();
 

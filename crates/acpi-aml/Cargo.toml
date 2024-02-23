@@ -1,0 +1,16 @@
+[package]
+name = "distros-acpi-aml"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+acpi = "5.0.0"
+aml = "0.16.4"
+x86_64 = "0.14.12"
+pci_types = "0.6.1"
+bit_field = "0.10.2"
+
+distros-memory = { path = "../memory" }
+distros-acpi = { path = "../acpi" }
+distros-pci-access = { path = "../pci-access" }
+log = "0.4.20"

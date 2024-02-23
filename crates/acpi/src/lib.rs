@@ -6,14 +6,15 @@ extern crate alloc;
 
 use acpi::platform::interrupt::Apic;
 use acpi::{
-    AcpiError, AcpiHandler, AcpiTables, HpetInfo, InterruptModel, PciConfigRegions, PhysicalMapping,
+    AcpiError, AcpiHandler, AcpiTables, AmlTable, HpetInfo, InterruptModel, PciConfigRegions,
+    PhysicalMapping, SsdtIterator,
 };
 use core::ptr::NonNull;
 use log::info;
 use x86_64::PhysAddr;
 
 #[derive(Clone)]
-struct AcpiMemHandler;
+pub struct AcpiMemHandler;
 
 impl AcpiHandler for AcpiMemHandler {
     unsafe fn map_physical_region<T>(
@@ -60,13 +61,10 @@ pub fn init_acpi(rdsp_addr: Option<u64>) {
                 .expect("Failed to get ACPI tables"),
         );
         info!("Got ACPI tables");
-        let platform_info = TABLES
-            .as_ref()
-            .unwrap()
-            .platform_info()
-            .expect("Failed to get platform info");
-        PCI_CONFIG_REGIONS = PciConfigRegions::new(TABLES.as_ref().unwrap()).ok();
-        HPET = match HpetInfo::new(TABLES.as_ref().unwrap()) {
+        let tables = TABLES.as_ref().unwrap();
+        let platform_info = tables.platform_info().expect("Failed to get platform info");
+        PCI_CONFIG_REGIONS = PciConfigRegions::new(tables).ok();
+        HPET = match HpetInfo::new(tables) {
             Ok(r) => Some(r),
             Err(e) => match e {
                 AcpiError::TableMissing(_) => None,
@@ -79,4 +77,12 @@ pub fn init_acpi(rdsp_addr: Option<u64>) {
             _ => panic!("ACPI does not have interrupt model info"),
         }
     }
+}
+
+pub fn parse_dsdt() -> Result<AmlTable, AcpiError> {
+    unsafe { TABLES.as_ref().expect("ACPI not initialized").dsdt() }
+}
+
+pub fn parse_ssdts<'a>() -> SsdtIterator<'a, AcpiMemHandler> {
+    unsafe { TABLES.as_ref().expect("ACPI not initialized").ssdts() }
 }
