@@ -24,6 +24,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "ahash"
+version = "0.8.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d713b3834d76b85304d4d525563c1276e2e30dc97cc67bfb4585a4a29fc2c89f"
+dependencies = [
+ "cfg-if",
+ "once_cell",
+ "version_check",
+ "zerocopy",
+]
+
+[[package]]
+name = "allocator-api2"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0942ffc6dcaadf03badf6e6a2d0228460359d5e34b57ccdc720b7382dfbd5ec5"
+
+[[package]]
 name = "aml"
 version = "0.16.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -209,15 +227,17 @@ dependencies = [
  "distros-interrupt-pic",
  "distros-logging",
  "distros-memory",
+ "distros-memory-stack",
  "distros-pci-access",
  "distros-pci-enumerate",
  "distros-random",
+ "distros-scheduler",
  "distros-timer",
  "distros-timer-pit",
  "fixedbitset",
  "futures",
  "goblin",
- "hashbrown",
+ "hashbrown 0.11.2",
  "itertools",
  "lazy_static",
  "libkernel",
@@ -344,6 +364,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "distros-memory-stack"
+version = "0.1.0"
+dependencies = [
+ "distros-memory",
+ "spin 0.9.8",
+ "x86_64",
+]
+
+[[package]]
 name = "distros-pci-access"
 version = "0.1.0"
 dependencies = [
@@ -372,6 +401,26 @@ dependencies = [
  "distros-timer",
  "rand",
  "rand_pcg",
+ "x86_64",
+]
+
+[[package]]
+name = "distros-scheduler"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.4.2",
+ "distros-cpuid",
+ "distros-fpu",
+ "distros-interrupt",
+ "distros-interrupt-pic",
+ "distros-memory-stack",
+ "distros-timer-tsc",
+ "futures",
+ "hashbrown 0.14.3",
+ "intrusive-collections",
+ "log",
+ "spin 0.9.8",
+ "x2apic",
  "x86_64",
 ]
 
@@ -558,7 +607,26 @@ version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
 dependencies = [
- "ahash",
+ "ahash 0.7.8",
+]
+
+[[package]]
+name = "hashbrown"
+version = "0.14.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "290f1a1d9242c78d09ce40a5e87e7554ee637af1351968159f4952f028f75604"
+dependencies = [
+ "ahash 0.8.9",
+ "allocator-api2",
+]
+
+[[package]]
+name = "intrusive-collections"
+version = "0.9.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b694dc9f70c3bda874626d2aed13b780f137aab435f4e9814121955cf706122e"
+dependencies = [
+ "memoffset",
 ]
 
 [[package]]
@@ -644,6 +712,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b823e83b2affd8f40a9ee8c29dbc56404c1e34cd2710921f2801e2cf29527afa"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "memoffset"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a634b1c61a95585bd15607c6ab0c4e5b226e695ff2800ba0cdccddf208c406c"
+dependencies = [
+ "autocfg",
 ]
 
 [[package]]
@@ -1047,4 +1124,24 @@ dependencies = [
  "bitflags 2.4.2",
  "rustversion",
  "volatile",
+]
+
+[[package]]
+name = "zerocopy"
+version = "0.7.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74d4d3961e53fa4c9a25a8637fc2bfaf2595b3d3ae34875568a5cf64787716be"
+dependencies = [
+ "zerocopy-derive",
+]
+
+[[package]]
+name = "zerocopy-derive"
+version = "0.7.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ce1b18ccd8e73a9321186f97e46f9f04b778851177567b1975109d26a08d2a6"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.49",
 ]

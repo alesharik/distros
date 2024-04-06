@@ -176,14 +176,12 @@ extern "x86-interrupt" fn page_fault_handler(
     stack_frame: InterruptStackFrame,
     error_code: PageFaultErrorCode,
 ) {
-    use x86_64::instructions::hlt;
     use x86_64::registers::control::Cr2;
 
-    error!("EXCEPTION: PAGE FAULT");
-    error!("Accessed Address: {:?}", Cr2::read());
-    error!("Error Code: {:?}", error_code);
-    error!("{:#?}", stack_frame);
-    loop {
-        hlt();
-    }
+    panic!(
+        "EXCEPTION: PAGE FAULT\nAccessed Address: {:?}\nError Code: {:?}\n{:#?}",
+        Cr2::read(),
+        error_code,
+        stack_frame
+    );
 }

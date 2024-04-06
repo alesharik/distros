@@ -33,6 +33,9 @@ use bootloader_api::{entry_point, BootInfo, BootloaderConfig};
 use chrono::NaiveDateTime;
 use distros_framebuffer_vesa::VesaFrameBuffer;
 use distros_logging::Logger;
+use distros_memory_stack::{KERNEL_STACK_BASE, KERNEL_STACK_BASE_GUARD, KERNEL_STACK_SIZE};
+use distros_scheduler::TaskBuilder;
+use distros_timer::sleep;
 use log::LevelFilter;
 use pci_types::device_type::DeviceType;
 use x86_64::instructions::hlt;
@@ -64,10 +67,28 @@ fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
 pub static BOOTLOADER_CONFIG: BootloaderConfig = {
     let mut config = BootloaderConfig::new_default();
     config.mappings.physical_memory = Some(Mapping::Dynamic);
+    config.kernel_stack_size = KERNEL_STACK_SIZE;
+    config.mappings.kernel_stack = Mapping::FixedAddress(KERNEL_STACK_BASE_GUARD.as_u64());
     config
 };
 
 entry_point!(main, config = &BOOTLOADER_CONFIG);
+
+async fn a() {
+    futures::future::lazy(|_| loop {
+        warn!("A");
+        sleep(Duration::from_secs(1));
+    })
+    .await;
+}
+
+async fn b() {
+    futures::future::lazy(|_| loop {
+        warn!("B");
+        sleep(Duration::from_secs(1));
+    })
+    .await;
+}
 
 pub fn main(boot_info: &'static mut BootInfo) -> ! {
     let fb = VesaFrameBuffer::new(boot_info.framebuffer.take().unwrap());
@@ -86,14 +107,13 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     distros_timer::init();
     distros_fpu::init();
     distros_pci_access::init();
+    distros_scheduler::init();
     // distros_acpi_aml::init();
     x86_64::instructions::interrupts::enable();
     distros_timer::after_interrupt_enabled();
-
-    for x in distros_pci_enumerate::vec() {
-        let (a, b, c, d) = x.revision_and_class(&distros_pci_access::access());
-        debug!("{:?}", DeviceType::from((b, c)));
-    }
+    distros_scheduler::spawn(TaskBuilder::kernel(a()).no_preempt().name("a"));
+    distros_scheduler::spawn(TaskBuilder::kernel(b()).no_preempt().name("b"));
+    distros_scheduler::sched_start();
 
     // driver::pci::init();
 
@@ -107,7 +127,4 @@ pub fn main(boot_info: &'static mut BootInfo) -> ! {
     // basic_term::init().unwrap();
     //
     // unsafe { process::run() }
-    loop {
-        hlt();
-    }
 }

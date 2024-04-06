@@ -63,7 +63,9 @@ impl<F: FrameBuffer> TextDisplay<F> {
     }
 
     fn newline(&mut self) {
-        self.y_pos += font_constants::CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
+        if self.y_pos < self.height() {
+            self.y_pos += font_constants::CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
+        }
         self.carriage_return()
     }
 

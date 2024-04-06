@@ -1,0 +1,21 @@
+[package]
+name = "distros-scheduler"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+x86_64 = "0.14.12"
+hashbrown = "0.14.3"
+intrusive-collections = "0.9.6"
+x2apic = "0.4.3"
+spin = "0.9.8"
+log = "0.4.20"
+bitflags = "2.4.2"
+futures = { version = "0.3.30", default-features = false, features = ["alloc", "async-await", "bilock", "unstable"] }
+
+distros-cpuid = { path = "../cpuid" }
+distros-interrupt = { path = "../interrupt" }
+distros-interrupt-pic = { path = "../interrupt-pic" }
+distros-fpu = { path = "../fpu" }
+distros-timer-tsc = { path = "../timer-tsc" }
+distros-memory-stack = { path = "../memory-stack" }
