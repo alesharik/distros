@@ -1,4 +1,4 @@
-use crate::{Irq, IrqDestination, IrqId, IrqMode};
+use crate::{Irq, IrqDestination, IrqId, IrqMode, APIC_ADDR_BASE};
 use acpi::platform::interrupt::{IoApic, Polarity, TriggerMode};
 use alloc::vec::Vec;
 use distros_interrupt::InterruptId;
@@ -7,8 +7,6 @@ use spin::Mutex;
 use x2apic::ioapic::IrqFlags;
 use x86_64::structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB};
 use x86_64::{PhysAddr, VirtAddr};
-
-const IOAPIC_ADDR_BASE: VirtAddr = VirtAddr::new_truncate(1024 * 1024 * 1024 * 501);
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum IoApicError {
@@ -35,7 +33,7 @@ pub fn init(apics: &[IoApic]) {
     unsafe {
         for apic in apics {
             let addr = PhysAddr::new(apic.address as u64);
-            let virt_addr = IOAPIC_ADDR_BASE + 4096 * apic.id as u64;
+            let virt_addr = APIC_ADDR_BASE + 4096 * (apic.id as u64 + 1);
             distros_memory::map(
                 PhysFrame::<Size4KiB>::containing_address(addr),
                 Page::containing_address(virt_addr),

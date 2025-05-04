@@ -24,7 +24,7 @@ pub use lapic::{
     INT_LAPIC_TIMER,
 };
 
-const LAPIC_ADDR: VirtAddr = VirtAddr::new_truncate(1024 * 1024 * 1024 * 500);
+pub(crate) const APIC_ADDR_BASE: VirtAddr = VirtAddr::new_truncate(1024 * 1024 * 1024 * 500);
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 #[repr(transparent)]
@@ -127,14 +127,14 @@ pub fn init() {
     let addr = PhysAddr::new(apic.local_apic_address);
     distros_memory::map(
         PhysFrame::<Size4KiB>::containing_address(addr),
-        Page::containing_address(LAPIC_ADDR),
+        Page::containing_address(APIC_ADDR_BASE),
         PageTableFlags::PRESENT
             | PageTableFlags::WRITABLE
             | PageTableFlags::NO_CACHE
             | PageTableFlags::NO_EXECUTE,
     )
     .unwrap();
-    lapic::init_lapic(LAPIC_ADDR);
+    lapic::init_lapic(APIC_ADDR_BASE);
     isa::setup_overrides(&apic.interrupt_source_overrides);
     ioapic::init(&apic.io_apics)
 }
