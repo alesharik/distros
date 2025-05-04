@@ -147,8 +147,10 @@ fn add_struct(pos: usize, s: &DefinedStruct<'_>) -> Result<(), FlowSerdeError> {
         DefinedStruct::Undefined(s) => {
             register!(serial format!("/dev/smbios/undefined/{}", pos) => s)?
         }
-        DefinedStruct::Inactive(_) => {}
-        DefinedStruct::EndOfTable(_) => {}
+        DefinedStruct::Inactive(_) => {}                     // fixme
+        DefinedStruct::EndOfTable(_) => {}                   // fixme
+        DefinedStruct::FirmwareInventoryInformation(_) => {} // fixme
+        DefinedStruct::StringProperty(_) => {}               // fixme
     }
     Ok(())
 }
@@ -165,16 +167,16 @@ pub fn init() {
     };
     let table: DefinedStructTable<'_> = data.iter().collect();
     let iter: IntoIter<DefinedStruct<'_>> = table.into_iter();
-    for values in iter
-        .sorted_by_key(|v| core::intrinsics::discriminant_value(v) as u32)
-        .collect_vec()
-        .group_by(|a, b| discriminant(a) == discriminant(b))
-    {
-        for (pos, v) in values.iter().enumerate() {
-            if let Err(e) = add_struct(pos, v) {
-                error!("[SMBIOS] Failed to add SMBIOS structure: {:?}", e)
-            }
-        }
-    }
+    // for values in iter
+    //     .sorted_by_key(|v| core::intrinsics::discriminant_value(v) as u32)
+    //     .collect_vec()
+    //     .group_by(|a, b| discriminant(a) == discriminant(b))
+    // {
+    //     for (pos, v) in values.iter().enumerate() {
+    //         if let Err(e) = add_struct(pos, v) {
+    //             error!("[SMBIOS] Failed to add SMBIOS structure: {:?}", e)
+    //         }
+    //     }
+    // }
     info!("[SMBIOS] Setup complete");
 }

@@ -102,24 +102,24 @@ impl TaskContext {
             stack_segment: 0,
         }
     }
-
-    pub unsafe fn fill_from(frame: &InterruptStackFrame, regs: &Regs) -> TaskContext {
-        let mut ctx = TaskContext::new();
-        ctx.stack_pointer = frame.stack_pointer;
-        ctx.instruction_pointer = frame.instruction_pointer;
-        ctx.stack_segment = frame.stack_segment;
-        ctx.code_segment = frame.code_segment;
-        ctx.fpu.save();
-        ctx.regs.take_from(regs);
-        ctx
-    }
-
-    pub unsafe fn save_info(&self, frame: &mut InterruptStackFrameValue, regs: &mut Regs) {
-        self.fpu.restore();
-        self.regs.put_into(regs);
-        frame.instruction_pointer = self.instruction_pointer;
-        frame.stack_pointer = self.stack_pointer;
-        frame.code_segment = self.code_segment;
-        frame.stack_segment = self.stack_segment;
-    }
+    //
+    // pub unsafe fn fill_from(frame: &InterruptStackFrame, regs: &Regs) -> TaskContext {
+    //     let mut ctx = TaskContext::new();
+    //     ctx.stack_pointer = frame.stack_pointer;
+    //     ctx.instruction_pointer = frame.instruction_pointer;
+    //     ctx.stack_segment = frame.stack_segment;
+    //     ctx.code_segment = frame.code_segment;
+    //     ctx.fpu.save();
+    //     ctx.regs.take_from(regs);
+    //     ctx
+    // }
+    //
+    // pub unsafe fn save_info(&self, frame: &mut InterruptStackFrameValue, regs: &mut Regs) {
+    //     self.fpu.restore();
+    //     self.regs.put_into(regs);
+    //     frame.instruction_pointer = self.instruction_pointer;
+    //     frame.stack_pointer = self.stack_pointer;
+    //     frame.code_segment = self.code_segment;
+    //     frame.stack_segment = self.stack_segment;
+    // }
 }

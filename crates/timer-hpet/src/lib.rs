@@ -16,21 +16,22 @@ mod capabilities;
 mod hpet;
 mod timer;
 
+const HPET_ADDR: VirtAddr = VirtAddr::new_truncate(1024 * 1024 * 1024 * 502);
+
 static mut HPET: Option<RwLock<Hpet>> = None;
 
 pub fn init(info: &acpi::hpet::HpetInfo) {
     let phys = PhysAddr::new(info.base_address as u64);
-    let addr: VirtAddr = translate_kernel(phys);
     distros_memory::map(
         PhysFrame::<Size4KiB>::containing_address(phys),
-        Page::containing_address(addr),
+        Page::containing_address(HPET_ADDR),
         PageTableFlags::PRESENT
             | PageTableFlags::WRITABLE
             | PageTableFlags::NO_CACHE
             | PageTableFlags::NO_EXECUTE,
     )
     .unwrap();
-    let mut hpet = Hpet::new(addr);
+    let mut hpet = Hpet::new(HPET_ADDR);
     hpet.disable();
     hpet.disable_legacy_replacement();
     hpet.set_main_counter(0);

@@ -25,10 +25,6 @@ impl PciAccess {
 }
 
 impl ConfigRegionAccess for PciAccess {
-    fn function_exists(&self, address: PciAddress) -> bool {
-        unsafe { self.read(address, 0) & 0xFFFF != 0xFFFF }
-    }
-
     unsafe fn read(&self, address: PciAddress, offset: u16) -> u32 {
         let mut result: u32 = 0;
         result.set_bits(0..8, offset as u32);

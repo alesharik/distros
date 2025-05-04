@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-x86_64 = "0.14.12"
-
 distros-cpuid = { path = "../cpuid" }
-log = "0.4.20"
+
+x86_64.workspace = true
+
+log.workspace = true

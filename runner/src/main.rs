@@ -3,7 +3,7 @@ use std::process::{Command, Stdio};
 
 fn main() {
     if !Command::new("cargo")
-        .arg("+nightly-2024-01-16")
+        .arg("+nightly")
         .arg("build")
         .arg("--target")
         .arg("x86_64-unknown-none")

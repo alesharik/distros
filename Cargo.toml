@@ -5,28 +5,21 @@ authors = ["Aleksei Arsenev <alesharikReserv@yandex.ru>"]
 edition = "2018"
 
 [dependencies]
-bootloader_api = "0.11.5"
-log = "0.4.14"
-spin = "0.9.0"
-vga = { git = "https://github.com/rust-osdev/vga.git" }
-volatile = "0.4.4"
-x86_64 = "0.14.9"
-linked_list_allocator = "0.9.0"
-acpi = "5.0.0"
-bitflags = "1.2.1"
-chrono = { version = "0.4", default-features = false, features = ["alloc"] }
-fixedbitset = { version = "0.4.0", default-features = false }
-rand_core = "0.6.4"
-bit_field = "0.10.1"
-rpds = { version = "0.9.0", default-features = false }
+bootloader_api.workspace = true
+spin.workspace = true
+x86_64.workspace = true
+bitflags.workspace = true
+chrono.workspace = true
+fixedbitset.workspace = true
 futures = { version = "0.3.30", default-features = false, features = ["alloc", "async-await", "bilock", "unstable"] }
 async-trait = "0.1.50"
 crossbeam-queue = { version = "0.3.2", default-features = false, features = ["alloc"] }
-hashbrown = "0.11.2"
+hashbrown.workspace = true
+log.workspace = true
 
-ps2 = "0.1.2" # PS2 keyboard and mouse support
+#ps2 = "0.2.0" # PS2 keyboard and mouse support
 pc-keyboard = "0.5.1" # keyboard parser
-pci_types = "0.6.1"  # PCI types
+pci_types.workspace = true  # PCI types
 vte = { git = "https://github.com/alesharik/vte.git", branch = "move-ansi", features = ["ansi"] } # ANSI terminal parser
 smbios-lib = { git = "https://github.com/alesharik/smbios-lib.git", features = ["no_std", "x86_64"], default-features = false, branch = "struct_clone" } # SMBIOS
 serde = { version = "1.0.127", features = ["derive", "alloc"], default-features = false }
@@ -34,7 +27,7 @@ itertools = { version = "0.10.1", default-features = false, features = ["use_all
 goblin = { version = "0.4.2", default-features = false, features = ["alloc", "endian_fd", "elf32", "elf64", "archive"] }
 arrayvec = { version = "0.7.1", default-features = false }
 thingbuf = { version = "0.1.2", default-features = false, features = ["alloc"] }
-noto-sans-mono-bitmap = "0.2.0" # primary font
+noto-sans-mono-bitmap = "0.3.1" # primary font
 libkernel = { path = "libraries/libkernel" }
 
 distros-framebuffer = { path = "crates/framebuffer" }
@@ -65,3 +58,34 @@ cc = "1.0.68"
 [workspace]
 members = [ "crates/acpi", "crates/acpi-aml", "crates/cpuid", "crates/fpu","crates/framebuffer", "crates/framebuffer-vesa", "crates/interrupt", "crates/interrupt-pic", "crates/logging", "crates/memory", "crates/memory-stack", "crates/pci-access", "crates/pci-enumerate", "crates/random", "crates/scheduler", "crates/timer", "crates/timer-hpet", "crates/timer-pit", "crates/timer-rtc", "crates/timer-tsc"]
 exclude = ["runner"]
+
+[workspace.dependencies]
+bitflags = "2.9.0"
+bit_field = "0.10.2"
+fixedbitset = { version = "0.5.7", default-features = false }
+lazy_static = "1.4.0"
+hashbrown = "0.15.3"
+intrusive-collections = "0.9.7"
+
+chrono = { version = "0.4", default-features = false, features = ["alloc"] }
+
+arrayvec = { version = "0.7.4", default-features = false }
+
+acpi = "5.2.0"
+aml = "0.16.4"
+x86_64 = "0.15.2"
+raw-cpuid = "11.0.1"
+x2apic = "0.5.0"
+
+pci_types = "0.10.0"
+
+spin = "0.10.0"
+
+talc = "4.4.2"
+
+bootloader_api = "0.11.10"
+
+rand = { version = "0.9.1", default-features = false, features = ["alloc"] }
+rand_pcg = "0.9.0"
+
+log = "0.4.27"

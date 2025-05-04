@@ -52,13 +52,13 @@ pub enum OverrideMode {
 pub fn set_handler(int: InterruptId, func: HandlerFunc, override_mode: OverrideMode) {
     let mut idt = IDT.lock();
     let mut set_ints = SET_INTS.lock();
-    if set_ints.contains(int.int()) {
+    if set_ints.contains(int.int() as usize) {
         match override_mode {
             OverrideMode::Override => {}
             OverrideMode::Panic => panic!("Interrupt {:?} already registered", int),
         }
     }
-    set_ints.insert(int.int());
+    set_ints.insert(int.int() as usize);
     unsafe {
         idt[int.int()].set_handler_fn(func);
         idt.load_unsafe();
@@ -67,7 +67,7 @@ pub fn set_handler(int: InterruptId, func: HandlerFunc, override_mode: OverrideM
 
 pub fn has_handler(int: InterruptId) -> bool {
     let set_ints = SET_INTS.lock();
-    set_ints.contains(int.int())
+    set_ints.contains(int.int() as usize)
 }
 
 /// Allocates handler somewhere in table. Return allocated interrupt
@@ -80,11 +80,11 @@ pub fn alloc_handler(func: HandlerFunc) -> Option<InterruptId> {
             continue;
         }
         set_ints.insert(i);
-        idt[i].set_handler_fn(func);
+        idt[i as u8].set_handler_fn(func);
         unsafe {
             idt.load_unsafe();
         }
-        return Some(InterruptId::new(i));
+        return Some(InterruptId::new(i as u8));
     }
     None
 }

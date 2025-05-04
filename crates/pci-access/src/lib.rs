@@ -18,16 +18,6 @@ static mut PCIE_ACCESS: Option<PcieAccess> = None;
 pub struct AccessImpl;
 
 impl ConfigRegionAccess for AccessImpl {
-    fn function_exists(&self, address: PciAddress) -> bool {
-        unsafe {
-            if let Some(pcie) = PCIE_ACCESS.as_ref() {
-                pcie.function_exists(address)
-            } else {
-                PCI_ACCESS.function_exists(address)
-            }
-        }
-    }
-
     unsafe fn read(&self, address: PciAddress, offset: u16) -> u32 {
         unsafe {
             if let Some(pcie) = PCIE_ACCESS.as_ref() {

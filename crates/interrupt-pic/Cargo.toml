@@ -4,14 +4,17 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-x86_64 = "0.14.12"
-x2apic = "0.4.3"
-lazy_static = "1.4.0"
-log = "0.4.20"
-spin = "0.9.8"
-acpi = "5.0.0"
-
 distros-memory = { path = "../memory" }
 distros-cpuid = { path = "../cpuid" }
 distros-interrupt = { path = "../interrupt" }
 distros-acpi = { path = "../acpi" }
+
+lazy_static.workspace = true
+
+x86_64.workspace = true
+x2apic.workspace = true
+acpi.workspace = true
+
+spin.workspace = true
+
+log.workspace = true

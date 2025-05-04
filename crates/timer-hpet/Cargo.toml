@@ -4,13 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-x86_64 = "0.14.12"
-acpi = "5.0.0"
-log = "0.4.20"
-spin = "0.9.8"
-bit_field = "0.10.1"
-
 distros-timer-rtc = { path = "../timer-rtc" }
 distros-memory = { path = "../memory" }
 distros-interrupt = { path = "../interrupt" }
 distros-interrupt-pic = { path = "../interrupt-pic" }
+
+bit_field.workspace = true
+
+x86_64.workspace = true
+acpi.workspace = true
+
+spin.workspace = true
+
+log.workspace = true

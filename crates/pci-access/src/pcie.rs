@@ -51,10 +51,6 @@ impl PcieAccess {
 }
 
 impl ConfigRegionAccess for PcieAccess {
-    fn function_exists(&self, address: PciAddress) -> bool {
-        unsafe { self.read(address, 0) & 0xFFFF != 0xFFFF }
-    }
-
     unsafe fn read(&self, address: PciAddress, offset: u16) -> u32 {
         if let Some(mem) = self.get_address(address) {
             (mem + offset as u64).as_ptr::<u32>().read_volatile()

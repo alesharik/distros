@@ -1,4 +1,4 @@
-use rand::{Error, RngCore};
+use rand::RngCore;
 use x86_64::instructions::random::RdRand;
 
 pub struct HwRng<F: RngCore + Send + Sync + 'static> {
@@ -43,10 +43,5 @@ impl<F: RngCore + Send + Sync + 'static> RngCore for HwRng<F> {
 
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.fill_bytes_impl(dest)
-    }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        self.fill_bytes(dest);
-        Ok(())
     }
 }

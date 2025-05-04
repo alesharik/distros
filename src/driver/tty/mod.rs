@@ -16,7 +16,7 @@ use vte::ansi::{
 };
 
 mod flow;
-mod vga;
+// mod vga;
 
 trait TtyScreen {
     fn set_title(&mut self, title: &str);
@@ -639,21 +639,21 @@ static VGA_STDIN: Lazy<Arc<Mutex<Stdin>>> = Lazy::new(|| Arc::new(Mutex::new(Std
 
 pub fn init() -> Result<(), FlowManagerError> {
     debug!("Setting up TTY devices");
-    let stdout = Stdout::new(
-        DefaultHandler::new(vga::VgaTextScreen::new()),
-        VGA_STDIN.clone(),
-    );
-    let sub = FlowManager::subscribe(
-        "/dev/ps2/keyboard",
-        Box::new(StdinKeyboardConsumer::new(VGA_STDIN.clone())),
-    )?;
-    core::mem::forget(sub); // never unsubscribe from device
-    FlowManager::register_endpoint(
-        "/dev/tty/vga",
-        VGA_STDIN.clone(),
-        Some(Arc::new(Mutex::new(stdout))),
-    )
-    .unwrap();
+    // let stdout = Stdout::new(
+    //     DefaultHandler::new(vga::VgaTextScreen::new()),
+    //     VGA_STDIN.clone(),
+    // );
+    // let sub = FlowManager::subscribe(
+    //     "/dev/ps2/keyboard",
+    //     Box::new(StdinKeyboardConsumer::new(VGA_STDIN.clone())),
+    // )?;
+    // core::mem::forget(sub); // never unsubscribe from device
+    // FlowManager::register_endpoint(
+    //     "/dev/tty/vga",
+    //     VGA_STDIN.clone(),
+    //     Some(Arc::new(Mutex::new(stdout))),
+    // )
+    // .unwrap();
     debug!("VGA TTY device set up");
     Ok(())
 }

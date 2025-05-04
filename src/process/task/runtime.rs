@@ -127,10 +127,10 @@ impl ProcessRuntime {
 
     unsafe fn save_current_task(&mut self, stack_frame: &InterruptStackFrame, regs: &Regs) {
         if let Some(task) = self.current_task_info.take() {
-            self.queue.push(ProcessTask {
-                info: task,
-                state: ProcessTaskState::Paused(TaskContext::fill_from(&stack_frame, regs)),
-            });
+            // self.queue.push(ProcessTask {
+            //     info: task,
+            //     // state: ProcessTaskState::Paused(TaskContext::fill_from(&stack_frame, regs)),
+            // });
         }
     }
 
@@ -183,7 +183,7 @@ impl ProcessRuntime {
                 // so, task is handled, give control to main loop
             }
             ProcessTaskState::Paused(context) => {
-                context.save_info(stack_frame.as_mut().extract_inner(), regs);
+                // context.save_info(stack_frame.as_mut().extract_inner(), regs);
                 // continue paused task execution
             }
         }

@@ -6,7 +6,6 @@ pub mod sleep;
 mod task;
 
 use crate::process::task::ProcessTaskInfo;
-pub use task::{run, setup};
 
 struct Thread {}
 

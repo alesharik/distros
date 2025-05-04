@@ -1,4 +1,5 @@
 use distros_fpu::FpuState;
+use x86_64::structures::gdt::SegmentSelector;
 use x86_64::structures::idt::{InterruptStackFrame, InterruptStackFrameValue};
 use x86_64::VirtAddr;
 
@@ -88,8 +89,8 @@ pub struct TaskContext {
     pub fpu: FpuState,
     pub instruction_pointer: VirtAddr,
     pub stack_pointer: VirtAddr,
-    pub code_segment: u64,
-    pub stack_segment: u64,
+    pub code_segment: u16,
+    pub stack_segment: u16,
 }
 
 impl TaskContext {
@@ -108,8 +109,8 @@ impl TaskContext {
         let mut ctx = TaskContext::new();
         ctx.stack_pointer = frame.stack_pointer;
         ctx.instruction_pointer = frame.instruction_pointer;
-        ctx.stack_segment = frame.stack_segment;
-        ctx.code_segment = frame.code_segment;
+        ctx.stack_segment = frame.stack_segment.0;
+        ctx.code_segment = frame.code_segment.0;
         ctx.fpu.save();
         ctx.regs.take_from(regs);
         ctx
@@ -120,7 +121,7 @@ impl TaskContext {
         self.regs.put_into(regs);
         frame.instruction_pointer = self.instruction_pointer;
         frame.stack_pointer = self.stack_pointer;
-        frame.code_segment = self.code_segment;
-        frame.stack_segment = self.stack_segment;
+        frame.code_segment = SegmentSelector(self.code_segment);
+        frame.stack_segment = SegmentSelector(self.stack_segment);
     }
 }

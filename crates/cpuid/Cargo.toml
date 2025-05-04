@@ -4,5 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-raw-cpuid = "11.0.1"
-log = "0.4.20"
+raw-cpuid.workspace = true
+
+log.workspace = true

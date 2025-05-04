@@ -13,14 +13,14 @@ pub use nmi::without_nmi;
 
 #[derive(Clone, Copy, Eq, PartialEq, Debug, Ord, PartialOrd)]
 #[repr(transparent)]
-pub struct InterruptId(usize);
+pub struct InterruptId(u8);
 
 impl InterruptId {
-    pub const fn new(int: usize) -> Self {
+    pub const fn new(int: u8) -> Self {
         InterruptId(int)
     }
 
-    pub const fn int(&self) -> usize {
+    pub const fn int(&self) -> u8 {
         self.0
     }
 }

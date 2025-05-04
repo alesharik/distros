@@ -4,11 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-x86_64 = "0.14.12"
-lazy_static = "1.4.0"
-log = "0.4.20"
-bitflags = "2.4.2"
-spin = "0.9.8"
-fixedbitset = { version = "0.4.2", default-features = false }
+lazy_static.workspace = true
 
-distros-memory = { path = "../memory" }
+bitflags.workspace = true
+fixedbitset.workspace = true
+
+x86_64.workspace = true
+
+spin.workspace = true
+
+log.workspace = true

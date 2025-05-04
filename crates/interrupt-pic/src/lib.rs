@@ -5,9 +5,8 @@
 extern crate alloc;
 
 use acpi::platform::interrupt::{Polarity, TriggerMode};
-use distros_memory::translate_kernel;
 use x86_64::structures::paging::{Page, PageTableFlags, PhysFrame, Size4KiB};
-use x86_64::PhysAddr;
+use x86_64::{PhysAddr, VirtAddr};
 
 mod ioapic;
 mod isa;
@@ -24,6 +23,8 @@ pub use lapic::{
     timer_set_mode as lapic_timer_set_mode, timer_set_tsc_deadline as lapic_timer_set_tsc_deadline,
     INT_LAPIC_TIMER,
 };
+
+const LAPIC_ADDR: VirtAddr = VirtAddr::new_truncate(1024 * 1024 * 1024 * 500);
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 #[repr(transparent)]
@@ -124,17 +125,16 @@ pub fn init() {
     }
     let apic = distros_acpi::apic();
     let addr = PhysAddr::new(apic.local_apic_address);
-    let virt = translate_kernel(addr);
     distros_memory::map(
         PhysFrame::<Size4KiB>::containing_address(addr),
-        Page::containing_address(virt),
+        Page::containing_address(LAPIC_ADDR),
         PageTableFlags::PRESENT
             | PageTableFlags::WRITABLE
             | PageTableFlags::NO_CACHE
             | PageTableFlags::NO_EXECUTE,
     )
     .unwrap();
-    lapic::init_lapic(virt);
+    lapic::init_lapic(LAPIC_ADDR);
     isa::setup_overrides(&apic.interrupt_source_overrides);
     ioapic::init(&apic.io_apics)
 }

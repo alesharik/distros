@@ -2,7 +2,7 @@ use crate::scheduler::context::Regs;
 use crate::scheduler::logic::Scheduler;
 use crate::{NiceLevel, TaskFlags, TaskId};
 use alloc::boxed::Box;
-use core::arch::asm;
+use core::arch::{asm, naked_asm};
 use core::future::Future;
 use core::pin::Pin;
 use distros_interrupt::OverrideMode;
@@ -24,10 +24,10 @@ pub enum TaskState {
     Parked,
 }
 
-#[naked]
+#[unsafe(naked)]
 pub extern "x86-interrupt" fn switch_context(frame: InterruptStackFrame) {
     unsafe {
-        asm!(
+        naked_asm!(
         "mov     qword ptr [rsp - 120], r15",
         "mov     qword ptr [rsp - 112], r14",
         "mov     qword ptr [rsp - 104], r13",
@@ -63,8 +63,7 @@ pub extern "x86-interrupt" fn switch_context(frame: InterruptStackFrame) {
         "mov     rbx, qword ptr [rsp - 16]",
         "mov     rax, qword ptr [rsp - 8]",
         "iretq",
-        sym switch_context_int,
-        options(noreturn)
+        sym switch_context_int
         )
     }
 }

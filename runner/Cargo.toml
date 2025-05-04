@@ -6,4 +6,4 @@ edition = "2021"
 [dependencies]
 # used for UEFI booting in QEMU
 ovmf-prebuilt = "0.1.0-alpha.1"
-bootloader = "0.11.5"
+bootloader = "0.11.10"

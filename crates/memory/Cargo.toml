@@ -3,12 +3,14 @@ name = "distros-memory"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-talc = "4.2.0"
-log = "0.4.20"
-x86_64 = "0.14.9"
-bootloader_api = "0.11.5"
-arrayvec = { version = "0.7.4", default-features = false }
-spin = "0.9.8"
+talc.workspace = true
+
+x86_64.workspace = true
+bootloader_api.workspace = true
+
+arrayvec.workspace = true
+
+spin.workspace = true
+
+log.workspace = true

@@ -4,7 +4,7 @@ use log::{error, info};
 use x2apic::lapic::{LocalApic, LocalApicBuilder, TimerDivide, TimerMode};
 use x86_64::registers::model_specific::Msr;
 use x86_64::structures::idt::InterruptStackFrame;
-use x86_64::{software_interrupt, VirtAddr};
+use x86_64::VirtAddr;
 
 pub const INT_LAPIC_TIMER: InterruptId = InterruptId::new(32);
 const INT_LAPIC_ERROR: InterruptId = InterruptId::new(0xFF - 1);
@@ -18,9 +18,9 @@ pub fn init_lapic(address: VirtAddr) {
         distros_interrupt::set_handler(INT_LAPIC_ERROR, lapic_error, OverrideMode::Panic);
         distros_interrupt::set_handler(INT_LAPIC_SPURIOUS, lapic_suprous, OverrideMode::Panic);
         let mut apic = LocalApicBuilder::new()
-            .timer_vector(INT_LAPIC_TIMER.int())
-            .error_vector(INT_LAPIC_ERROR.int())
-            .spurious_vector(INT_LAPIC_SPURIOUS.int())
+            .timer_vector(INT_LAPIC_TIMER.int() as usize)
+            .error_vector(INT_LAPIC_ERROR.int() as usize)
+            .spurious_vector(INT_LAPIC_SPURIOUS.int() as usize)
             .set_xapic_base(address.as_u64())
             .build()
             .expect("Failed to get Local APIC");

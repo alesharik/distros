@@ -33,7 +33,7 @@ impl Region {
                 size, self.used, self.len
             );
         }
-        let addr = self.ptr + self.used;
+        let addr = self.ptr + self.used as u64;
         self.used += size;
         addr
     }

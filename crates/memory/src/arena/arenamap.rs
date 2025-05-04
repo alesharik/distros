@@ -42,7 +42,7 @@ impl RawArena {
     pub fn split(&mut self, size: usize) -> Arena {
         let arena = Arena {
             size: self.0.size - size as u64,
-            start: self.0.start + size,
+            start: self.0.start + size as u64,
         };
         self.0.size = size as u64;
         arena
@@ -69,7 +69,7 @@ impl ArenaMap {
             return Err(Error::ArenaMapSizeExhausted);
         }
         unsafe {
-            let ptr = self.ptr + self.len * size_of::<RawArena>();
+            let ptr = self.ptr + (self.len * size_of::<RawArena>()) as u64;
             let ptr: *mut RawArena = ptr.as_mut_ptr();
             *ptr = RawArena(arena);
             (&mut *ptr).set_taken(taken);
@@ -83,7 +83,7 @@ impl ArenaMap {
             return false;
         }
         unsafe {
-            let ptr = self.ptr + pos * size_of::<RawArena>();
+            let ptr = self.ptr + (pos * size_of::<RawArena>()) as u64;
             let ptr: *mut RawArena = ptr.as_mut_ptr();
             if (&*ptr).is_empty() {
                 *ptr = RawArena(arena);
@@ -99,7 +99,7 @@ impl ArenaMap {
         }
         for i in 0..self.len {
             unsafe {
-                let ptr = self.ptr + i * size_of::<RawArena>();
+                let ptr = self.ptr + (i * size_of::<RawArena>()) as u64;
                 let ptr: *mut RawArena = ptr.as_mut_ptr();
                 if (&*ptr).is_taken() || (&*ptr).is_empty() {
                     continue;
@@ -125,7 +125,7 @@ impl ArenaMap {
         }
         for i in 0..self.len {
             unsafe {
-                let ptr = self.ptr + i * size_of::<RawArena>();
+                let ptr = self.ptr + (i * size_of::<RawArena>()) as u64;
                 let ptr: *mut RawArena = ptr.as_mut_ptr();
                 if (&*ptr).start() == start {
                     (&mut *ptr).set_taken(false);
